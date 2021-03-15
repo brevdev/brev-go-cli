@@ -22,3 +22,23 @@ import (
 func logic() {
 	fmt.Println("endpoint called")
 }
+
+func add_endpoint(name string) {
+	fmt.Printf("Create ep file %s", name)
+}
+
+func remove_endpoint(name string) {
+	fmt.Printf("Remove ep file %s", name)
+}
+
+func run_endpoint(name string) {
+	fmt.Printf("Run ep file %s", name)
+}
+
+func list_endpoints() {
+	fmt.Println("List all endpoints")
+}
+
+func log_endpoint(name string) {
+	fmt.Printf("Log ep file %s", name)
+}

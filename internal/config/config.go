@@ -1,6 +1,6 @@
 package config
 
-type configs struct {}
+type configs struct{}
 
 var config configs
 
