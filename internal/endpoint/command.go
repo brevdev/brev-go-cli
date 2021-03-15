@@ -37,7 +37,7 @@ func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
 	}
 
 	cmd.AddCommand(newCmdRun(context))
-	
+
 	return cmd
 }
 

@@ -120,7 +120,7 @@ func newCmdPull(context *cmdcontext.Context) *cobra.Command {
 }
 
 func newCmdPush(context *cmdcontext.Context) *cobra.Command {
-	cmd :=  &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "push",
 		Short: "A brief description of your command",
 		Long: `A longer description that spans multiple lines and likely contains examples

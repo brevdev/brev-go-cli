@@ -26,7 +26,6 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/package_project"
 	"github.com/brevdev/brev-go-cli/internal/project"
 	"github.com/brevdev/brev-go-cli/internal/version"
-	
 )
 
 func main() {

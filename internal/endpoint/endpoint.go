@@ -19,7 +19,6 @@ import (
 	"fmt"
 )
 
-
 func logic() {
 	fmt.Println("endpoint called")
 }

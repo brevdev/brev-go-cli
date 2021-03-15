@@ -17,10 +17,9 @@ package package_project
 
 import (
 	"github.com/spf13/cobra"
-	
+
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 )
-
 
 func NewCmdPackage(context *cmdcontext.Context) *cobra.Command {
 	cmd := &cobra.Command{
