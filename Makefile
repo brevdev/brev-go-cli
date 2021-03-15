@@ -4,6 +4,7 @@ BIN_VERSION?=0.1.0
 GOCMD=GO
 
 GOBUILD=$(GOCMD) build
+GOTEST=$(GOCMD) test
 GOFMT=$(GOCMD) fmt
 GOCLEAN=$(GOCMD) clean
 
@@ -24,6 +25,10 @@ linux:
 darwin:
 	env GOOS=darwin GOARCH=amd64 $(BUILDCMD) \
 			-o $(PATH_BIN)/osx/$(BIN_NAME) -v $(PATH_MAIN)
+
+test_unit:
+	$(GOTEST) -v $(PATH_PROJECT)/cmd/...
+	$(GOTEST) -v $(PATH_PROJECT)/internal/...
 
 fmt:
 	$(GOFMT) ./...
