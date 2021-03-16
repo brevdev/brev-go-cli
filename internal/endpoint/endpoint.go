@@ -36,10 +36,10 @@ func remove_endpoint(name string) {
 func run_endpoint(name string, method string, arg []string, jsonBody string) {
 	fmt.Printf("Run ep file %s %s %s", name, method, arg)
 
-    apiUrl := "https://dev-fjaq77pr.brev.dev/api/hi"
+	apiUrl := "https://dev-fjaq77pr.brev.dev/api/hi"
 
 	response := requests.Get(requests.RequestParams{
-		UrlString: apiUrl,
+		UrlString:   apiUrl,
 		QueryParams: arg,
 	})
 
@@ -48,7 +48,7 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 
 	response2 := requests.Post(requests.PostRequestParams{
 		RequestParams: requests.RequestParams{
-			UrlString: apiUrl,
+			UrlString:   apiUrl,
 			QueryParams: arg,
 		},
 		Body: "{'test':'value'}",
@@ -56,7 +56,7 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 
 	fmt.Println(response2.Status)
 	fmt.Println(response2.Body)
-	
+
 }
 
 func list_endpoints() {

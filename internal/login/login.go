@@ -1,7 +1,6 @@
 package login
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"embed"
@@ -16,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/config"
+	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
 const (
@@ -55,6 +55,7 @@ func authenticateWithCotter() error {
 		return err
 	}
 
+	// TODO: pretty print URL?
 	fmt.Println(cotterURL)
 
 	err = openInDefaultBrowser(cotterURL)
@@ -78,21 +79,25 @@ func buildCotterAuthURL(code_verifier string) (string, error) {
 	state := generateStateValue()
 	code_challenge := generateCodeChallenge(code_verifier)
 
-	cotterRequest, err := http.NewRequest("GET", COTTER_ENDPOINT, nil)
+	request := &requests.RESTRequest{
+		Method:   "GET",
+		Endpoint: COTTER_ENDPOINT,
+		QueryParams: []requests.QueryParam{
+			{"api_key", getCotterAPIKey()},
+			{"redirect_url", LOCAL_ENDPOINT},
+			{"state", state},
+			{"code_challenge", code_challenge},
+			{"type", "EMAIL"},
+			{"auth_method", "MAGIC_LINK"},
+		},
+	}
+
+	httpRequest, err := request.BuildHTTPRequest()
 	if err != nil {
 		return "", err
 	}
 
-	q := cotterRequest.URL.Query()
-	q.Add("api_key", getCotterAPIKey())
-	q.Add("redirect_url", LOCAL_ENDPOINT)
-	q.Add("state", state)
-	q.Add("code_challenge", code_challenge)
-	q.Add("type", "EMAIL")
-	q.Add("auth_method", "MAGIC_LINK")
-
-	cotterRequest.URL.RawQuery = q.Encode()
-	return cotterRequest.URL.String(), nil
+	return httpRequest.URL.String(), nil
 }
 
 func openInDefaultBrowser(url string) error {
@@ -155,37 +160,31 @@ func requestCotterToken(code string, challenge_id string, code_verifier string) 
 		return nil, err
 	}
 
-	requestBody, err := json.Marshal(cotterTokenRequestPayload{
-		CodeVerifier:      code_verifier,
-		AuthorizationCode: code,
-		ChallengeId:       challenge_id_int,
-		RedirectURL:       LOCAL_ENDPOINT,
-	})
-
+	request := &requests.RESTRequest{
+		Method:   "POST",
+		Endpoint: COTTER_BACKEND_ENDPOINT + "/verify/get_identity",
+		Headers: []requests.Header{
+			{"API_KEY_ID", getCotterAPIKey()},
+			{"Content-Type", "application/json"},
+		},
+		QueryParams: []requests.QueryParam{
+			{"oauth_token", "true"},
+		},
+		Payload: cotterTokenRequestPayload{
+			CodeVerifier:      code_verifier,
+			AuthorizationCode: code,
+			ChallengeId:       challenge_id_int,
+			RedirectURL:       LOCAL_ENDPOINT,
+		},
+	}
+	response, err := request.Submit()
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", COTTER_BACKEND_ENDPOINT+"/verify/get_identity?oauth_token=true", bytes.NewBuffer(requestBody))
-	request.Header.Set("API_KEY_ID", getCotterAPIKey())
-	request.Header.Set("Content-Type", "application/json")
-
-	client := http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-
-	defer response.Body.Close()
 	var tokenResponse cotterTokenResponseBody
-	err = json.NewDecoder(response.Body).Decode(&tokenResponse)
-	if err != nil {
-		return nil, err
-	}
+	response.DecodePayload(&tokenResponse)
 
-	if err != nil {
-		return nil, err
-	}
 	return &tokenResponse.OauthToken, nil
 }
 

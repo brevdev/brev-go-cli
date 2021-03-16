@@ -85,10 +85,10 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 type Method int
 
 const (
-    GET Method = iota
-    PUT
-    POST
-    DELETE
+	GET Method = iota
+	PUT
+	POST
+	DELETE
 )
 
 func newCmdRun(context *cmdcontext.Context) *cobra.Command {
@@ -118,7 +118,6 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 	cmd.MarkFlagRequired("method")
 	cmd.Flags().StringArrayVarP(&arg, "arg", "a", []string{}, "add query params")
 	cmd.Flags().StringVarP(&body, "body", "b", "", "add json body")
-
 
 	return cmd
 }
