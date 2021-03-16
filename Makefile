@@ -40,12 +40,12 @@ dist: build dist-linux dist-darwin
 
 dist-linux:
 	mkdir -p $(PATH_DIST)/nix
-	tar -czf $(PATH_DIST)/nix/brev-nix-64.tar.gz $(PATH_BIN)/nix/$(BIN_NAME)
+	tar -C $(PATH_BIN)/nix/ -czf $(PATH_DIST)/nix/brev-nix-64.tar.gz $(BIN_NAME)
 	shasum -a 256 $(PATH_DIST)/nix/brev-nix-64.tar.gz | awk '{print $$1}' > $(PATH_DIST)/nix/brev-nix-64.tar.gz.sha256
 
 dist-darwin:
 	mkdir -p $(PATH_DIST)/osx
-	tar -czf $(PATH_DIST)/osx/brev-osx-64.tar.gz $(PATH_BIN)/osx/$(BIN_NAME)
+	tar -C $(PATH_BIN)/osx/ -czf $(PATH_DIST)/osx/brev-osx-64.tar.gz $(BIN_NAME)
 	shasum -a 256 $(PATH_DIST)/osx/brev-osx-64.tar.gz | awk '{print $$1}' > $(PATH_DIST)/osx/brev-osx-64.tar.gz.sha256
 
 clean:
