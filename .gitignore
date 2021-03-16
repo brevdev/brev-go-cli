@@ -6,6 +6,7 @@ brev
 *.so
 *.dylib
 bin/*
+dist/*
 
 *.test
 

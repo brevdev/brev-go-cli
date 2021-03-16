@@ -10,6 +10,7 @@ GOFMT=$(GOCMD) fmt
 GOCLEAN=$(GOCMD) clean
 
 PATH_BIN=bin
+PATH_DIST=dist
 PATH_PROJECT=github.com/brevdev/brev-go-cli
 PATH_MAIN=$(PATH_PROJECT)/cmd
 
@@ -34,6 +35,18 @@ test_unit:
 
 fmt:
 	$(GOFMT) ./...
+
+dist: build dist-linux dist-darwin
+
+dist-linux:
+	mkdir -p $(PATH_DIST)/nix
+	tar -czf $(PATH_DIST)/nix/brev-nix-64.tar.gz $(PATH_BIN)/nix/$(BIN_NAME)
+	shasum -a 256 $(PATH_DIST)/nix/brev-nix-64.tar.gz | awk '{print $$1}' > $(PATH_DIST)/nix/brev-nix-64.tar.gz.sha256
+
+dist-darwin:
+	mkdir -p $(PATH_DIST)/osx
+	tar -czf $(PATH_DIST)/osx/brev-osx-64.tar.gz $(PATH_BIN)/osx/$(BIN_NAME)
+	shasum -a 256 $(PATH_DIST)/osx/brev-osx-64.tar.gz | awk '{print $$1}' > $(PATH_DIST)/osx/brev-osx-64.tar.gz.sha256
 
 clean:
 	$(GOCLEAN)
