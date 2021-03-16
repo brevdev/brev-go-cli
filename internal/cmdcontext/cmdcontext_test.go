@@ -35,5 +35,5 @@ func TestInitDefault(t *testing.T) {
 }
 
 func typeIsEqual(a, b interface{}) bool {
-    return fmt.Sprintf("%T", a) == fmt.Sprintf("%T", b)
+	return fmt.Sprintf("%T", a) == fmt.Sprintf("%T", b)
 }

@@ -1,5 +1,6 @@
 BIN_NAME?=brev
 BIN_VERSION?=0.1.0
+API_KEY_COTTER?=unknown
 
 GOCMD=GO
 
@@ -13,8 +14,9 @@ PATH_PROJECT=github.com/brevdev/brev-go-cli
 PATH_MAIN=$(PATH_PROJECT)/cmd
 
 FIELD_VERSION=$(PATH_PROJECT)/internal/config.Version
+FIELD_COTTER_API_KEY=$(PATH_PROJECT)/internal/config.CotterAPIKey
 
-BUILDCMD=$(GOBUILD) -ldflags "-X $(FIELD_VERSION)=$(BIN_VERSION)"
+BUILDCMD=$(GOBUILD) -ldflags "-X $(FIELD_VERSION)=$(BIN_VERSION) -X $(FIELD_COTTER_API_KEY)=$(API_KEY_COTTER)"
 
 build: linux darwin
 

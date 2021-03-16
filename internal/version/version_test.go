@@ -9,10 +9,10 @@ import (
 func TestBuildVersionString(t *testing.T) {
 	contextStub := &cmdcontext.Context{}
 
-    want := "unknown"
-    got, err := buildVersionString(contextStub)
+	want := "unknown"
+	got, err := buildVersionString(contextStub)
 
-    if want != got || err != nil {
-        t.Fatalf(`buildVersionString() = %q, %v, want match for %#q, nil`, got, err, want)
-    }
+	if want != got || err != nil {
+		t.Errorf(`buildVersionString() = %q, %v, want match for %#q, nil`, got, err, want)
+	}
 }
