@@ -82,8 +82,20 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 	return cmd
 }
 
+type Method int
+
+const (
+    GET Method = iota
+    PUT
+    POST
+    DELETE
+)
+
 func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 	var name string
+	var method string
+	var arg []string
+	var body string
 
 	cmd := &cobra.Command{
 		Use:   "run",
@@ -93,11 +105,20 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint run MyEp
 		`,
 		Run: func(cmd *cobra.Command, args []string) {
-			run_endpoint(name)
+			run_endpoint(name, method, arg, body)
+			// for _, v := range arg {
+			// 	fmt.Println(v)
+			// }
 		},
 	}
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the endpoint")
+	cmd.MarkFlagRequired("name")
+	cmd.Flags().StringVarP(&method, "method", "r", "GET", "http request method")
+	cmd.MarkFlagRequired("method")
+	cmd.Flags().StringArrayVarP(&arg, "arg", "a", []string{}, "add query params")
+	cmd.Flags().StringVarP(&body, "body", "b", "", "add json body")
+
 
 	return cmd
 }

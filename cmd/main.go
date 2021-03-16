@@ -26,6 +26,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/login"
 	"github.com/brevdev/brev-go-cli/internal/package_project"
 	"github.com/brevdev/brev-go-cli/internal/project"
+	"github.com/brevdev/brev-go-cli/internal/requests"
 	"github.com/brevdev/brev-go-cli/internal/version"
 )
 
@@ -46,8 +47,18 @@ func newCmdBrev() *cobra.Command {
 		Use: "brev",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			cmdContext.Init(verbose)
+			
 		},
 	}
+
+	response := requests.Get(requests.RequestParams{
+		UrlString: "https://wqgtqgir.brev.dev/api/CLI2",
+		QueryParams: []string {"hi=bye", "hiii=byyyeee"},
+	})
+
+	fmt.Println(response.Status)
+	fmt.Println(response.Body)
+
 
 	brevCommand.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 
