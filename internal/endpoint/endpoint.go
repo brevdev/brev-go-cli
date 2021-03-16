@@ -17,11 +17,8 @@ package endpoint
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
+
+	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
 func logic() {
@@ -39,40 +36,16 @@ func remove_endpoint(name string) {
 func run_endpoint(name string, method string, arg []string, jsonBody string) {
 	fmt.Printf("Run ep file %s %s %s", name, method, arg)
 
-	for i := 0; i < len(arg); i++ {
-		fmt.Printf(arg[i])
-	}
-
-
     apiUrl := "https://dev-fjaq77pr.brev.dev/api/hi"
-    data := url.Values{}
-    data.Set("name", "foo")
-    data.Set("surname", "bar")
 
-    // u, _ := url.ParseRequestURI(apiUrl)
-    // urlStr := u.String() // "https://api.com/user/"
+	response := requests.Get(requests.RequestParams{
+		UrlString: apiUrl,
+		QueryParams: arg,
+	})
 
-    client := &http.Client{}
-
-	var body io.Reader;
+	fmt.Println(response.Status)
+	fmt.Println(response.Body)
 	
-	if method=="GET" {
-		fmt.Println("YYYEEEPP")
-		body = nil
-	} else {
-		body = strings.NewReader(data.Encode())
-	}
-
-    r, _ := http.NewRequest("GET", apiUrl, body) // URL-encoded payload
-    // r, _ := http.NewRequest("GET", apiUrl, body) // URL-encoded payload
-    r.Header.Add("Content-Type", "application/json")
-
-    resp, _ := client.Do(r)
-    fmt.Println(resp.Status)
-	
-	resp_body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(resp_body))
-
 }
 
 func list_endpoints() {
