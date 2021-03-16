@@ -69,3 +69,23 @@ func Get(request RequestParams) (happyResponse) {
 	return happyResponse{resp.Status, string(resp_body)}
 }
 
+type PostRequestParams struct {
+	RequestParams RequestParams
+	Body string
+}
+
+func Post(request PostRequestParams) (happyResponse) {
+
+	apiUrl := build_endpoint_url(request.RequestParams)
+
+	// Make the network call
+	client := &http.Client{}
+    r, _ := http.NewRequest("POST", apiUrl, strings.NewReader(request.Body)) // URL-encoded payload
+    r.Header.Add("Content-Type", "application/json")
+    resp, _ := client.Do(r)
+
+	// Read the response to return it as string
+	resp_body, _ := ioutil.ReadAll(resp.Body)
+
+	return happyResponse{resp.Status, string(resp_body)}
+}

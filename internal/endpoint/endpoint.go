@@ -45,6 +45,17 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 
 	fmt.Println(response.Status)
 	fmt.Println(response.Body)
+
+	response2 := requests.Post(requests.PostRequestParams{
+		RequestParams: requests.RequestParams{
+			UrlString: apiUrl,
+			QueryParams: arg,
+		},
+		Body: "{'test':'value'}",
+	})
+
+	fmt.Println(response2.Status)
+	fmt.Println(response2.Body)
 	
 }
 
