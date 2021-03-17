@@ -62,4 +62,5 @@ func createCmdTree(brevCommand *cobra.Command, context *cmdcontext.Context) {
 	brevCommand.AddCommand(package_project.NewCmdPackage(context))
 	brevCommand.AddCommand(project.NewCmdProject(context))
 	brevCommand.AddCommand(version.NewCmdVersion(context))
+	brevCommand.AddCommand(&completionCmd)
 }
