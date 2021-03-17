@@ -16,7 +16,9 @@ limitations under the License.
 package endpoint
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
@@ -36,26 +38,45 @@ func remove_endpoint(name string) {
 func run_endpoint(name string, method string, arg []string, jsonBody string) {
 	fmt.Printf("Run ep file %s %s %s", name, method, arg)
 
-	apiUrl := "https://dev-fjaq77pr.brev.dev/api/hi"
+	var params []requests.QueryParam;
+	for _, v := range arg {
+		if strings.Contains(v, "=") {
+			newArr := strings.Split(v, "=")
+			params = append(params, requests.QueryParam{
+				Key:newArr[0], Value:newArr[1]})
+		}
+	}
 
-	response := requests.Get(requests.RequestParams{
-		UrlString:   apiUrl,
-		QueryParams: arg,
-	})
-
-	fmt.Println(response.Status)
-	fmt.Println(response.Body)
-
-	response2 := requests.Post(requests.PostRequestParams{
-		RequestParams: requests.RequestParams{
-			UrlString:   apiUrl,
-			QueryParams: arg,
+	request := &requests.RESTRequest{
+		Method: "GET",
+		Endpoint: "https://dev-fjaq77pr.brev.dev/api/hi",
+		QueryParams: params,
+		Headers: []requests.Header{
+			{Key:"Content-Type", Value:"application/json"},
 		},
-		Body: "{'test':'value'}",
-	})
+	}
+	raw_response, _ := request.Submit()
+	var response map[string]string
+	raw_response.DecodePayload(&response)
+	fmt.Print("\n\n")
+	fmt.Println(raw_response.StatusCode)
+	jsonstr,_ := json.MarshalIndent(response, "", "  ")
+	fmt.Println(string(jsonstr))
 
-	fmt.Println(response2.Status)
-	fmt.Println(response2.Body)
+	request2 := &requests.RESTRequest{
+		Method: "POST",
+		Endpoint: "https://dev-fjaq77pr.brev.dev/api/hi",
+		QueryParams: params,
+		Headers: []requests.Header{
+			{Key:"Content-Type", Value:"application/json"},
+		},
+	}
+	raw_response2, _ := request2.Submit()
+	var response2 map[string]string
+	raw_response2.DecodePayload(&response2)
+	fmt.Println(raw_response2.StatusCode)
+	jsonstr2,_ := json.MarshalIndent(response2, "", "  ")
+	fmt.Println(string(jsonstr2))
 
 }
 
