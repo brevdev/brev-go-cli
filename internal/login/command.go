@@ -10,7 +10,7 @@ func NewCmdLogin(context *cmdcontext.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "login",
 		Run: func(cmd *cobra.Command, args []string) {
-			authenticateWithCotter()
+			Login()
 		},
 	}
 	return cmd

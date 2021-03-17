@@ -5,16 +5,17 @@ import (
 	"crypto/sha256"
 	"embed"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/config"
+	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
@@ -23,6 +24,8 @@ const (
 	COTTER_BACKEND_ENDPOINT = "https://www.cotter.app/api/v0"
 	LOCAL_PORT              = "8395"
 	LOCAL_ENDPOINT          = "http://localhost:" + LOCAL_PORT
+
+	BREV_CREDENTIALS_FILE = "credentials.json"
 )
 
 type cotterTokenRequestPayload struct {
@@ -47,7 +50,7 @@ type CotterOauthToken struct {
 //go:embed success.html
 var successHTML embed.FS
 
-func authenticateWithCotter() error {
+func Login() error {
 	cotterCodeVerifier := generateCodeVerifier()
 
 	cotterURL, err := buildCotterAuthURL(cotterCodeVerifier)
@@ -68,11 +71,33 @@ func authenticateWithCotter() error {
 		return err
 	}
 
-	// TODO: write to file
-	tokenString, _ := json.Marshal(token)
-	fmt.Printf(string(tokenString))
+	err = writeTokenToBrevConfigFile(token)
+	if err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func GetToken() (*CotterOauthToken, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	brevCredentialsFile := home + "/" + config.GetBrevDirectory() + "/" + BREV_CREDENTIALS_FILE
+
+	var token CotterOauthToken
+	err = files.ReadJSON(brevCredentialsFile, &token)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
+}
+
+func (t *CotterOauthToken) isExpired() bool {
+	return false
 }
 
 func buildCotterAuthURL(code_verifier string) (string, error) {
@@ -152,6 +177,22 @@ func captureCotterToken(code_verifier string) (*CotterOauthToken, error) {
 	// blocks
 	s.ListenAndServe()
 	return token, nil
+}
+
+func writeTokenToBrevConfigFile(token *CotterOauthToken) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	brevCredentialsFile := home + "/" + config.GetBrevDirectory() + "/" + BREV_CREDENTIALS_FILE
+
+	err = files.OverwriteJSON(brevCredentialsFile, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func requestCotterToken(code string, challenge_id string, code_verifier string) (*CotterOauthToken, error) {

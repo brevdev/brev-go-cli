@@ -25,7 +25,7 @@ func ReadJSON(filepath string, v interface{}) error {
 		return err
 	}
 
-	return json.Unmarshal(dataBytes, &v)
+	return json.Unmarshal(dataBytes, v)
 }
 
 // Replace data in the target file with data from the given struct
