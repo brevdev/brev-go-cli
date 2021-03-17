@@ -26,6 +26,7 @@ func getSomeSetOfOptions(toComplete string) []string {
 }
 
 func getEpNames() []string {
+	print("hhhhhhhh")
 	return []string{"ep1", "ep2", "ep3"}
 }
 
@@ -146,8 +147,12 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the endpoint")
 	cmd.MarkFlagRequired("name")
+	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return getEpNames(), cobra.ShellCompDirectiveNoSpace})
 	cmd.Flags().StringVarP(&method, "method", "r", "GET", "http request method")
 	cmd.MarkFlagRequired("method")
+	cmd.RegisterFlagCompletionFunc("method", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"GET", "PUT", "POST", "DELETE"}, cobra.ShellCompDirectiveNoSpace})
 	cmd.Flags().StringArrayVarP(&arg, "arg", "a", []string{}, "add query params")
 	cmd.Flags().StringVarP(&body, "body", "b", "", "add json body")
 
