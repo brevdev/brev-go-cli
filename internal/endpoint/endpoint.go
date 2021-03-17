@@ -38,21 +38,21 @@ func remove_endpoint(name string) {
 func run_endpoint(name string, method string, arg []string, jsonBody string) {
 	fmt.Printf("Run ep file %s %s %s", name, method, arg)
 
-	var params []requests.QueryParam;
+	var params []requests.QueryParam
 	for _, v := range arg {
 		if strings.Contains(v, "=") {
 			newArr := strings.Split(v, "=")
 			params = append(params, requests.QueryParam{
-				Key:newArr[0], Value:newArr[1]})
+				Key: newArr[0], Value: newArr[1]})
 		}
 	}
 
 	request := &requests.RESTRequest{
-		Method: "GET",
-		Endpoint: "https://dev-fjaq77pr.brev.dev/api/hi",
+		Method:      "GET",
+		Endpoint:    "https://dev-fjaq77pr.brev.dev/api/hi",
 		QueryParams: params,
 		Headers: []requests.Header{
-			{Key:"Content-Type", Value:"application/json"},
+			{Key: "Content-Type", Value: "application/json"},
 		},
 	}
 	raw_response, _ := request.Submit()
@@ -60,22 +60,22 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 	raw_response.DecodePayload(&response)
 	fmt.Print("\n\n")
 	fmt.Println(raw_response.StatusCode)
-	jsonstr,_ := json.MarshalIndent(response, "", "  ")
+	jsonstr, _ := json.MarshalIndent(response, "", "  ")
 	fmt.Println(string(jsonstr))
 
 	request2 := &requests.RESTRequest{
-		Method: "POST",
-		Endpoint: "https://dev-fjaq77pr.brev.dev/api/hi",
+		Method:      "POST",
+		Endpoint:    "https://dev-fjaq77pr.brev.dev/api/hi",
 		QueryParams: params,
 		Headers: []requests.Header{
-			{Key:"Content-Type", Value:"application/json"},
+			{Key: "Content-Type", Value: "application/json"},
 		},
 	}
 	raw_response2, _ := request2.Submit()
 	var response2 map[string]string
 	raw_response2.DecodePayload(&response2)
 	fmt.Println(raw_response2.StatusCode)
-	jsonstr2,_ := json.MarshalIndent(response2, "", "  ")
+	jsonstr2, _ := json.MarshalIndent(response2, "", "  ")
 	fmt.Println(string(jsonstr2))
 
 }

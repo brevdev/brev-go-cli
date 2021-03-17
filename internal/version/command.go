@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 )
 
@@ -17,6 +18,9 @@ func NewCmdVersion(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 			fmt.Fprintln(context.VerboseOut, version)
+
+			token, _ := auth.GetToken()
+			fmt.Println(token)
 			return nil
 		},
 	}
