@@ -6,9 +6,10 @@ var config configs
 
 // Below vars are exposed to the build-layer (Makefile) so that they be overridden at build time.
 var (
-	Version       = "unknown"
-	CotterAPIKey  = "unknown"
-	BrevDirectory = ".brev"
+	Version         = "unknown"
+	CotterAPIKey    = "unknown"
+	BrevDirectory   = ".brev"
+	BrevAPIEndpoint = "https://app.brev.dev"
 )
 
 func Init() {
@@ -25,4 +26,8 @@ func GetCotterAPIKey() string {
 
 func GetBrevDirectory() string {
 	return BrevDirectory
+}
+
+func GetBrevAPIEndpoint() string {
+	return BrevAPIEndpoint
 }

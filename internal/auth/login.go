@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
@@ -42,20 +43,6 @@ type cotterTokenRequestPayload struct {
 
 type cotterTokenResponseBody struct {
 	OauthToken CotterOauthToken `json:"oauth_token"`
-}
-
-type cotterJWKS struct {
-	Keys []cotterJWKS `json:"keys"`
-}
-
-type cotterJWK struct {
-	Alg string `json:"alg"`
-	Crv string `json:"crv"`
-	Kid string `json:"kid"`
-	Kty string `json:"kty"`
-	Use string `json:"use"`
-	X   string `json:"x"`
-	Y   string `json:"y"`
 }
 
 type CotterOauthToken struct {
@@ -149,6 +136,12 @@ func (t *CotterOauthToken) isValid() bool {
 
 	err = jwtToken.Claims(jwks, &claims)
 	if err != nil {
+		return false
+	}
+
+	now := time.Now().Unix()
+	exp := int64(claims["exp"].(float64))
+	if now > exp {
 		return false
 	}
 
@@ -338,10 +331,9 @@ func refreshCotterToken(oldToken *CotterOauthToken) (*CotterOauthToken, error) {
 		return nil, err
 	}
 
-	var tokenResponse cotterTokenResponseBody
-	response.DecodePayload(&tokenResponse)
-
-	return &tokenResponse.OauthToken, nil
+	var token CotterOauthToken
+	response.DecodePayload(&token)
+	return &token, nil
 }
 
 func generateStateValue() string {
