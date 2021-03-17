@@ -20,15 +20,27 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-func logic() {
-	fmt.Println("endpoint called")
+type Endpoint struct {
+	Archived   bool     `json:"archived"`
+	Code       string   `json:"code"`
+	CreateDate string   `json:"create_date"`
+	Id         string   `json:"id"`
+	Methods    []string `json:"methods"`
+	Name       string   `json:"name"`
+	Namespace  string   `json:"namespace"`
+	ProjectId  string   `json:"project_id"`
+	Uri        string   `json:"uri"`
 }
 
 func add_endpoint(name string) {
 	fmt.Printf("Create ep file %s", name)
+	// TODO: create endpoint
+	// TODO: get contents of .brev/endpoints.json
+	// TODO: add new endpoint to .brev/endpoints.json
 }
 
 func remove_endpoint(name string) {
@@ -82,6 +94,11 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 
 func list_endpoints() {
 	fmt.Println("List all endpoints")
+	var foo []Endpoint
+	files.ReadJSON("endpoints.json", &foo)
+	for _, v := range foo {
+		fmt.Println(v.Uri)
+	}
 }
 
 func log_endpoint(name string) {
