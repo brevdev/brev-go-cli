@@ -17,9 +17,7 @@ package initialize
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"os/user"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev"
@@ -109,12 +107,13 @@ func init_existing_proj(project brev.BrevProject) {
 	files.OverwriteJSON(path+"/.brev/endpoints.json", endpoints.Endpoints)
 		
 	// Create a global file with project directories
-	root_path := get_root_dir()
+	root_path := brev.GetRootDir()
 	var curr_brev_directories []string
 	files.ReadJSON(root_path+"/.brev/active_projects.json", &curr_brev_directories)
-	curr_brev_directories = append(curr_brev_directories, path)
-	files.OverwriteJSON(root_path+"/.brev/active_projects.json", curr_brev_directories)
-
+	if (!brev.StringInList(path, curr_brev_directories)) {
+		curr_brev_directories = append(curr_brev_directories, path)
+		files.OverwriteJSON(root_path+"/.brev/active_projects.json", curr_brev_directories)
+	}
 
 	// TODO: copy shared code
 
@@ -125,10 +124,3 @@ func init_existing_proj(project brev.BrevProject) {
 
 }
 
-func get_root_dir () string {
-	usr, err := user.Current()
-    if err != nil {
-        log.Fatal( err )
-    }
-    return usr.HomeDir
-}
