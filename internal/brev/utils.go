@@ -37,9 +37,9 @@ func brevEndpoint(resource string) string {
 func GetActiveProject() BrevProject {
 	cwd, _ := os.Getwd()
 	path := cwd + "/.brev/projects.json"
-	
+
 	var project BrevProject
 	_ = files.ReadJSON(path, &project)
-	
+
 	return project
 }

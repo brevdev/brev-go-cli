@@ -44,8 +44,8 @@ func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
 			if len(args) != 0 {
 				return nil, cobra.ShellCompDirectiveNoFileComp
 			}
-			
-			if (args[len(args)-1] == "run" || args[len(args)-1] == "remove") {
+
+			if args[len(args)-1] == "run" || args[len(args)-1] == "remove" {
 				return getEpNames(), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
 			}
 
@@ -100,7 +100,7 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 			// if len(args) != 0 {
 			// 	return nil, cobra.ShellCompDirectiveNoFileComp
 			// }
-			
+
 			// if (args[len(args)-1] == "run" || args[len(args)-1] == "remove") {
 			// 	return getEpNames(), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
 			// }
@@ -142,17 +142,18 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 			// 	fmt.Println(v)
 			// }
 		},
-
 	}
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the endpoint")
 	cmd.MarkFlagRequired("name")
 	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return getEpNames(), cobra.ShellCompDirectiveNoSpace})
+		return getEpNames(), cobra.ShellCompDirectiveNoSpace
+	})
 	cmd.Flags().StringVarP(&method, "method", "r", "GET", "http request method")
 	cmd.MarkFlagRequired("method")
 	cmd.RegisterFlagCompletionFunc("method", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"GET", "PUT", "POST", "DELETE"}, cobra.ShellCompDirectiveNoSpace})
+		return []string{"GET", "PUT", "POST", "DELETE"}, cobra.ShellCompDirectiveNoSpace
+	})
 	cmd.Flags().StringArrayVarP(&arg, "arg", "a", []string{}, "add query params")
 	cmd.Flags().StringVarP(&body, "body", "b", "", "add json body")
 

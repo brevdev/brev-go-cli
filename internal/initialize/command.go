@@ -27,7 +27,7 @@ import (
 )
 
 func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
-	var project string;
+	var project string
 
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -48,17 +48,16 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 			projects, _ := brevAgent.GetProjects()
 
 			for _, v := range projects {
-				if (v.Name==project) {
+				if v.Name == project {
 					init_existing_proj(v)
 				}
-			}			
+			}
 		},
-	
 	}
 	cmd.Flags().StringVarP(&project, "project", "p", "", "Project Name")
 	cmd.RegisterFlagCompletionFunc("project", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return get_project_names(), cobra.ShellCompDirectiveNoSpace})
-	
+		return get_project_names(), cobra.ShellCompDirectiveNoSpace
+	})
 
 	return cmd
 }
@@ -77,11 +76,10 @@ func get_project_names() []string {
 	for _, v := range raw_projects {
 		projNames = append(projNames, v.Name)
 	}
-	
+
 	// Return for shell completion
 	return projNames
 }
-
 
 func init_existing_proj(project brev.BrevProject) {
 
@@ -91,9 +89,8 @@ func init_existing_proj(project brev.BrevProject) {
 	cwd, _ := os.Getwd()
 	path := fmt.Sprintf("%s/%s/.brev", cwd, project.Name)
 
-	// Make project.json 
+	// Make project.json
 	files.OverwriteJSON(path+"/projects.json", project)
-
 
 	// Get endpoints for project
 	token, _ := auth.GetToken()
@@ -103,10 +100,10 @@ func init_existing_proj(project brev.BrevProject) {
 	all_endpoints, _ := brevAgent.GetEndpoints()
 	var endpoints brev.BrevEndpoints
 	for _, v := range all_endpoints.Endpoints {
-		if (v.ProjectId==project.Id) {
+		if v.ProjectId == project.Id {
 			endpoints.Endpoints = append(endpoints.Endpoints, v)
 		}
-	}	
+	}
 
 	// Make endpoints.json
 	files.OverwriteJSON(path+"/endpoints.json", endpoints.Endpoints)
@@ -114,5 +111,5 @@ func init_existing_proj(project brev.BrevProject) {
 	// TODO: copy shared code
 	// TODO: copy endpoint files
 	// TODO: copy variables as file ... ? should we do this?
-	
+
 }
