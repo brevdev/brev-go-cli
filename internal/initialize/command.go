@@ -56,9 +56,32 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 	
 	}
 	cmd.Flags().StringVarP(&project, "project", "p", "", "Project Name")
+	cmd.RegisterFlagCompletionFunc("project", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return get_project_names(), cobra.ShellCompDirectiveNoSpace})
+	
 
 	return cmd
 }
+
+func get_project_names() []string {
+
+	// Get Projects
+	token, _ := auth.GetToken()
+	brevAgent := brev.BrevAgent{
+		Key: token,
+	}
+	raw_projects, _ := brevAgent.GetProjects()
+	var projNames []string
+
+	// Filter list for just project names
+	for _, v := range raw_projects {
+		projNames = append(projNames, v.Name)
+	}
+	
+	// Return for shell completion
+	return projNames
+}
+
 
 func init_existing_proj(project brev.BrevProject) {
 
@@ -84,6 +107,6 @@ func init_existing_proj(project brev.BrevProject) {
 	}	
 
 	// Make endpoints.json
-	files.OverwriteJSON(path+"/endpoints.json", endpoints)
+	files.OverwriteJSON(path+"/endpoints.json", endpoints.Endpoints)
 	
 }
