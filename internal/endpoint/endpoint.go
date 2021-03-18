@@ -94,29 +94,25 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 }
 
 func list_endpoints() {
+
+	// get active project
+	proj := brev.GetActiveProject()
+
 	token, _ := auth.GetToken()
 	brevAgent := brev.BrevAgent{
 		Key: token,
 	}
 
 	endpointsResponse, _ := brevAgent.GetEndpoints()
-	// fmt.Println(endpointsResponse)
-	var tempProj = endpointsResponse.Endpoints[0].ProjectId
-	fmt.Printf("Endpoints in %s\n", tempProj)
+	fmt.Printf("Endpoints in %s\n", proj.Name)
 	for _, v := range endpointsResponse.Endpoints {
-		if (v.ProjectId==tempProj) {
+		if (v.ProjectId==proj.Id) {
 			fmt.Printf("\tEp %s\n",v.Name)
 			fmt.Printf("\t%s\n\n",v.Uri)
 
 		}
 	}
 
-	// fmt.Println("List all endpoints")
-	// var foo []Endpoint
-	// files.ReadJSON("endpoints.json", &foo)
-	// for _, v := range foo {
-	// 	fmt.Println(v.Uri)
-	// }
 }
 
 func log_endpoint(name string) {

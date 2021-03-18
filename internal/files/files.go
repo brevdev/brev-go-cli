@@ -2,6 +2,7 @@ package files
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -66,3 +67,13 @@ func touchFile(path string) (*os.File, error) {
 	}
 	return os.Create(path)
 }
+
+func Does_file_exist(path string) bool {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		// file does not exist
+		return false
+	} else {
+		// file exists
+		return true
+	}
+} 

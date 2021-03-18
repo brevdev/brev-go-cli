@@ -85,6 +85,8 @@ func get_project_names() []string {
 
 func init_existing_proj(project brev.BrevProject) {
 
+	// TODO: create a global file with project directories
+
 	// Init the new folder at pwd + project name
 	cwd, _ := os.Getwd()
 	path := fmt.Sprintf("%s/%s/.brev", cwd, project.Name)
@@ -108,5 +110,9 @@ func init_existing_proj(project brev.BrevProject) {
 
 	// Make endpoints.json
 	files.OverwriteJSON(path+"/endpoints.json", endpoints.Endpoints)
+
+	// TODO: copy shared code
+	// TODO: copy endpoint files
+	// TODO: copy variables as file ... ? should we do this?
 	
 }

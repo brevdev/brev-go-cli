@@ -1,8 +1,11 @@
 package brev
 
 import (
+	"os"
+
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/config"
+	"github.com/brevdev/brev-go-cli/internal/files"
 )
 
 type BrevAgent struct {
@@ -30,3 +33,13 @@ func brevEndpoint(resource string) string {
 	modulesResponse, _ := brevAgent.GetModules()
 	fmt.Println(modulesResponse)
 */
+
+func GetActiveProject() BrevProject {
+	cwd, _ := os.Getwd()
+	path := cwd + "/.brev/projects.json"
+	
+	var project BrevProject
+	_ = files.ReadJSON(path, &project)
+	
+	return project
+}
