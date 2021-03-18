@@ -83,15 +83,6 @@ func get_project_names() []string {
 
 func init_existing_proj(project brev.BrevProject) {
 
-	// TODO: create a global file with project directories
-
-	// Init the new folder at pwd + project name
-	cwd, _ := os.Getwd()
-	path := fmt.Sprintf("%s/%s/.brev", cwd, project.Name)
-
-	// Make project.json
-	files.OverwriteJSON(path+"/projects.json", project)
-
 	// Get endpoints for project
 	token, _ := auth.GetToken()
 	brevAgent := brev.BrevAgent{
@@ -105,11 +96,29 @@ func init_existing_proj(project brev.BrevProject) {
 		}
 	}
 
+	// Init the new folder at pwd + project name
+	cwd, _ := os.Getwd()
+	path := fmt.Sprintf("%s/%s", cwd, project.Name)
+
+	// Make project.json
+	files.OverwriteJSON(path +"/" + files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
+
 	// Make endpoints.json
-	files.OverwriteJSON(path+"/endpoints.json", endpoints.Endpoints)
+	files.OverwriteJSON(path +"/" + files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints.Endpoints)
+
+	// Create a global file with project directories
+	var curr_brev_directories []string
+	files.ReadJSON(files.GetActiveProjectsPath(), &curr_brev_directories)
+	if !brev.StringInList(path, curr_brev_directories) {
+		curr_brev_directories = append(curr_brev_directories, path)
+		files.OverwriteJSON(files.GetActiveProjectsPath(), curr_brev_directories)
+	}
 
 	// TODO: copy shared code
-	// TODO: copy endpoint files
-	// TODO: copy variables as file ... ? should we do this?
+
+	// Create endpoint files
+	for _, v := range endpoints.Endpoints {
+		files.OverwriteJSON(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
+	}
 
 }

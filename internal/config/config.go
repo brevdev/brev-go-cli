@@ -8,7 +8,6 @@ var config configs
 var (
 	Version         = "unknown"
 	CotterAPIKey    = "unknown"
-	BrevDirectory   = ".brev"
 	BrevAPIEndpoint = "https://app.brev.dev"
 )
 
@@ -22,10 +21,6 @@ func GetVersion() string {
 
 func GetCotterAPIKey() string {
 	return CotterAPIKey
-}
-
-func GetBrevDirectory() string {
-	return BrevDirectory
 }
 
 func GetBrevAPIEndpoint() string {
