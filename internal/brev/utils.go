@@ -2,9 +2,7 @@ package brev
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"os/user"
 	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
@@ -39,33 +37,22 @@ func brevEndpoint(resource string) string {
 */
 
 func GetActiveProject() BrevProject {
-	cwd, _ := os.Getwd()
-	path := cwd + "/.brev/projects.json"
+	projectFilePath := files.GetProjectsPath()
 
 	var project BrevProject
-	_ = files.ReadJSON(path, &project)
+	_ = files.ReadJSON(projectFilePath, &project)
 
 	return project
 }
 
-func GetRootDir() string {
-	usr, err := user.Current()
-    if err != nil {
-        log.Fatal( err )
-    }
-    return usr.HomeDir
-}
-
-
 func IsInProjectDirectory() bool {
-	cwd,_ := os.Getwd()
-	rootDir := GetRootDir()
+	cwd, _ := os.Getwd()
 
 	var curr_brev_directories []string
-	files.ReadJSON(rootDir+"/.brev/active_projects.json", &curr_brev_directories)
+	files.ReadJSON(files.GetActiveProjectsPath(), &curr_brev_directories)
 
 	for _, v := range curr_brev_directories {
-		if (strings.Contains(cwd,v)) {
+		if strings.Contains(cwd, v) {
 			return true
 		}
 	}
@@ -74,17 +61,17 @@ func IsInProjectDirectory() bool {
 
 func CheckOutsideBrevErrorMessage() bool {
 
-	if (IsInProjectDirectory()) {
+	if IsInProjectDirectory() {
 		return true
 	}
 
-	rootDir := GetRootDir()
 	var curr_brev_directories []string
-	files.ReadJSON(rootDir+"/.brev/active_projects.json", &curr_brev_directories)
+	files.ReadJSON(files.GetActiveProjectsPath(), &curr_brev_directories)
 
 	// Exit with error message
+	// TODO: print with context: fmt.Fprintln(context.Err, "Endpoint commands only work in a Brev project")
 	fmt.Println("Endpoint commands only work in a Brev project.")
-	if (len(curr_brev_directories)==0) {
+	if len(curr_brev_directories) == 0 {
 		// If no directories, check if they have some remote.
 
 		// Get Projects
@@ -93,31 +80,31 @@ func CheckOutsideBrevErrorMessage() bool {
 			Key: token,
 		}
 		raw_projects, _ := brevAgent.GetProjects()
-		if (len(raw_projects)==0) {
+		if len(raw_projects) == 0 {
 			// Encourage them to create their first project
-			fmt.Println("You haven't made a brev project yet! Try running 'brev init'")	
+			fmt.Println("You haven't made a brev project yet! Try running 'brev init'")
 
 		} else {
 			// Encourage them to pull one of their existing projects
 			fmt.Println("Set up one of your existing projects.")
 			fmt.Println("For example, run 'brev init " + raw_projects[0].Name + "'")
 		}
-		
+
 	} else {
 		// Print active brev projects
 		fmt.Println("Active Brev projects on your computer: ")
 		for _, v := range curr_brev_directories {
-			fmt.Println("\t"+v)
+			fmt.Println("\t" + v)
 		}
 	}
 	return false
 }
 
 func StringInList(a string, list []string) bool {
-    for _, b := range list {
-        if b == a {
-            return true
-        }
-    }
-    return false
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

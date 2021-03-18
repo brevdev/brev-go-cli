@@ -3,10 +3,62 @@ package files
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 )
+
+var (
+	BrevDirectory      = ".brev"
+	ActiveProjectsFile = "active_projects.json"
+	ProjectsFile       = "projects.json"
+	EndpointsFile      = "endpoints.json"
+)
+
+func GetBrevDirectory() string {
+	return BrevDirectory
+}
+
+func GetActiveProjectFile() string {
+	return ActiveProjectsFile
+}
+func GetProjectsFile() string {
+	return ProjectsFile
+}
+func GetEndpointsFile() string {
+	return EndpointsFile
+}
+
+func GetRootDir() string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return usr.HomeDir
+}
+
+func GetActiveProjectsPath() string {
+	rootDir := GetRootDir()
+
+	return fmt.Sprintf("%s/%s/%s", rootDir, BrevDirectory, ActiveProjectsFile)
+}
+
+func GetLocalBrevDir() string {
+	cwd, _ := os.Getwd()
+	return fmt.Sprintf("%s/%s", cwd, BrevDirectory)
+}
+
+func GetEndpointsPath() string {
+	cwd, _ := os.Getwd()
+	return fmt.Sprintf("%s/%s/%s", cwd, BrevDirectory, EndpointsFile)
+}
+func GetProjectsPath() string {
+	cwd, _ := os.Getwd()
+	return fmt.Sprintf("%s/%s/%s", cwd, BrevDirectory, ProjectsFile)
+}
 
 // Read data into the given struct
 //

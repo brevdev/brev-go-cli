@@ -82,7 +82,7 @@ func get_project_names() []string {
 }
 
 func init_existing_proj(project brev.BrevProject) {
-	
+
 	// Get endpoints for project
 	token, _ := auth.GetToken()
 	brevAgent := brev.BrevAgent{
@@ -101,18 +101,17 @@ func init_existing_proj(project brev.BrevProject) {
 	path := fmt.Sprintf("%s/%s", cwd, project.Name)
 
 	// Make project.json
-	files.OverwriteJSON(path+"/.brev/projects.json", project)
+	files.OverwriteJSON(path +"/" + files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
 
 	// Make endpoints.json
-	files.OverwriteJSON(path+"/.brev/endpoints.json", endpoints.Endpoints)
-		
+	files.OverwriteJSON(path +"/" + files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints.Endpoints)
+
 	// Create a global file with project directories
-	root_path := brev.GetRootDir()
 	var curr_brev_directories []string
-	files.ReadJSON(root_path+"/.brev/active_projects.json", &curr_brev_directories)
-	if (!brev.StringInList(path, curr_brev_directories)) {
+	files.ReadJSON(files.GetActiveProjectsPath(), &curr_brev_directories)
+	if !brev.StringInList(path, curr_brev_directories) {
 		curr_brev_directories = append(curr_brev_directories, path)
-		files.OverwriteJSON(root_path+"/.brev/active_projects.json", curr_brev_directories)
+		files.OverwriteJSON(files.GetActiveProjectsPath(), curr_brev_directories)
 	}
 
 	// TODO: copy shared code
@@ -123,4 +122,3 @@ func init_existing_proj(project brev.BrevProject) {
 	}
 
 }
-
