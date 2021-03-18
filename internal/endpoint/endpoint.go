@@ -20,7 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/brevdev/brev-go-cli/internal/files"
+	"github.com/brevdev/brev-go-cli/internal/auth"
+	"github.com/brevdev/brev-go-cli/internal/brev"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
@@ -93,12 +94,29 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 }
 
 func list_endpoints() {
-	fmt.Println("List all endpoints")
-	var foo []Endpoint
-	files.ReadJSON("endpoints.json", &foo)
-	for _, v := range foo {
-		fmt.Println(v.Uri)
+	token, _ := auth.GetToken()
+	brevAgent := brev.BrevAgent{
+		Key: token,
 	}
+
+	endpointsResponse, _ := brevAgent.GetEndpoints()
+	// fmt.Println(endpointsResponse)
+	var tempProj = endpointsResponse.Endpoints[0].ProjectId
+	fmt.Printf("Endpoints in %s\n", tempProj)
+	for _, v := range endpointsResponse.Endpoints {
+		if (v.ProjectId==tempProj) {
+			fmt.Printf("\tEp %s\n",v.Name)
+			fmt.Printf("\t%s\n\n",v.Uri)
+
+		}
+	}
+
+	// fmt.Println("List all endpoints")
+	// var foo []Endpoint
+	// files.ReadJSON("endpoints.json", &foo)
+	// for _, v := range foo {
+	// 	fmt.Println(v.Uri)
+	// }
 }
 
 func log_endpoint(name string) {
