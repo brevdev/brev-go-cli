@@ -106,9 +106,9 @@ func list_endpoints() {
 	endpointsResponse, _ := brevAgent.GetEndpoints()
 	fmt.Printf("Endpoints in %s\n", proj.Name)
 	for _, v := range endpointsResponse.Endpoints {
-		if (v.ProjectId==proj.Id) {
-			fmt.Printf("\tEp %s\n",v.Name)
-			fmt.Printf("\t%s\n\n",v.Uri)
+		if v.ProjectId == proj.Id {
+			fmt.Printf("\tEp %s\n", v.Name)
+			fmt.Printf("\t%s\n\n", v.Uri)
 
 		}
 	}
