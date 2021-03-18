@@ -12,6 +12,7 @@ type BrevEndpoint struct {
 	Archived   bool     `json:"archived"`
 	CreateDate string   `json:"create_date"`
 	ProjectId  string   `json:"project_id"`
+	Code       string   `json:"code"`
 }
 
 type BrevEndpoints struct {

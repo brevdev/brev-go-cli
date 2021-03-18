@@ -17,7 +17,9 @@ package initialize
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/user"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev"
@@ -82,16 +84,7 @@ func get_project_names() []string {
 }
 
 func init_existing_proj(project brev.BrevProject) {
-
-	// TODO: create a global file with project directories
-
-	// Init the new folder at pwd + project name
-	cwd, _ := os.Getwd()
-	path := fmt.Sprintf("%s/%s/.brev", cwd, project.Name)
-
-	// Make project.json
-	files.OverwriteJSON(path+"/projects.json", project)
-
+	
 	// Get endpoints for project
 	token, _ := auth.GetToken()
 	brevAgent := brev.BrevAgent{
@@ -105,11 +98,37 @@ func init_existing_proj(project brev.BrevProject) {
 		}
 	}
 
+	// Init the new folder at pwd + project name
+	cwd, _ := os.Getwd()
+	path := fmt.Sprintf("%s/%s", cwd, project.Name)
+
+	// Make project.json
+	files.OverwriteJSON(path+"/.brev/projects.json", project)
+
 	// Make endpoints.json
-	files.OverwriteJSON(path+"/endpoints.json", endpoints.Endpoints)
+	files.OverwriteJSON(path+"/.brev/endpoints.json", endpoints.Endpoints)
+		
+	// Create a global file with project directories
+	root_path := get_root_dir()
+	var curr_brev_directories []string
+	files.ReadJSON(root_path+"/.brev/active_projects.json", &curr_brev_directories)
+	curr_brev_directories = append(curr_brev_directories, path)
+	files.OverwriteJSON(root_path+"/.brev/active_projects.json", curr_brev_directories)
+
 
 	// TODO: copy shared code
-	// TODO: copy endpoint files
-	// TODO: copy variables as file ... ? should we do this?
 
+	// Create endpoint files
+	for _, v := range endpoints.Endpoints {
+		files.OverwriteJSON(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
+	}
+
+}
+
+func get_root_dir () string {
+	usr, err := user.Current()
+    if err != nil {
+        log.Fatal( err )
+    }
+    return usr.HomeDir
 }
