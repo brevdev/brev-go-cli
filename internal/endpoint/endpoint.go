@@ -26,6 +26,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
+	"github.com/pkg/errors"
 )
 
 func addEndpoint(name string, context *cmdcontext.Context) error {
@@ -87,7 +88,55 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 }
 
 func removeEndpoint(name string, context *cmdcontext.Context) error {
-	fmt.Fprintf(context.Out, "Remove ep file %s", name)
+	// Get the ID
+	endpointFilePath := files.GetEndpointsPath()
+
+	var endpoints []brev.Endpoint
+	errFile := files.ReadJSON(endpointFilePath, &endpoints)
+	if errFile != nil {
+		return errFile
+	}
+
+	var id string
+	for _, v := range endpoints {
+		if (v.Name==name) {
+			id=v.Id
+		}
+	}
+	if (id=="") {
+		err := errors.New("Endpoint doesn't exist.")
+		context.PrintErr("Cannot delete Endpoint. ", err)
+		return err
+	}
+
+	// Remove the endpoint
+	token, err := auth.GetToken()
+	if err != nil {
+		context.PrintErr("", err)
+		return err
+	}
+	brevAgent := brev.Agent{
+		Key: token,
+	}
+
+	// var ep *brev.ResponseRemoveEndpoint
+	_,err = brevAgent.RemoveEndpoint(id)
+	if err != nil {
+		context.PrintErr("", err)
+		return err
+	}
+
+	// Remove the python file
+	files.DeleteFile(name +".py")
+	
+	// Update the endpoints.json
+	var updatedEndpoints []brev.Endpoint
+	for _, v := range endpoints {
+		if (v.Id!=id) {
+			updatedEndpoints = append(updatedEndpoints, v)
+		}
+	}
+	files.OverwriteJSON(endpointFilePath, updatedEndpoints)
 
 	return nil
 }

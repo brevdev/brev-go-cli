@@ -126,6 +126,15 @@ func OverwriteJSON(filepath string, v interface{}) error {
 	return err
 }
 
+// Delete a single file altogether
+func DeleteFile(filepath string) error {
+	error := os.Remove(filepath)
+	if (error != nil) {
+		return nil
+	}
+	return error
+}
+
 // Create file (and full path) if it does not already exit
 func touchFile(path string) (*os.File, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0770); err != nil {
