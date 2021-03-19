@@ -101,10 +101,10 @@ func init_existing_proj(project brev.BrevProject) {
 	path := fmt.Sprintf("%s/%s", cwd, project.Name)
 
 	// Make project.json
-	files.OverwriteJSON(path +"/" + files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
+	files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
 
 	// Make endpoints.json
-	files.OverwriteJSON(path +"/" + files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints.Endpoints)
+	files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints.Endpoints)
 
 	// Create a global file with project directories
 	var curr_brev_directories []string

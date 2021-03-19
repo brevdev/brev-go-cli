@@ -51,7 +51,7 @@ func add_endpoint(name string) {
 	}
 
 	var ep *brev.ResponseUpdateEndpoint
-	ep,_ = brevAgent.CreateEndpoint(name, proj.Id)
+	ep, _ = brevAgent.CreateEndpoint(name, proj.Id)
 
 	fmt.Println(ep.Endpoint.Name + " created!")
 
@@ -62,7 +62,6 @@ func add_endpoint(name string) {
 	// Add new endpoint to .brev/endpoints.json
 	allEps = append(allEps, ep.Endpoint)
 	files.OverwriteJSON(files.GetEndpointsPath(), allEps)
-
 
 	// Create the endpoint code file
 	cwd, _ := os.Getwd()

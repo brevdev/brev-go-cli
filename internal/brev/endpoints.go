@@ -22,11 +22,11 @@ type BrevEndpoints struct {
 }
 
 type RequestCreateEndpoint struct {
-	Name    string   `json:"name"`
-	Methods []string `json:"methods"`
-	Code    string   `json:"code"`	
-	ProjectId  string   `json:"project_id"`
-	Uri        string   `json:"uri"`
+	Name      string   `json:"name"`
+	Methods   []string `json:"methods"`
+	Code      string   `json:"code"`
+	ProjectId string   `json:"project_id"`
+	Uri       string   `json:"uri"`
 }
 type RequestUpdateEndpoint struct {
 	Name    string   `json:"name"`
@@ -89,37 +89,18 @@ func (a *BrevAgent) CreateEndpoint(name string, projectId string) (*ResponseUpda
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 		Payload: RequestCreateEndpoint{
-			Name: name,
+			Name:      name,
 			ProjectId: projectId,
-			Methods: []string{},
-			Code: dummyCode,
-			Uri: "/"+name,
+			Methods:   []string{},
+			Code:      dummyCode,
+			Uri:       "/" + name,
 		},
 	}
 
-	
 	response, err := request.Submit()
 	if err != nil {
 		return nil, err
 	}
-
-	// body,_ := ioutil.ReadAll(response.Payload)
-	// fmt.Println(string(body))
-
-
-	// fmt.Println(response)
-	// fmt.Println(response.Payload)
-	// fmt.Println(&response.Payload)
-
-
-	// var payload1 map[string]string
-	// response.DecodePayload(&payload1)
-	// jsonstr, _ := json.MarshalIndent(payload1, "", "  ")
-
-	// fmt.Println(payload1)
-	// fmt.Println(jsonstr)
-	// fmt.Println(payload1["errors"])
-
 
 	var payload ResponseUpdateEndpoint
 	response.DecodePayload(&payload)
@@ -128,7 +109,6 @@ func (a *BrevAgent) CreateEndpoint(name string, projectId string) (*ResponseUpda
 
 	return &payload, nil
 }
-
 
 func (a *BrevAgent) UpdateEndpoint(endpointID string, updateRequest RequestUpdateEndpoint) (*ResponseUpdateEndpoint, error) {
 	request := requests.RESTRequest{

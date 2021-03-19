@@ -66,7 +66,3 @@ func (a *BrevAgent) CreateProject(name string) (*ResponseCreateProject, error) {
 	response.DecodePayload(&payload)
 	return &payload, nil
 }
-
-// resp, _ := &req.Submit()
-// bodyBytes, _ := ioutil.ReadAll(resp.Body)
-// bodyString := string(bodyBytes)
