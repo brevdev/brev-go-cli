@@ -18,7 +18,7 @@ package endpoint
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/brevdev/brev-go-cli/internal/brev"
+	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 )
 
@@ -47,7 +47,7 @@ func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
 			return err
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

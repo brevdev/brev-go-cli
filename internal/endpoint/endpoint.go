@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
-	"github.com/brevdev/brev-go-cli/internal/brev"
+	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
@@ -30,7 +30,7 @@ import (
 
 func addEndpoint(name string, context *cmdcontext.Context) error {
 	// Create endpoint
-	proj, err := brev.GetActiveProject()
+	proj, err := brev_api.GetActiveProject()
 	if err != nil {
 		context.PrintErr("Failed to get active project", err)
 		return err
@@ -41,11 +41,11 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 		context.PrintErr("Failed to retrieve auth token", err)
 		return err
 	}
-	brevAgent := brev.Agent{
+	brevAgent := brev_api.Agent{
 		Key: token,
 	}
 
-	var ep *brev.ResponseUpdateEndpoint
+	var ep *brev_api.ResponseUpdateEndpoint
 	ep, err = brevAgent.CreateEndpoint(name, proj.Id)
 	if err != nil {
 		context.PrintErr("Failed to create endpoint", err)
@@ -55,7 +55,7 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 	fmt.Fprintln(context.VerboseOut, ep.Endpoint.Name+" created!")
 
 	// Get contents of .brev/endpoints.json
-	var allEps []brev.Endpoint
+	var allEps []brev_api.Endpoint
 	err = files.ReadJSON(files.GetEndpointsPath(), &allEps)
 	if err != nil {
 		context.PrintErr("Failed to get endpoints", err)
@@ -171,7 +171,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 
 func listEndpoints(context *cmdcontext.Context) error {
 	// get active project
-	proj, err := brev.GetActiveProject()
+	proj, err := brev_api.GetActiveProject()
 	if err != nil {
 		context.PrintErr("Failed to get active project", err)
 		return err
@@ -182,7 +182,7 @@ func listEndpoints(context *cmdcontext.Context) error {
 		context.PrintErr("Failed to retrieve auth token", err)
 		return err
 	}
-	brevAgent := brev.Agent{
+	brevAgent := brev_api.Agent{
 		Key: token,
 	}
 

@@ -2,6 +2,7 @@ package files
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -31,7 +32,7 @@ func GetEndpointsFile() string {
 	return endpointsFile
 }
 
-func GetRootDir() string {
+func GetHomeDir() string {
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +41,7 @@ func GetRootDir() string {
 }
 
 func GetActiveProjectsPath() string {
-	rootDir := GetRootDir()
+	rootDir := GetHomeDir()
 
 	return fmt.Sprintf("%s/%s/%s", rootDir, brevDirectory, activeProjectsFile)
 }
@@ -57,6 +58,21 @@ func GetEndpointsPath() string {
 func GetProjectsPath() string {
 	cwd, _ := os.Getwd()
 	return fmt.Sprintf("%s/%s/%s", cwd, brevDirectory, projectsFile)
+}
+
+func Exists(filepath string) (bool, error) {
+	info, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if info == nil {
+		return false, errors.New(fmt.Sprintf("Could not stat file %s", filepath))
+	}
+	if info.IsDir() {
+		// error?
+		return false, nil
+	}
+	return true, nil
 }
 
 // ReadJSON reads data from a file into the given struct

@@ -1,4 +1,4 @@
-package brev
+package brev_api
 
 import (
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
