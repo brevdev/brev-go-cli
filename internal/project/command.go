@@ -31,8 +31,8 @@ func NewCmdProject(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 
@@ -57,8 +57,8 @@ func newCmdInit(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 
@@ -75,8 +75,8 @@ func newCmdList(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 
@@ -93,8 +93,8 @@ func newCmdLog(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 
@@ -111,8 +111,8 @@ func newCmdPull(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 
@@ -129,8 +129,8 @@ func newCmdPush(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 
@@ -147,8 +147,8 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 
@@ -165,8 +165,8 @@ func newCmdStatus(context *cmdcontext.Context) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			logic()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logic(context)
 		},
 	}
 

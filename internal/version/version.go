@@ -2,6 +2,7 @@ package version
 
 import (
 	"fmt"
+
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/requests"
@@ -42,6 +43,7 @@ func buildVersionString(context *cmdcontext.Context) (string, error) {
 
 	githubRelease, err := getLatestGithubReleaseMetadata()
 	if err != nil {
+		context.PrintErr("Failed to retrieve latest version", err)
 		return "", err
 	}
 

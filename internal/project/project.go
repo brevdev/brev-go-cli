@@ -1,6 +1,10 @@
 package project
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+)
 
 type Project struct {
 	Domain     string `json:"domain"`
@@ -10,6 +14,7 @@ type Project struct {
 	UserId     string `json:"user_id"`
 }
 
-func logic() {
-	fmt.Println("project called")
+func logic(context *cmdcontext.Context) error {
+	fmt.Fprintln(context.Out, "project called")
+	return nil
 }

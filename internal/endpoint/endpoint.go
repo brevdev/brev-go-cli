@@ -23,57 +23,77 @@ import (
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev"
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-type Endpoint struct {
-	Archived   bool     `json:"archived"`
-	Code       string   `json:"code"`
-	CreateDate string   `json:"create_date"`
-	Id         string   `json:"id"`
-	Methods    []string `json:"methods"`
-	Name       string   `json:"name"`
-	Namespace  string   `json:"namespace"`
-	ProjectId  string   `json:"project_id"`
-	Uri        string   `json:"uri"`
-}
-
-func add_endpoint(name string) {
+func addEndpoint(name string, context *cmdcontext.Context) error {
 	// Create endpoint
-	proj := brev.GetActiveProject()
+	proj, err := brev.GetActiveProject()
+	if err != nil {
+		context.PrintErr("Failed to get active project", err)
+		return err
+	}
 
-	// ERR: if proj doesn't exist
-
-	token, _ := auth.GetToken()
-	brevAgent := brev.BrevAgent{
+	token, err := auth.GetToken()
+	if err != nil {
+		context.PrintErr("Failed to retrieve auth token", err)
+		return err
+	}
+	brevAgent := brev.Agent{
 		Key: token,
 	}
 
 	var ep *brev.ResponseUpdateEndpoint
-	ep, _ = brevAgent.CreateEndpoint(name, proj.Id)
+	ep, err = brevAgent.CreateEndpoint(name, proj.Id)
+	if err != nil {
+		context.PrintErr("Failed to create endpoint", err)
+		return err
+	}
 
-	fmt.Println(ep.Endpoint.Name + " created!")
+	fmt.Fprintln(context.VerboseOut, ep.Endpoint.Name+" created!")
 
 	// Get contents of .brev/endpoints.json
-	var allEps []brev.BrevEndpoint
-	files.ReadJSON(files.GetEndpointsPath(), &allEps)
+	var allEps []brev.Endpoint
+	err = files.ReadJSON(files.GetEndpointsPath(), &allEps)
+	if err != nil {
+		context.PrintErr("Failed to get endpoints", err)
+		return err
+	}
 
 	// Add new endpoint to .brev/endpoints.json
 	allEps = append(allEps, ep.Endpoint)
-	files.OverwriteJSON(files.GetEndpointsPath(), allEps)
+	err = files.OverwriteJSON(files.GetEndpointsPath(), allEps)
+	if err != nil {
+		context.PrintErr("Failed to write endpoints to .brev file", err)
+		return err
+	}
 
 	// Create the endpoint code file
-	cwd, _ := os.Getwd()
-	files.OverwriteJSON(fmt.Sprintf("%s/%s.py", cwd, ep.Endpoint.Name), ep.Endpoint.Code)
+	cwd, err := os.Getwd()
+	if err != nil {
+		context.PrintErr("Failed to determine working directory", err)
+		return err
+	}
+
+	err = files.OverwriteJSON(fmt.Sprintf("%s/%s.py", cwd, ep.Endpoint.Name), ep.Endpoint.Code)
+	if err != nil {
+		context.PrintErr("Failed to write endpoints to local file", err)
+		return err
+	}
+
+	return nil
 }
 
-func remove_endpoint(name string) {
-	fmt.Printf("Remove ep file %s", name)
+func removeEndpoint(name string, context *cmdcontext.Context) error {
+	fmt.Fprintf(context.Out, "Remove ep file %s", name)
+
+	return nil
 }
 
-func run_endpoint(name string, method string, arg []string, jsonBody string) {
-	fmt.Printf("Run ep file %s %s %s", name, method, arg)
+func runEndpoint(name string, method string, arg []string, jsonBody string, context *cmdcontext.Context) error {
+	fmt.Fprintf(context.Out, "Run ep file %s %s %s", name, method, arg)
 
 	var params []requests.QueryParam
 	for _, v := range arg {
@@ -92,13 +112,29 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 			{Key: "Content-Type", Value: "application/json"},
 		},
 	}
-	raw_response, _ := request.Submit()
+	rawResponse, err := request.Submit()
+	if err != nil {
+		context.PrintErr("Failed to run endpoint", err)
+		return err
+	}
+
 	var response map[string]string
-	raw_response.DecodePayload(&response)
-	fmt.Print("\n\n")
-	fmt.Println(raw_response.StatusCode)
-	jsonstr, _ := json.MarshalIndent(response, "", "  ")
-	fmt.Println(string(jsonstr))
+	err = rawResponse.DecodePayload(&response)
+	if err != nil {
+		context.PrintErr("Failed to deserialize response payload", err)
+		return err
+	}
+
+	fmt.Fprint(context.Out, "\n\n")
+	fmt.Fprint(context.Out, rawResponse.StatusCode)
+
+	jsonstr, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		context.PrintErr("Failed to serialize response", err)
+		return err
+	}
+
+	fmt.Fprint(context.Out, string(jsonstr))
 
 	request2 := &requests.RESTRequest{
 		Method:      "POST",
@@ -108,37 +144,65 @@ func run_endpoint(name string, method string, arg []string, jsonBody string) {
 			{Key: "Content-Type", Value: "application/json"},
 		},
 	}
-	raw_response2, _ := request2.Submit()
-	var response2 map[string]string
-	raw_response2.DecodePayload(&response2)
-	fmt.Println(raw_response2.StatusCode)
-	jsonstr2, _ := json.MarshalIndent(response2, "", "  ")
-	fmt.Println(string(jsonstr2))
 
+	rawResponse2, err := request2.Submit()
+	if err != nil {
+		context.PrintErr("Failed to run endpoint", err)
+		return err
+	}
+
+	var response2 map[string]string
+	err = rawResponse2.DecodePayload(&response2)
+	if err != nil {
+		context.PrintErr("Failed to deserialize response", err)
+		return err
+	}
+
+	fmt.Fprintln(context.Out, rawResponse2.StatusCode)
+	jsonstr2, err := json.MarshalIndent(response2, "", "  ")
+	if err != nil {
+		context.PrintErr("Failed to serialize response", err)
+		return err
+	}
+	fmt.Fprintln(context.Out, string(jsonstr2))
+
+	return nil
 }
 
-func list_endpoints() {
-
+func listEndpoints(context *cmdcontext.Context) error {
 	// get active project
-	proj := brev.GetActiveProject()
+	proj, err := brev.GetActiveProject()
+	if err != nil {
+		context.PrintErr("Failed to get active project", err)
+		return err
+	}
 
-	token, _ := auth.GetToken()
-	brevAgent := brev.BrevAgent{
+	token, err := auth.GetToken()
+	if err != nil {
+		context.PrintErr("Failed to retrieve auth token", err)
+		return err
+	}
+	brevAgent := brev.Agent{
 		Key: token,
 	}
 
-	endpointsResponse, _ := brevAgent.GetEndpoints()
-	fmt.Printf("Endpoints in %s\n", proj.Name)
-	for _, v := range endpointsResponse.Endpoints {
-		if v.ProjectId == proj.Id {
-			fmt.Printf("\tEp %s\n", v.Name)
-			fmt.Printf("\t%s\n\n", v.Uri)
-
-		}
+	endpointsResponse, err := brevAgent.GetEndpoints()
+	if err != nil {
+		context.PrintErr("Failed to get endpoints", err)
+		return err
 	}
 
+	fmt.Fprintf(context.Out, "Endpoints in %s\n", proj.Name)
+	for _, v := range endpointsResponse.Endpoints {
+		if v.ProjectId == proj.Id {
+			fmt.Fprintf(context.Out, "\tEp %s\n", v.Name)
+			fmt.Fprintf(context.Out, "\t%s\n\n", v.Uri)
+		}
+	}
+	return nil
 }
 
-func log_endpoint(name string) {
-	fmt.Printf("Log ep file %s", name)
+func logEndpoint(name string, context *cmdcontext.Context) error {
+	fmt.Fprintf(context.Out, "Log ep file %s", name)
+	return nil
 }

@@ -18,20 +18,21 @@ import (
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
 const (
-	COTTER_ENDPOINT         = "https://js.cotter.app/app"
-	COTTER_BACKEND_ENDPOINT = "https://www.cotter.app/api/v0"
-	COTTER_TOKEN_ENDPOINT   = "https://www.cotter.app/api/v0/token"
-	COTTER_JWKS_ENDPOINT    = "https://www.cotter.app/api/v0/token/jwks"
-	LOCAL_PORT              = "8395"
-	LOCAL_ENDPOINT          = "http://localhost:" + LOCAL_PORT
+	cotterEndpoint        = "https://js.cotter.app/app"
+	cotterBackendEndpoint = "https://www.cotter.app/api/v0"
+	cotterTokenEndpoint   = "https://www.cotter.app/api/v0/token"
+	cotterJwksEndpoint    = "https://www.cotter.app/api/v0/token/jwks"
+	localPort             = "8395"
+	localEndpoint         = "http://localhost:" + localPort
 
-	BREV_CREDENTIALS_FILE = "credentials.json"
+	brevCredentialsFile = "credentials.json"
 )
 
 type cotterTokenRequestPayload struct {
@@ -62,29 +63,33 @@ var successHTML embed.FS
 //   3. Start a local web server awaiting a redirect to localhost
 //   4. Capture the Cotter token upon redirect
 //   5. Write the Cotter token to a file in the hidden brev directory
-func Login() error {
+func login(context *cmdcontext.Context) error {
 	cotterCodeVerifier := generateCodeVerifier()
 
 	cotterURL, err := buildCotterAuthURL(cotterCodeVerifier)
 	if err != nil {
+		context.PrintErr("Failed to construct auth URL", err)
 		return err
 	}
 
 	// TODO: pretty print URL?
-	fmt.Println(cotterURL)
+	fmt.Fprintln(context.Out, cotterURL)
 
 	err = openInDefaultBrowser(cotterURL)
 	if err != nil {
+		context.PrintErr("Failed to open default browser", err)
 		return err
 	}
 
 	token, err := captureCotterToken(cotterCodeVerifier)
 	if err != nil {
+		context.PrintErr("Failed to capture auth token", err)
 		return err
 	}
 
 	err = writeTokenToBrevConfigFile(token)
 	if err != nil {
+		context.PrintErr("Failed to write auth token to file", err)
 		return err
 	}
 
@@ -151,7 +156,7 @@ func (t *CotterOauthToken) isValid() bool {
 func fetchCotterPublicKeySet() (*jose.JSONWebKeySet, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
-		Endpoint: COTTER_JWKS_ENDPOINT,
+		Endpoint: cotterJwksEndpoint,
 	}
 	response, err := request.Submit()
 	if err != nil {
@@ -167,18 +172,18 @@ func fetchCotterPublicKeySet() (*jose.JSONWebKeySet, error) {
 	return &cotterJWKS, nil
 }
 
-func buildCotterAuthURL(code_verifier string) (string, error) {
+func buildCotterAuthURL(codeVerifier string) (string, error) {
 	state := generateStateValue()
-	code_challenge := generateCodeChallenge(code_verifier)
+	codeChallenge := generateCodeChallenge(codeVerifier)
 
 	request := &requests.RESTRequest{
 		Method:   "GET",
-		Endpoint: COTTER_ENDPOINT,
+		Endpoint: cotterEndpoint,
 		QueryParams: []requests.QueryParam{
 			{"api_key", getCotterAPIKey()},
-			{"redirect_url", LOCAL_ENDPOINT},
+			{"redirect_url", localEndpoint},
 			{"state", state},
-			{"code_challenge", code_challenge},
+			{"code_challenge", codeChallenge},
 			{"type", "EMAIL"},
 			{"auth_method", "MAGIC_LINK"},
 		},
@@ -208,9 +213,9 @@ func openInDefaultBrowser(url string) error {
 	return exec.Command(cmd, args...).Start()
 }
 
-func captureCotterToken(code_verifier string) (*CotterOauthToken, error) {
+func captureCotterToken(codeVerifier string) (*CotterOauthToken, error) {
 	m := http.NewServeMux()
-	s := http.Server{Addr: ":" + LOCAL_PORT, Handler: m}
+	s := http.Server{Addr: ":" + localPort, Handler: m}
 
 	var token *CotterOauthToken
 	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -223,9 +228,9 @@ func captureCotterToken(code_verifier string) (*CotterOauthToken, error) {
 		}
 
 		code := q.Get("code")
-		challenge_id := q.Get("challenge_id")
+		challengeID := q.Get("challenge_id")
 
-		cotterToken, err := requestCotterToken(code, challenge_id, code_verifier)
+		cotterToken, err := requestCotterToken(code, challengeID, codeVerifier)
 		if err != nil {
 			// panic!
 		}
@@ -252,7 +257,7 @@ func writeTokenToBrevConfigFile(token *CotterOauthToken) error {
 		return err
 	}
 
-	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + BREV_CREDENTIALS_FILE
+	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + brevCredentialsFile
 
 	err = files.OverwriteJSON(brevCredentialsFile, token)
 	if err != nil {
@@ -268,7 +273,7 @@ func getTokenFromBrevConfigFile() (*CotterOauthToken, error) {
 		return nil, err
 	}
 
-	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + BREV_CREDENTIALS_FILE
+	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + brevCredentialsFile
 
 	var token CotterOauthToken
 	err = files.ReadJSON(brevCredentialsFile, &token)
@@ -279,15 +284,15 @@ func getTokenFromBrevConfigFile() (*CotterOauthToken, error) {
 	return &token, nil
 }
 
-func requestCotterToken(code string, challenge_id string, code_verifier string) (*CotterOauthToken, error) {
-	challenge_id_int, err := strconv.Atoi(challenge_id)
+func requestCotterToken(code string, challengeID string, codeVerifier string) (*CotterOauthToken, error) {
+	challengeIDInt, err := strconv.Atoi(challengeID)
 	if err != nil {
 		return nil, err
 	}
 
 	request := &requests.RESTRequest{
 		Method:   "POST",
-		Endpoint: COTTER_BACKEND_ENDPOINT + "/verify/get_identity",
+		Endpoint: cotterBackendEndpoint + "/verify/get_identity",
 		Headers: []requests.Header{
 			{"API_KEY_ID", getCotterAPIKey()},
 			{"Content-Type", "application/json"},
@@ -296,10 +301,10 @@ func requestCotterToken(code string, challenge_id string, code_verifier string) 
 			{"oauth_token", "true"},
 		},
 		Payload: cotterTokenRequestPayload{
-			CodeVerifier:      code_verifier,
+			CodeVerifier:      codeVerifier,
 			AuthorizationCode: code,
-			ChallengeId:       challenge_id_int,
-			RedirectURL:       LOCAL_ENDPOINT,
+			ChallengeId:       challengeIDInt,
+			RedirectURL:       localEndpoint,
 		},
 	}
 	response, err := request.Submit()
@@ -308,7 +313,10 @@ func requestCotterToken(code string, challenge_id string, code_verifier string) 
 	}
 
 	var tokenResponse cotterTokenResponseBody
-	response.DecodePayload(&tokenResponse)
+	err = response.DecodePayload(&tokenResponse)
+	if err != nil {
+		return nil, err
+	}
 
 	return &tokenResponse.OauthToken, nil
 }
@@ -316,7 +324,7 @@ func requestCotterToken(code string, challenge_id string, code_verifier string) 
 func refreshCotterToken(oldToken *CotterOauthToken) (*CotterOauthToken, error) {
 	request := &requests.RESTRequest{
 		Method:   "POST",
-		Endpoint: COTTER_TOKEN_ENDPOINT + "/" + getCotterAPIKey(),
+		Endpoint: cotterTokenEndpoint + "/" + getCotterAPIKey(),
 		Headers: []requests.Header{
 			{"API_KEY_ID", getCotterAPIKey()},
 			{"Content-Type", "application/json"},
@@ -332,7 +340,10 @@ func refreshCotterToken(oldToken *CotterOauthToken) (*CotterOauthToken, error) {
 	}
 
 	var token CotterOauthToken
-	response.DecodePayload(&token)
+	err = response.DecodePayload(&token)
+	if err != nil {
+		return nil, err
+	}
 	return &token, nil
 }
 
@@ -341,19 +352,19 @@ func generateStateValue() string {
 }
 
 func generateCodeVerifier() string {
-	code_verifier_bytes := randomBytes(32)
-	code_verifier_raw := base64.URLEncoding.EncodeToString(code_verifier_bytes)
-	code_verifier := strings.TrimRight(code_verifier_raw, "=")
+	codeVerifierBytes := randomBytes(32)
+	codeVerifierRaw := base64.URLEncoding.EncodeToString(codeVerifierBytes)
+	codeVerifier := strings.TrimRight(codeVerifierRaw, "=")
 
-	return code_verifier
+	return codeVerifier
 }
 
-func generateCodeChallenge(code_verifier string) string {
+func generateCodeChallenge(codeVerifier string) string {
 	sha256Hasher := sha256.New()
-	sha256Hasher.Write([]byte(code_verifier))
-	challenge_bytes := sha256Hasher.Sum(nil)
-	challenge_raw := base64.URLEncoding.EncodeToString(challenge_bytes)
-	challenge := strings.TrimRight(challenge_raw, "=")
+	sha256Hasher.Write([]byte(codeVerifier))
+	challengeBytes := sha256Hasher.Sum(nil)
+	challengeRaw := base64.URLEncoding.EncodeToString(challengeBytes)
+	challenge := strings.TrimRight(challengeRaw, "=")
 
 	return challenge
 }

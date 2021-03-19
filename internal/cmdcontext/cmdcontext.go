@@ -3,6 +3,7 @@
 package cmdcontext
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
@@ -38,4 +39,9 @@ func (c *Context) Init(verbose bool) {
 
 	c.VerboseOut = os.Stdout
 	c.Err = os.Stderr
+}
+
+func (c *Context) PrintErr(message string, err error) {
+	fmt.Fprintln(c.VerboseOut, message)
+	fmt.Fprintln(c.Err, err.Error())
 }

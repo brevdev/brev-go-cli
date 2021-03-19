@@ -4,7 +4,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-type BrevProject struct {
+type Project struct {
 	Id         string `json:"id"`
 	Name       string `json:"name"`
 	UserId     string `json:"user_id"`
@@ -12,16 +12,16 @@ type BrevProject struct {
 	CreateDate string `json:"create_date"`
 }
 
-type BrevProjects struct {
-	Endpoints []BrevProject `json:"projects"`
+type Projects struct {
+	Endpoints []Project `json:"projects"`
 }
 
 type ResponseCreateProject struct {
-	Module  BrevModule  `json:"module"`
-	Project BrevProject `json:"project"`
+	Module  Module  `json:"module"`
+	Project Project `json:"project"`
 }
 
-func (a *BrevAgent) GetProjects() ([]BrevProject, error) {
+func (a *Agent) GetProjects() ([]Project, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("_project"),
@@ -37,13 +37,16 @@ func (a *BrevAgent) GetProjects() ([]BrevProject, error) {
 		return nil, err
 	}
 
-	var payload BrevProjects
-	response.DecodePayload(&payload)
+	var payload Projects
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return payload.Endpoints, nil
 }
 
-func (a *BrevAgent) CreateProject(name string) (*ResponseCreateProject, error) {
+func (a *Agent) CreateProject(name string) (*ResponseCreateProject, error) {
 	request := requests.RESTRequest{
 		Method:   "POST",
 		Endpoint: brevEndpoint("_project"),
@@ -63,6 +66,9 @@ func (a *BrevAgent) CreateProject(name string) (*ResponseCreateProject, error) {
 	}
 
 	var payload ResponseCreateProject
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 	return &payload, nil
 }

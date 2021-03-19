@@ -1,10 +1,11 @@
 package brev
 
 import (
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-type BrevProjectPackage struct {
+type ProjectPackage struct {
 	Id          string `json:"id"`
 	Name        string `json:"name"`
 	ProjectId   string `json:"project_id"`
@@ -14,19 +15,19 @@ type BrevProjectPackage struct {
 	Version     string `json:"version"`
 }
 
-type BrevProjectPackages struct {
-	Packages []BrevProjectPackage `json:"packages"`
+type ProjectPackages struct {
+	Packages []ProjectPackage `json:"packages"`
 }
 
 type ResponseAddPackage struct {
-	Package BrevProjectPackage `json:"package"`
+	Package ProjectPackage `json:"package"`
 }
 
 type ResponseRemovePackage struct {
 	ID string `json:"id"`
 }
 
-func (a *BrevAgent) GetPackages(projectID string) ([]BrevProjectPackage, error) {
+func (a *Agent) GetPackages(projectID string, context *cmdcontext.Context) ([]ProjectPackage, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("package"),
@@ -40,16 +41,21 @@ func (a *BrevAgent) GetPackages(projectID string) ([]BrevProjectPackage, error) 
 	}
 	response, err := request.Submit()
 	if err != nil {
+		context.PrintErr("Failed to get packages", err)
 		return nil, err
 	}
 
-	var payload BrevProjectPackages
-	response.DecodePayload(&payload)
+	var payload ProjectPackages
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		context.PrintErr("Failed to deserialize response payload", err)
+		return nil, err
+	}
 
 	return payload.Packages, nil
 }
 
-func (a *BrevAgent) AddPackage(projectID string, name string) (*ResponseAddPackage, error) {
+func (a *Agent) AddPackage(projectID string, name string, context *cmdcontext.Context) (*ResponseAddPackage, error) {
 	request := requests.RESTRequest{
 		Method:   "POST",
 		Endpoint: brevEndpoint("package"),
@@ -66,16 +72,21 @@ func (a *BrevAgent) AddPackage(projectID string, name string) (*ResponseAddPacka
 	}
 	response, err := request.Submit()
 	if err != nil {
+		context.PrintErr("Failed to create package", err)
 		return nil, err
 	}
 
 	var payload ResponseAddPackage
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		context.PrintErr("Failed to deserialize response payload", err)
+		return nil, err
+	}
 
 	return &payload, nil
 }
 
-func (a *BrevAgent) RemovePackage(packageID string) (*ResponseRemovePackage, error) {
+func (a *Agent) RemovePackage(packageID string) (*ResponseRemovePackage, error) {
 	request := requests.RESTRequest{
 		Method:   "DELETE",
 		Endpoint: brevEndpoint("package/" + packageID),
@@ -92,7 +103,10 @@ func (a *BrevAgent) RemovePackage(packageID string) (*ResponseRemovePackage, err
 	}
 
 	var payload ResponseRemovePackage
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return &payload, nil
 }

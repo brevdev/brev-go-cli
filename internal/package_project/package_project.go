@@ -17,8 +17,11 @@ package package_project
 
 import (
 	"fmt"
+
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 )
 
-func logic() {
-	fmt.Println("package called")
+func logic(context *cmdcontext.Context) error {
+	fmt.Fprintln(context.Out, "package called")
+	return nil
 }
