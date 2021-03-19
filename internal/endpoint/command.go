@@ -20,6 +20,7 @@ import (
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/files"
 )
 
 func getSomeSetOfOptions(toComplete string) []string {
@@ -27,8 +28,15 @@ func getSomeSetOfOptions(toComplete string) []string {
 }
 
 func getEpNames() []string {
-	print("hhhhhhhh")
-	return []string{"ep1", "ep2", "ep3"}
+	var endpoints []brev.Endpoint
+	files.ReadJSON(files.GetEndpointsPath() ,&endpoints)
+	
+	var epNames []string
+	for _, v := range endpoints {
+		epNames = append(epNames, v.Name)
+	}
+
+	return epNames
 }
 
 func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
@@ -120,7 +128,10 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the endpoint")
-
+	cmd.MarkFlagRequired("name")
+	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return getEpNames(), cobra.ShellCompDirectiveNoSpace
+	})
 	return cmd
 }
 

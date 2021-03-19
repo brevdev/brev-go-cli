@@ -26,7 +26,6 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
-	"github.com/pkg/errors"
 )
 
 func addEndpoint(name string, context *cmdcontext.Context) error {
@@ -104,7 +103,7 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 		}
 	}
 	if (id=="") {
-		err := errors.New("Endpoint doesn't exist.")
+		err := fmt.Errorf("Endpoint doesn't exist.")
 		context.PrintErr("Cannot delete Endpoint. ", err)
 		return err
 	}
