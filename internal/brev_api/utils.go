@@ -1,4 +1,4 @@
-package brev
+package brev_api
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func brevEndpoint(resource string) string {
 // Example usage
 /*
 	token, _ := auth.GetToken()
-	brevAgent := brev.Agent{
+	brevAgent := brev_api.Agent{
 		Key: token,
 	}
 

@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
-	"github.com/brevdev/brev-go-cli/internal/brev"
+	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/spf13/cobra"
@@ -42,7 +42,7 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			token, _ := auth.GetToken()
-			brevAgent := brev.Agent{
+			brevAgent := brev_api.Agent{
 				Key: token,
 			}
 			projects, err := brevAgent.GetProjects()
@@ -74,7 +74,7 @@ func getProjectNames() []string {
 
 	// Get Projects
 	token, _ := auth.GetToken()
-	brevAgent := brev.Agent{
+	brevAgent := brev_api.Agent{
 		Key: token,
 	}
 	rawProjects, _ := brevAgent.GetProjects()
@@ -89,7 +89,7 @@ func getProjectNames() []string {
 	return projNames
 }
 
-func initExistingProj(project brev.Project, context *cmdcontext.Context) error {
+func initExistingProj(project brev_api.Project, context *cmdcontext.Context) error {
 
 	// Get endpoints for project
 	token, err := auth.GetToken()
@@ -98,7 +98,7 @@ func initExistingProj(project brev.Project, context *cmdcontext.Context) error {
 		return err
 	}
 
-	brevAgent := brev.Agent{
+	brevAgent := brev_api.Agent{
 		Key: token,
 	}
 	allEndpoints, err := brevAgent.GetEndpoints()
@@ -107,7 +107,7 @@ func initExistingProj(project brev.Project, context *cmdcontext.Context) error {
 		return err
 	}
 
-	var endpoints brev.Endpoints
+	var endpoints brev_api.Endpoints
 	for _, v := range allEndpoints.Endpoints {
 		if v.ProjectId == project.Id {
 			endpoints.Endpoints = append(endpoints.Endpoints, v)
@@ -145,7 +145,7 @@ func initExistingProj(project brev.Project, context *cmdcontext.Context) error {
 		return err
 	}
 
-	if !brev.StringInList(path, currBrevDirectories) {
+	if !brev_api.StringInList(path, currBrevDirectories) {
 		currBrevDirectories = append(currBrevDirectories, path)
 		err = files.OverwriteJSON(files.GetActiveProjectsPath(), currBrevDirectories)
 		if err != nil {

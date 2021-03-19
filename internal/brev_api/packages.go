@@ -1,33 +1,36 @@
-package brev
+package brev_api
 
 import (
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-type ProjectVariable struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	Namespace  string `json:"namespace"`
-	ProjectId  string `json:"project_id"`
-	CreateDate string `json:"create_date"`
+type ProjectPackage struct {
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	ProjectId   string `json:"project_id"`
+	CreatedDate string `json:"created_date"`
+	HomePage    string `json:"home_page"`
+	Status      string `json:"status"`
+	Version     string `json:"version"`
 }
 
-type ProjectVariables struct {
-	Variables []ProjectVariable `json:"variables"`
+type ProjectPackages struct {
+	Packages []ProjectPackage `json:"packages"`
 }
 
-type ResponseAddVariable struct {
-	Variable ProjectVariable `json:"variable"`
+type ResponseAddPackage struct {
+	Package ProjectPackage `json:"package"`
 }
 
-type ResponseRemoveVariable struct {
+type ResponseRemovePackage struct {
 	ID string `json:"id"`
 }
 
-func (a *Agent) GetVariables(projectID string) ([]ProjectVariable, error) {
+func (a *Agent) GetPackages(projectID string, context *cmdcontext.Context) ([]ProjectPackage, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
-		Endpoint: brevEndpoint("variable"),
+		Endpoint: brevEndpoint("package"),
 		QueryParams: []requests.QueryParam{
 			{"utm_source", "cli"},
 			{"project_id", projectID},
@@ -38,22 +41,24 @@ func (a *Agent) GetVariables(projectID string) ([]ProjectVariable, error) {
 	}
 	response, err := request.Submit()
 	if err != nil {
+		context.PrintErr("Failed to get packages", err)
 		return nil, err
 	}
 
-	var payload ProjectVariables
+	var payload ProjectPackages
 	err = response.DecodePayload(&payload)
 	if err != nil {
+		context.PrintErr("Failed to deserialize response payload", err)
 		return nil, err
 	}
 
-	return payload.Variables, nil
+	return payload.Packages, nil
 }
 
-func (a *Agent) AddVariable(projectID string, name string, value string) (*ResponseAddVariable, error) {
+func (a *Agent) AddPackage(projectID string, name string, context *cmdcontext.Context) (*ResponseAddPackage, error) {
 	request := requests.RESTRequest{
 		Method:   "POST",
-		Endpoint: brevEndpoint("variable"),
+		Endpoint: brevEndpoint("package"),
 		QueryParams: []requests.QueryParam{
 			{"utm_source", "cli"},
 		},
@@ -62,28 +67,29 @@ func (a *Agent) AddVariable(projectID string, name string, value string) (*Respo
 		},
 		Payload: map[string]string{
 			"name":       name,
-			"value":      value,
 			"project_id": projectID,
 		},
 	}
 	response, err := request.Submit()
 	if err != nil {
+		context.PrintErr("Failed to create package", err)
 		return nil, err
 	}
 
-	var payload ResponseAddVariable
+	var payload ResponseAddPackage
 	err = response.DecodePayload(&payload)
 	if err != nil {
+		context.PrintErr("Failed to deserialize response payload", err)
 		return nil, err
 	}
 
 	return &payload, nil
 }
 
-func (a *Agent) RemoveVariable(variableID string) (*ResponseRemoveVariable, error) {
+func (a *Agent) RemovePackage(packageID string) (*ResponseRemovePackage, error) {
 	request := requests.RESTRequest{
 		Method:   "DELETE",
-		Endpoint: brevEndpoint("variable/" + variableID),
+		Endpoint: brevEndpoint("package/" + packageID),
 		QueryParams: []requests.QueryParam{
 			{"utm_source", "cli"},
 		},
@@ -96,7 +102,7 @@ func (a *Agent) RemoveVariable(variableID string) (*ResponseRemoveVariable, erro
 		return nil, err
 	}
 
-	var payload ResponseRemoveVariable
+	var payload ResponseRemovePackage
 	err = response.DecodePayload(&payload)
 	if err != nil {
 		return nil, err
