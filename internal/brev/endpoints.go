@@ -26,6 +26,7 @@ type RequestCreateEndpoint struct {
 	ProjectId string   `json:"project_id"`
 	Uri       string   `json:"uri"`
 }
+
 type RequestUpdateEndpoint struct {
 	Name    string   `json:"name"`
 	Methods []string `json:"methods"`
