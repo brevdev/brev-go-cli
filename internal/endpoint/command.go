@@ -42,7 +42,12 @@ func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
 		brev endpoint remove NewEp
 	`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			_, err := brev.CheckOutsideBrevErrorMessage(context)
+			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			_, err = brev.CheckOutsideBrevErrorMessage(context)
 			return err
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
