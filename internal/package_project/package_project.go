@@ -18,10 +18,42 @@ package package_project
 import (
 	"fmt"
 
+	"github.com/brevdev/brev-go-cli/internal/auth"
+	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 )
 
 func logic(context *cmdcontext.Context) error {
 	fmt.Fprintln(context.Out, "package called")
+	return nil
+}
+
+
+func addPackage(name string, context *cmdcontext.Context) error {
+
+	localContext, err_dir := brev_ctx.GetLocal()
+	if (err_dir != nil) {
+		// handle this
+		return err_dir
+	}
+	
+	token, err := auth.GetToken()
+	if err != nil {
+		context.PrintErr("Failed to retrieve auth token", err)
+		return err
+	}
+	brevAgent := brev_api.Agent{
+		Key: token,
+	}
+	
+	respPackage, err2 := brevAgent.AddPackage(localContext.Project.Id, name, context)
+	if err2 != nil {
+		context.PrintErr(fmt.Sprintf("Failed to add package %s", name), err2)
+		return err2
+	}
+
+	fmt.Fprintln(context.Out, fmt.Sprintf("Package %s installed successfully.",&respPackage.Package.Name )) // this isn't working
+	
 	return nil
 }
