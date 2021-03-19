@@ -18,10 +18,12 @@ package endpoint
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev"
+	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
@@ -38,10 +40,32 @@ type Endpoint struct {
 }
 
 func add_endpoint(name string) {
-	fmt.Printf("Create ep file %s", name)
-	// TODO: create endpoint
-	// TODO: get contents of .brev/endpoints.json
-	// TODO: add new endpoint to .brev/endpoints.json
+	// Create endpoint
+	proj := brev.GetActiveProject()
+
+	// ERR: if proj doesn't exist
+
+	token, _ := auth.GetToken()
+	brevAgent := brev.BrevAgent{
+		Key: token,
+	}
+
+	var ep *brev.ResponseUpdateEndpoint
+	ep, _ = brevAgent.CreateEndpoint(name, proj.Id)
+
+	fmt.Println(ep.Endpoint.Name + " created!")
+
+	// Get contents of .brev/endpoints.json
+	var allEps []brev.BrevEndpoint
+	files.ReadJSON(files.GetEndpointsPath(), &allEps)
+
+	// Add new endpoint to .brev/endpoints.json
+	allEps = append(allEps, ep.Endpoint)
+	files.OverwriteJSON(files.GetEndpointsPath(), allEps)
+
+	// Create the endpoint code file
+	cwd, _ := os.Getwd()
+	files.OverwriteJSON(fmt.Sprintf("%s/%s.py", cwd, ep.Endpoint.Name), ep.Endpoint.Code)
 }
 
 func remove_endpoint(name string) {

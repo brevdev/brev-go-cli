@@ -142,9 +142,7 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 		`,
 		Run: func(cmd *cobra.Command, args []string) {
 			run_endpoint(name, method, arg, body)
-			// for _, v := range arg {
-			// 	fmt.Println(v)
-			// }
+
 		},
 	}
 
