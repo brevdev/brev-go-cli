@@ -257,7 +257,7 @@ func writeTokenToBrevConfigFile(token *CotterOauthToken) error {
 		return err
 	}
 
-	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + brevCredentialsFile
+	brevCredentialsFile := home + "/" + config.GetBrevRootDirectory() + "/" + brevCredentialsFile
 
 	err = files.OverwriteJSON(brevCredentialsFile, token)
 	if err != nil {
@@ -273,7 +273,7 @@ func getTokenFromBrevConfigFile() (*CotterOauthToken, error) {
 		return nil, err
 	}
 
-	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + brevCredentialsFile
+	brevCredentialsFile := home + "/" + config.GetBrevRootDirectory() + "/" + brevCredentialsFile
 
 	var token CotterOauthToken
 	err = files.ReadJSON(brevCredentialsFile, &token)

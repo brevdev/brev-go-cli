@@ -87,7 +87,7 @@ func CheckOutsideBrevErrorMessage(context *cmdcontext.Context) (bool, error) {
 	}
 
 	// Exit with error message
-	fmt.Fprintln(context.Out, "Endpoint commands only work in a Brev project.")
+	fmt.Fprintln(context.VerboseOut, "Endpoint commands only work in a Brev project.")
 	if len(currBrevDirectories) == 0 {
 		// If no directories, check if they have some remote.
 

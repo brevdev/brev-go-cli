@@ -1,6 +1,7 @@
 BIN_NAME?=brev
 BIN_VERSION?=0.1.2
 API_KEY_COTTER?=unknown
+BREV_ROOT_DIRECTORY?=.brev
 
 GOCMD=GO
 
@@ -16,8 +17,8 @@ PATH_MAIN=$(PATH_PROJECT)/cmd
 
 FIELD_VERSION=$(PATH_PROJECT)/internal/config.Version
 FIELD_COTTER_API_KEY=$(PATH_PROJECT)/internal/config.CotterAPIKey
-
-BUILDCMD=$(GOBUILD) -ldflags "-X $(FIELD_VERSION)=$(BIN_VERSION) -X $(FIELD_COTTER_API_KEY)=$(API_KEY_COTTER)"
+FIELD_BREV_ROOT_DIRECTORY=$(PATH_PROJECT)/internal/config.BrevRootDirectory
+BUILDCMD=$(GOBUILD) -ldflags "-X $(FIELD_VERSION)=$(BIN_VERSION) -X $(FIELD_COTTER_API_KEY)=$(API_KEY_COTTER) -X $(FIELD_BREV_ROOT_DIRECTORY)=$(BREV_ROOT_DIRECTORY)"
 
 build: linux darwin
 
@@ -40,6 +41,9 @@ darwin-homebrew:
 test_unit:
 	$(GOTEST) -v $(PATH_PROJECT)/cmd/...
 	$(GOTEST) -v $(PATH_PROJECT)/internal/...
+
+test_e2e: darwin
+	go test -v ./test_e2e/... -brev-bin $(PATH_BIN)/osx/$(BIN_NAME)
 
 fmt:
 	$(GOFMT) ./...

@@ -31,14 +31,14 @@ import (
 )
 
 func main() {
-	cmd := newCmdBrev()
+	cmd := NewCmdBrev()
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 }
 
-func newCmdBrev() *cobra.Command {
+func NewCmdBrev() *cobra.Command {
 	var verbose bool
 
 	cmdContext := &cmdcontext.Context{}
