@@ -9,8 +9,8 @@ import (
 func NewCmdLogin(context *cmdcontext.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "login",
-		Run: func(cmd *cobra.Command, args []string) {
-			Login()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return login(context)
 		},
 	}
 	return cmd

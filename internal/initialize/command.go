@@ -40,40 +40,48 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 		// To init existing project
 		brev init <project_name>
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			token, _ := auth.GetToken()
-			brevAgent := brev.BrevAgent{
+			brevAgent := brev.Agent{
 				Key: token,
 			}
-			projects, _ := brevAgent.GetProjects()
+			projects, err := brevAgent.GetProjects()
+			if err != nil {
+				context.PrintErr("Failed to retrieve projects", err)
+				return err
+			}
 
 			for _, v := range projects {
 				if v.Name == project {
-					init_existing_proj(v)
+					err = initExistingProj(v, context)
+					if err != nil {
+						return err
+					}
 				}
 			}
+			return nil
 		},
 	}
 	cmd.Flags().StringVarP(&project, "project", "p", "", "Project Name")
 	cmd.RegisterFlagCompletionFunc("project", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return get_project_names(), cobra.ShellCompDirectiveNoSpace
+		return getProjectNames(), cobra.ShellCompDirectiveNoSpace
 	})
 
 	return cmd
 }
 
-func get_project_names() []string {
+func getProjectNames() []string {
 
 	// Get Projects
 	token, _ := auth.GetToken()
-	brevAgent := brev.BrevAgent{
+	brevAgent := brev.Agent{
 		Key: token,
 	}
-	raw_projects, _ := brevAgent.GetProjects()
+	rawProjects, _ := brevAgent.GetProjects()
 	var projNames []string
 
 	// Filter list for just project names
-	for _, v := range raw_projects {
+	for _, v := range rawProjects {
 		projNames = append(projNames, v.Name)
 	}
 
@@ -81,44 +89,81 @@ func get_project_names() []string {
 	return projNames
 }
 
-func init_existing_proj(project brev.BrevProject) {
+func initExistingProj(project brev.Project, context *cmdcontext.Context) error {
 
 	// Get endpoints for project
-	token, _ := auth.GetToken()
-	brevAgent := brev.BrevAgent{
+	token, err := auth.GetToken()
+	if err != nil {
+		context.PrintErr("Failed to retrieve auth token", err)
+		return err
+	}
+
+	brevAgent := brev.Agent{
 		Key: token,
 	}
-	all_endpoints, _ := brevAgent.GetEndpoints()
-	var endpoints brev.BrevEndpoints
-	for _, v := range all_endpoints.Endpoints {
+	allEndpoints, err := brevAgent.GetEndpoints()
+	if err != nil {
+		context.PrintErr("Failed to get endpoints", err)
+		return err
+	}
+
+	var endpoints brev.Endpoints
+	for _, v := range allEndpoints.Endpoints {
 		if v.ProjectId == project.Id {
 			endpoints.Endpoints = append(endpoints.Endpoints, v)
 		}
 	}
 
 	// Init the new folder at pwd + project name
-	cwd, _ := os.Getwd()
+	cwd, err := os.Getwd()
+	if err != nil {
+		context.PrintErr("Failed to determine working directory", err)
+		return err
+	}
+
 	path := fmt.Sprintf("%s/%s", cwd, project.Name)
 
 	// Make project.json
-	files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
+	err = files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
+	if err != nil {
+		context.PrintErr("Failed to write project to local file", err)
+		return err
+	}
 
 	// Make endpoints.json
-	files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints.Endpoints)
+	err = files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints.Endpoints)
+	if err != nil {
+		context.PrintErr("Failed to write endpoints to local file", err)
+		return err
+	}
 
 	// Create a global file with project directories
-	var curr_brev_directories []string
-	files.ReadJSON(files.GetActiveProjectsPath(), &curr_brev_directories)
-	if !brev.StringInList(path, curr_brev_directories) {
-		curr_brev_directories = append(curr_brev_directories, path)
-		files.OverwriteJSON(files.GetActiveProjectsPath(), curr_brev_directories)
+	var currBrevDirectories []string
+	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
+	if err != nil {
+		context.PrintErr("Failed to read projects directory", err)
+		return err
+	}
+
+	if !brev.StringInList(path, currBrevDirectories) {
+		currBrevDirectories = append(currBrevDirectories, path)
+		err = files.OverwriteJSON(files.GetActiveProjectsPath(), currBrevDirectories)
+		if err != nil {
+			context.PrintErr("Failed to write projects to project file", err)
+			return err
+		}
 	}
 
 	// TODO: copy shared code
 
 	// Create endpoint files
 	for _, v := range endpoints.Endpoints {
-		files.OverwriteJSON(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
+		err = files.OverwriteJSON(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
+		if err != nil {
+			context.PrintErr("Failed to write code to local file", err)
+			return err
+		}
 	}
 
+	return nil
 }

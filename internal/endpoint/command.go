@@ -41,8 +41,14 @@ func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
 		brev endpoint run NewEp
 		brev endpoint remove NewEp
 	`,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			brev.CheckOutsideBrevErrorMessage()
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			_, err = brev.CheckOutsideBrevErrorMessage(context)
+			return err
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) != 0 {
@@ -75,8 +81,8 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 		ex:
 			brev endpoint add NewEp
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
-			add_endpoint(name)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return addEndpoint(name, context)
 		},
 	}
 
@@ -95,8 +101,8 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 		ex:
 			brev endpoint remove NewEp
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
-			remove_endpoint(name)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return removeEndpoint(name, context)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			// fmt.Println("heeyy from this function")
@@ -140,9 +146,8 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 		ex:
 			brev endpoint run MyEp
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
-			run_endpoint(name, method, arg, body)
-
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runEndpoint(name, method, arg, body, context)
 		},
 	}
 
@@ -172,8 +177,8 @@ func newCmdLog(context *cmdcontext.Context) *cobra.Command {
 		ex:
 			brev endpoint log NewEp
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
-			log_endpoint(name)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return logEndpoint(name, context)
 		},
 	}
 
@@ -191,8 +196,8 @@ func newCmdList(context *cmdcontext.Context) *cobra.Command {
 		ex:
 			brev endpoint list
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
-			list_endpoints()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listEndpoints(context)
 		},
 	}
 

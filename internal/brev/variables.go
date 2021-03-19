@@ -4,7 +4,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-type BrevProjectVariable struct {
+type ProjectVariable struct {
 	Id         string `json:"id"`
 	Name       string `json:"name"`
 	Namespace  string `json:"namespace"`
@@ -12,19 +12,19 @@ type BrevProjectVariable struct {
 	CreateDate string `json:"create_date"`
 }
 
-type BrevProjectVariables struct {
-	Variables []BrevProjectVariable `json:"variables"`
+type ProjectVariables struct {
+	Variables []ProjectVariable `json:"variables"`
 }
 
 type ResponseAddVariable struct {
-	Variable BrevProjectVariable `json:"variable"`
+	Variable ProjectVariable `json:"variable"`
 }
 
 type ResponseRemoveVariable struct {
 	ID string `json:"id"`
 }
 
-func (a *BrevAgent) GetVariables(projectID string) ([]BrevProjectVariable, error) {
+func (a *Agent) GetVariables(projectID string) ([]ProjectVariable, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("variable"),
@@ -41,13 +41,16 @@ func (a *BrevAgent) GetVariables(projectID string) ([]BrevProjectVariable, error
 		return nil, err
 	}
 
-	var payload BrevProjectVariables
-	response.DecodePayload(&payload)
+	var payload ProjectVariables
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return payload.Variables, nil
 }
 
-func (a *BrevAgent) AddVariable(projectID string, name string, value string) (*ResponseAddVariable, error) {
+func (a *Agent) AddVariable(projectID string, name string, value string) (*ResponseAddVariable, error) {
 	request := requests.RESTRequest{
 		Method:   "POST",
 		Endpoint: brevEndpoint("variable"),
@@ -69,12 +72,15 @@ func (a *BrevAgent) AddVariable(projectID string, name string, value string) (*R
 	}
 
 	var payload ResponseAddVariable
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return &payload, nil
 }
 
-func (a *BrevAgent) RemoveVariable(variableID string) (*ResponseRemoveVariable, error) {
+func (a *Agent) RemoveVariable(variableID string) (*ResponseRemoveVariable, error) {
 	request := requests.RESTRequest{
 		Method:   "DELETE",
 		Endpoint: brevEndpoint("variable/" + variableID),
@@ -91,7 +97,10 @@ func (a *BrevAgent) RemoveVariable(variableID string) (*ResponseRemoveVariable, 
 	}
 
 	var payload ResponseRemoveVariable
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return &payload, nil
 }

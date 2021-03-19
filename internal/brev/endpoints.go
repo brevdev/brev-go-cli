@@ -4,7 +4,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-type BrevEndpoint struct {
+type Endpoint struct {
 	Id         string   `json:"id"`
 	Name       string   `json:"name"`
 	Methods    []string `json:"methods"`
@@ -15,8 +15,8 @@ type BrevEndpoint struct {
 	Code       string   `json:"code"`
 }
 
-type BrevEndpoints struct {
-	Endpoints []BrevEndpoint `json:"endpoints"`
+type Endpoints struct {
+	Endpoints []Endpoint `json:"endpoints"`
 }
 
 type RequestCreateEndpoint struct {
@@ -34,7 +34,7 @@ type RequestUpdateEndpoint struct {
 }
 
 type ResponseUpdateEndpoint struct {
-	Endpoint BrevEndpoint `json:"endpoint"`
+	Endpoint Endpoint `json:"endpoint"`
 }
 
 type ResponseRemoveEndpoint struct {
@@ -42,7 +42,7 @@ type ResponseRemoveEndpoint struct {
 	Success bool   `json:"success"`
 }
 
-func (a *BrevAgent) GetEndpoints() (*BrevEndpoints, error) {
+func (a *Agent) GetEndpoints() (*Endpoints, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("_endpoint"),
@@ -58,8 +58,11 @@ func (a *BrevAgent) GetEndpoints() (*BrevEndpoints, error) {
 		return nil, err
 	}
 
-	var payload BrevEndpoints
-	response.DecodePayload(&payload)
+	var payload Endpoints
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return &payload, nil
 }
@@ -77,7 +80,7 @@ def post():
 
 `
 
-func (a *BrevAgent) CreateEndpoint(name string, projectId string) (*ResponseUpdateEndpoint, error) {
+func (a *Agent) CreateEndpoint(name string, projectId string) (*ResponseUpdateEndpoint, error) {
 	request := &requests.RESTRequest{
 		Method:   "POST",
 		Endpoint: brevEndpoint("_endpoint"),
@@ -102,12 +105,15 @@ func (a *BrevAgent) CreateEndpoint(name string, projectId string) (*ResponseUpda
 	}
 
 	var payload ResponseUpdateEndpoint
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return &payload, nil
 }
 
-func (a *BrevAgent) UpdateEndpoint(endpointID string, updateRequest RequestUpdateEndpoint) (*ResponseUpdateEndpoint, error) {
+func (a *Agent) UpdateEndpoint(endpointID string, updateRequest RequestUpdateEndpoint) (*ResponseUpdateEndpoint, error) {
 	request := requests.RESTRequest{
 		Method:   "PUT",
 		Endpoint: brevEndpoint("_endpoint/" + endpointID),
@@ -125,12 +131,15 @@ func (a *BrevAgent) UpdateEndpoint(endpointID string, updateRequest RequestUpdat
 	}
 
 	var payload ResponseUpdateEndpoint
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return &payload, nil
 }
 
-func (a *BrevAgent) RemoveEndpoint(endpointID string) (*ResponseRemoveEndpoint, error) {
+func (a *Agent) RemoveEndpoint(endpointID string) (*ResponseRemoveEndpoint, error) {
 	request := requests.RESTRequest{
 		Method:   "DELETE",
 		Endpoint: brevEndpoint("_endpoint/" + endpointID),
@@ -147,7 +156,10 @@ func (a *BrevAgent) RemoveEndpoint(endpointID string) (*ResponseRemoveEndpoint, 
 	}
 
 	var payload ResponseRemoveEndpoint
-	response.DecodePayload(&payload)
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return &payload, nil
 }

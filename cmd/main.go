@@ -47,7 +47,6 @@ func newCmdBrev() *cobra.Command {
 		Use: "brev",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			cmdContext.Init(verbose)
-
 		},
 	}
 

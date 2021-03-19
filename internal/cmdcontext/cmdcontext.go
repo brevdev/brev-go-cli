@@ -3,8 +3,11 @@
 package cmdcontext
 
 import (
+	"fmt"
 	"io"
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
 // Context holds all structs which make up the runtime context of a single execution of the
@@ -38,4 +41,41 @@ func (c *Context) Init(verbose bool) {
 
 	c.VerboseOut = os.Stdout
 	c.Err = os.Stderr
+}
+
+func (c *Context) PrintErr(message string, err error) {
+	fmt.Fprintln(c.VerboseOut, message)
+	fmt.Fprintln(c.Err, err.Error())
+}
+
+// InvokeParentPersistentPreRun executes the immediate parent command's
+// PersistentPreRunE and PersistentPreRun functions, in that order. If
+// an error is returned from PersistentPreRunE, it is immediately returned.
+//
+// TODO: reverse walk up command tree? would need to ensure no one parent is invoked multiple times
+func InvokeParentPersistentPreRun(cmd *cobra.Command, args []string) error {
+	parentCmd := cmd.Parent()
+	if parentCmd == nil {
+		return nil
+	}
+
+	var err error
+
+	// Invoke PersistentPreRunE, returning an error if one occurs
+	// If no error is returned, proceed with PersistentPreRun
+	parentPersistentPreRunE := parentCmd.PersistentPreRunE
+	if parentPersistentPreRunE != nil {
+		err = parentPersistentPreRunE(parentCmd, args)
+	}
+	if err != nil {
+		return err
+	}
+
+	// Invoke PersistentPreRun
+	parentPersistentPreRun := parentCmd.PersistentPreRun
+	if parentPersistentPreRun != nil {
+		parentPersistentPreRun(parentCmd, args)
+	}
+
+	return nil
 }

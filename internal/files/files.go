@@ -2,7 +2,6 @@ package files
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,25 +10,25 @@ import (
 	"path/filepath"
 )
 
-var (
-	BrevDirectory      = ".brev"
-	ActiveProjectsFile = "active_projects.json"
-	ProjectsFile       = "projects.json"
-	EndpointsFile      = "endpoints.json"
+const (
+	brevDirectory      = ".brev"
+	activeProjectsFile = "active_projects.json"
+	projectsFile       = "projects.json"
+	endpointsFile      = "endpoints.json"
 )
 
 func GetBrevDirectory() string {
-	return BrevDirectory
+	return brevDirectory
 }
 
 func GetActiveProjectFile() string {
-	return ActiveProjectsFile
+	return activeProjectsFile
 }
 func GetProjectsFile() string {
-	return ProjectsFile
+	return projectsFile
 }
 func GetEndpointsFile() string {
-	return EndpointsFile
+	return endpointsFile
 }
 
 func GetRootDir() string {
@@ -43,35 +42,34 @@ func GetRootDir() string {
 func GetActiveProjectsPath() string {
 	rootDir := GetRootDir()
 
-	return fmt.Sprintf("%s/%s/%s", rootDir, BrevDirectory, ActiveProjectsFile)
+	return fmt.Sprintf("%s/%s/%s", rootDir, brevDirectory, activeProjectsFile)
 }
 
 func GetLocalBrevDir() string {
 	cwd, _ := os.Getwd()
-	return fmt.Sprintf("%s/%s", cwd, BrevDirectory)
+	return fmt.Sprintf("%s/%s", cwd, brevDirectory)
 }
 
 func GetEndpointsPath() string {
 	cwd, _ := os.Getwd()
-	return fmt.Sprintf("%s/%s/%s", cwd, BrevDirectory, EndpointsFile)
+	return fmt.Sprintf("%s/%s/%s", cwd, brevDirectory, endpointsFile)
 }
 func GetProjectsPath() string {
 	cwd, _ := os.Getwd()
-	return fmt.Sprintf("%s/%s/%s", cwd, BrevDirectory, ProjectsFile)
+	return fmt.Sprintf("%s/%s/%s", cwd, brevDirectory, projectsFile)
 }
 
-// Read data into the given struct
+// ReadJSON reads data from a file into the given struct
 //
 // Usage:
 //   var foo myStruct
 //   files.ReadJSON("tmp/a.json", &foo)
 func ReadJSON(filepath string, v interface{}) error {
 	f, err := os.Open(filepath)
-	defer f.Close()
-
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	dataBytes, err := ioutil.ReadAll(f)
 	if err != nil {
@@ -81,7 +79,7 @@ func ReadJSON(filepath string, v interface{}) error {
 	return json.Unmarshal(dataBytes, v)
 }
 
-// Replace data in the target file with data from the given struct
+// OverwriteJSON data in the target file with data from the given struct
 //
 // Usage (unstructured):
 //   OverwriteJSON("tmp/a/b/c.json", map[string]string{
@@ -89,7 +87,7 @@ func ReadJSON(filepath string, v interface{}) error {
 //   })
 //
 //
-// Usge (struct):
+// Usage (struct):
 //   var foo myStruct
 //   OverwriteJSON("tmp/a/b/c.json", foo)
 func OverwriteJSON(filepath string, v interface{}) error {
@@ -118,14 +116,4 @@ func touchFile(path string) (*os.File, error) {
 		return nil, err
 	}
 	return os.Create(path)
-}
-
-func Does_file_exist(path string) bool {
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		// file does not exist
-		return false
-	} else {
-		// file exists
-		return true
-	}
 }

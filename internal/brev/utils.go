@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/files"
 )
 
-type BrevAgent struct {
+type Agent struct {
 	Key *auth.CotterOauthToken
 }
 
@@ -22,7 +23,7 @@ func brevEndpoint(resource string) string {
 // Example usage
 /*
 	token, _ := auth.GetToken()
-	brevAgent := brev.BrevAgent{
+	brevAgent := brev.Agent{
 		Key: token,
 	}
 
@@ -36,68 +37,93 @@ func brevEndpoint(resource string) string {
 	fmt.Println(modulesResponse)
 */
 
-func GetActiveProject() BrevProject {
+func GetActiveProject() (*Project, error) {
 	projectFilePath := files.GetProjectsPath()
 
-	var project BrevProject
-	_ = files.ReadJSON(projectFilePath, &project)
+	var project Project
+	err := files.ReadJSON(projectFilePath, &project)
+	if err != nil {
+		return nil, err
+	}
 
-	return project
+	return &project, nil
 }
 
-func IsInProjectDirectory() bool {
-	cwd, _ := os.Getwd()
+func IsInProjectDirectory() (bool, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return false, err
+	}
 
-	var curr_brev_directories []string
-	files.ReadJSON(files.GetActiveProjectsPath(), &curr_brev_directories)
+	var currBrevDirectories []string
+	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
+	if err != nil {
+		return false, err
+	}
 
-	for _, v := range curr_brev_directories {
+	for _, v := range currBrevDirectories {
 		if strings.Contains(cwd, v) {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
-func CheckOutsideBrevErrorMessage() bool {
-
-	if IsInProjectDirectory() {
-		return true
+func CheckOutsideBrevErrorMessage(context *cmdcontext.Context) (bool, error) {
+	isInProjectDirectory, err := IsInProjectDirectory()
+	if err != nil {
+		return false, nil
 	}
 
-	var curr_brev_directories []string
-	files.ReadJSON(files.GetActiveProjectsPath(), &curr_brev_directories)
+	if isInProjectDirectory {
+		return true, nil
+	}
+
+	var currBrevDirectories []string
+	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
+	if err != nil {
+		context.PrintErr("Failed to read projects from local directory", err)
+		return false, err
+	}
 
 	// Exit with error message
-	// TODO: print with context: fmt.Fprintln(context.Err, "Endpoint commands only work in a Brev project")
-	fmt.Println("Endpoint commands only work in a Brev project.")
-	if len(curr_brev_directories) == 0 {
+	fmt.Fprintln(context.Out, "Endpoint commands only work in a Brev project.")
+	if len(currBrevDirectories) == 0 {
 		// If no directories, check if they have some remote.
 
 		// Get Projects
-		token, _ := auth.GetToken()
-		brevAgent := BrevAgent{
+		token, err := auth.GetToken()
+		if err != nil {
+			context.PrintErr("Failed to retrieve auth token", err)
+			return false, err
+		}
+		brevAgent := Agent{
 			Key: token,
 		}
-		raw_projects, _ := brevAgent.GetProjects()
-		if len(raw_projects) == 0 {
+		rawProjects, err := brevAgent.GetProjects()
+		if err != nil {
+			context.PrintErr("Failed to get projects", err)
+			return false, err
+		}
+
+		if len(rawProjects) == 0 {
 			// Encourage them to create their first project
-			fmt.Println("You haven't made a brev project yet! Try running 'brev init'")
+			fmt.Fprintln(context.Out, "You haven't made a brev project yet! Try running 'brev init'")
 
 		} else {
 			// Encourage them to pull one of their existing projects
-			fmt.Println("Set up one of your existing projects.")
-			fmt.Println("For example, run 'brev init " + raw_projects[0].Name + "'")
+			fmt.Fprintln(context.Out, "Set up one of your existing projects.")
+			fmt.Fprintln(context.Out, "For example, run 'brev init "+rawProjects[0].Name+"'")
 		}
 
 	} else {
 		// Print active brev projects
-		fmt.Println("Active Brev projects on your computer: ")
-		for _, v := range curr_brev_directories {
-			fmt.Println("\t" + v)
+		fmt.Fprintln(context.Out, "Active Brev projects on your computer: ")
+		for _, v := range currBrevDirectories {
+			fmt.Fprintln(context.Out, "\t"+v)
 		}
 	}
-	return false
+	return false, nil
 }
 
 func StringInList(a string, list []string) bool {

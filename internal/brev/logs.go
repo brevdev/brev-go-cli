@@ -1,15 +1,17 @@
 package brev
 
-import "github.com/brevdev/brev-go-cli/internal/requests"
+import (
+	"github.com/brevdev/brev-go-cli/internal/requests"
+)
 
-type BrevProjectLog struct {
-	LogType   string             `json:"type"`
-	Timestamp string             `json:"timestamp"`
-	Origin    string             `json:"origin"`
-	Meta      BrevProjectLogMeta `json:"meta"`
+type ProjectLog struct {
+	LogType   string         `json:"type"`
+	Timestamp string         `json:"timestamp"`
+	Origin    string         `json:"origin"`
+	Meta      ProjectLogMeta `json:"meta"`
 }
 
-type BrevProjectLogMeta struct {
+type ProjectLogMeta struct {
 	Uri           string  `json:"uri"`
 	RequestId     string  `json:"request_id"`
 	CpuTime       float64 `json:"cpu_time"`
@@ -18,11 +20,11 @@ type BrevProjectLogMeta struct {
 	WallTime      float64 `json:"wall_time"`
 }
 
-type BrevProjectLogs struct {
-	Logs []BrevProjectLog `json:"logs"`
+type ProjectLogs struct {
+	Logs []ProjectLog `json:"logs"`
 }
 
-func (a *BrevAgent) GetLogs(projectID string, logType string) ([]BrevProjectLog, error) {
+func (a *Agent) GetLogs(projectID string, logType string) ([]ProjectLog, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("logs"),
@@ -40,8 +42,11 @@ func (a *BrevAgent) GetLogs(projectID string, logType string) ([]BrevProjectLog,
 		return nil, err
 	}
 
-	var payload BrevProjectLogs
-	response.DecodePayload(&payload)
+	var payload ProjectLogs
+	err = response.DecodePayload(&payload)
+	if err != nil {
+		return nil, err
+	}
 
 	return payload.Logs, nil
 }
