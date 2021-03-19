@@ -29,6 +29,14 @@ darwin:
 	env GOOS=darwin GOARCH=amd64 $(BUILDCMD) \
 			-o $(PATH_BIN)/osx/$(BIN_NAME) -v $(PATH_MAIN)
 
+darwin-homebrew:
+	env GOOS=darwin GOARCH=arm64 $(BUILDCMD) \
+			-o $(PATH_BIN)/homebrew/$(BIN_NAME)-arm64_big_sur -v $(PATH_MAIN)
+	env CGO_CFLAGS="-mmacosx-version-min=11.2" CGO_LDFLAGS="-mmacosx-version-min=11.2" GOOS=darwin GOARCH=amd64 $(BUILDCMD) \
+			-o $(PATH_BIN)/homebrew/$(BIN_NAME)-big_sur -v $(PATH_MAIN)
+	env CGO_CFLAGS="-mmacosx-version-min=10.15" CGO_LDFLAGS="-mmacosx-version-min=10.15" GOOS=darwin GOARCH=amd64 $(BUILDCMD) \
+			-o $(PATH_BIN)/homebrew/$(BIN_NAME)-catalina -v $(PATH_MAIN)
+
 test_unit:
 	$(GOTEST) -v $(PATH_PROJECT)/cmd/...
 	$(GOTEST) -v $(PATH_PROJECT)/internal/...
@@ -43,10 +51,12 @@ dist-linux:
 	tar -C $(PATH_BIN)/nix/ -czf $(PATH_DIST)/nix/brev-nix-64.tar.gz $(BIN_NAME)
 	shasum -a 256 $(PATH_DIST)/nix/brev-nix-64.tar.gz | awk '{print $$1}' > $(PATH_DIST)/nix/brev-nix-64.tar.gz.sha256
 
-dist-darwin:
-	mkdir -p $(PATH_DIST)/osx
-	tar -C $(PATH_BIN)/osx/ -czf $(PATH_DIST)/osx/brev-osx-64.tar.gz $(BIN_NAME)
-	shasum -a 256 $(PATH_DIST)/osx/brev-osx-64.tar.gz | awk '{print $$1}' > $(PATH_DIST)/osx/brev-osx-64.tar.gz.sha256
+dist-homebrew: darwin-homebrew
+	mkdir -p $(PATH_DIST)/homebrew
+	tar -C $(PATH_BIN)/homebrew/ -czf $(PATH_DIST)/homebrew/brev-homebrew-bundle.tar.gz .
+	shasum -a 256 $(PATH_DIST)/homebrew/brev-homebrew-bundle.tar.gz | awk '{print $$1}' > $(PATH_DIST)/homebrew/brev-homebrew-bundle.tar.gz.sha256
+	@echo "\nsha256:"
+	@cat $(PATH_DIST)/homebrew/brev-homebrew-bundle.tar.gz.sha256
 
 clean:
 	$(GOCLEAN)
