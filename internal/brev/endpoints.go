@@ -1,8 +1,6 @@
 package brev
 
 import (
-	"fmt"
-
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
@@ -104,8 +102,6 @@ func (a *BrevAgent) CreateEndpoint(name string, projectId string) (*ResponseUpda
 
 	var payload ResponseUpdateEndpoint
 	response.DecodePayload(&payload)
-
-	fmt.Println(payload)
 
 	return &payload, nil
 }
