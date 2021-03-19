@@ -1,6 +1,8 @@
 package brev
 
 import (
+	"fmt"
+
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
@@ -19,6 +21,13 @@ type BrevEndpoints struct {
 	Endpoints []BrevEndpoint `json:"endpoints"`
 }
 
+type RequestCreateEndpoint struct {
+	Name    string   `json:"name"`
+	Methods []string `json:"methods"`
+	Code    string   `json:"code"`	
+	ProjectId  string   `json:"project_id"`
+	Uri        string   `json:"uri"`
+}
 type RequestUpdateEndpoint struct {
 	Name    string   `json:"name"`
 	Methods []string `json:"methods"`
@@ -55,6 +64,71 @@ func (a *BrevAgent) GetEndpoints() (*BrevEndpoints, error) {
 
 	return &payload, nil
 }
+
+const dummyCode = `import variables
+import shared
+import variables
+from global_storage import storage_context
+
+def get():
+    return {"response": "hi get"}
+
+def post():
+    return {"response": "hi post"}
+
+`
+
+func (a *BrevAgent) CreateEndpoint(name string, projectId string) (*ResponseUpdateEndpoint, error) {
+	request := &requests.RESTRequest{
+		Method:   "POST",
+		Endpoint: brevEndpoint("_endpoint"),
+		QueryParams: []requests.QueryParam{
+			{"utm_source", "cli"},
+		},
+		Headers: []requests.Header{
+			{"Authorization", "Bearer " + a.Key.AccessToken},
+		},
+		Payload: RequestCreateEndpoint{
+			Name: name,
+			ProjectId: projectId,
+			Methods: []string{},
+			Code: dummyCode,
+			Uri: "/"+name,
+		},
+	}
+
+	
+	response, err := request.Submit()
+	if err != nil {
+		return nil, err
+	}
+
+	// body,_ := ioutil.ReadAll(response.Payload)
+	// fmt.Println(string(body))
+
+
+	// fmt.Println(response)
+	// fmt.Println(response.Payload)
+	// fmt.Println(&response.Payload)
+
+
+	// var payload1 map[string]string
+	// response.DecodePayload(&payload1)
+	// jsonstr, _ := json.MarshalIndent(payload1, "", "  ")
+
+	// fmt.Println(payload1)
+	// fmt.Println(jsonstr)
+	// fmt.Println(payload1["errors"])
+
+
+	var payload ResponseUpdateEndpoint
+	response.DecodePayload(&payload)
+
+	fmt.Println(payload)
+
+	return &payload, nil
+}
+
 
 func (a *BrevAgent) UpdateEndpoint(endpointID string, updateRequest RequestUpdateEndpoint) (*ResponseUpdateEndpoint, error) {
 	request := requests.RESTRequest{
