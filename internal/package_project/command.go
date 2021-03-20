@@ -18,12 +18,51 @@ package package_project
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 )
 
 func getTopPyPiPackages() []string {
 	return []string{"urllib3","six","boto3","setuptools","requests","botocore","idna","certifi","chardet","pyyaml","python-dateutil","pip","s3transfer","wheel","cffi","rsa","jmespath","pyasn1","numpy","jinja",}
+}
+
+func getPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error) {
+	localContext, err_dir := brev_ctx.GetLocal()
+	if (err_dir != nil) {
+		return nil, err_dir
+	}
+	
+	token, err := auth.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	brevAgent := brev_api.Agent{
+		Key: token,
+	}
+	
+	packages, err2 := brevAgent.GetPackages(localContext.Project.Id, context)
+	if err2 !=nil {
+		return nil, err2
+	}
+
+	return packages, nil
+}
+
+// This is just used for autocomplete, so failures can just return no autocompletions
+func getCurrentPackages(context *cmdcontext.Context) []string {
+	packages, err2 := getPackages(context)
+	if err2 !=nil {
+		return []string{}
+	}
+
+	var packageNames []string
+	for _, v := range packages {
+		packageNames = append(packageNames, v.Name)
+	}
+
+	return packageNames
 }
 
 func NewCmdPackage(context *cmdcontext.Context) *cobra.Command {
@@ -50,6 +89,8 @@ func NewCmdPackage(context *cmdcontext.Context) *cobra.Command {
 	}
 
 	cmd.AddCommand(newCmdAdd(context))
+	cmd.AddCommand(newCmdRemove(context))
+	cmd.AddCommand(newCmdList(context))
 
 	return cmd
 }
@@ -76,6 +117,47 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 		return getTopPyPiPackages(), cobra.ShellCompDirectiveNoSpace
 	})
 	
+	return cmd
+}
 
+func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
+	var name string
+
+	cmd := &cobra.Command{
+		Use:   "remove",
+		Short: "Remove a python package from your project",
+		Long: `Uninstalls a python package to your project (like pip)
+			ex: 
+				brev package remove --name numpy
+		`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return removePackage(name, context)
+		},
+
+	}
+
+	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the package")
+	cmd.MarkFlagRequired("name")
+	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return getCurrentPackages(context), cobra.ShellCompDirectiveNoSpace
+	})
+	
+	return cmd
+}
+
+func newCmdList(context *cmdcontext.Context) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List installed packages",
+		Long: `List installed packages
+			ex: 
+				brev package list
+		`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listPackages(context)
+		},
+
+	}
+	
 	return cmd
 }

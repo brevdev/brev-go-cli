@@ -53,7 +53,64 @@ func addPackage(name string, context *cmdcontext.Context) error {
 		return err2
 	}
 
-	fmt.Fprintln(context.Out, fmt.Sprintf("Package %s installed successfully.",&respPackage.Package.Name )) // this isn't working
+	fmt.Fprintf(context.Out, "Package %s installed successfully." , respPackage.Package.Name) // this isn't working
 	
+	return nil
+}
+
+func removePackage(name string, context *cmdcontext.Context) error {
+
+	packages, err2 := getPackages(context)
+	if err2 !=nil {
+		return nil
+	}
+
+	var packageToRemove brev_api.ProjectPackage
+	for _, v := range packages {
+		if v.Name==name {
+			packageToRemove = v
+		}
+	}
+
+	token, err := auth.GetToken()
+	if err != nil {
+		context.PrintErr("Failed to retrieve auth token", err)
+		return err
+	}
+	brevAgent := brev_api.Agent{
+		Key: token,
+	}
+
+	fmt.Printf("this is the id: %s and the name: %s", packageToRemove.Id, packageToRemove.Name)
+	
+	_, err2 = brevAgent.RemovePackage(packageToRemove.Id)
+	if err2 != nil {
+		context.PrintErr(fmt.Sprintf("Failed to remove package %s", name), err2)
+		return err2
+	}
+
+	fmt.Fprintf(context.Out, "\nPackage %s removed successfully.",packageToRemove.Name) // this isn't working
+	
+	return nil
+}
+
+func listPackages(context *cmdcontext.Context) error {
+	packages, err2 := getPackages(context)
+	if err2 !=nil {
+		return nil
+	}
+
+	localContext, err_dir := brev_ctx.GetLocal()
+	if (err_dir != nil) {
+		// handle this
+		return err_dir
+	}
+	
+	fmt.Fprintf(context.Out, "Packages installed on project %s:\n", localContext.Project.Name)
+
+	for _, v := range packages {
+		fmt.Fprintf(context.Out, "\t%s==%s\n", v.Name, v.Version)
+	}
+
 	return nil
 }
