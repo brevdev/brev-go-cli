@@ -16,8 +16,6 @@ limitations under the License.
 package env
 
 import (
-	"fmt"
-
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/spf13/cobra"
@@ -47,12 +45,8 @@ func NewCmdEnv(context *cmdcontext.Context) *cobra.Command {
 		_, err = brev_api.CheckOutsideBrevErrorMessage(context)
 		return err
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("env called")
-	},
 }
 	
-	cmd.RemoveCommand(newCmdRemove(context))
 	cmd.AddCommand(newCmdAdd(context))
 	cmd.AddCommand(newCmdRemove(context))
 
