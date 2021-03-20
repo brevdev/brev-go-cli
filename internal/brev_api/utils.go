@@ -87,7 +87,7 @@ func CheckOutsideBrevErrorMessage(context *cmdcontext.Context) (bool, error) {
 	}
 
 	// Exit with error message
-	fmt.Fprintln(context.Out, "Endpoint commands only work in a Brev project.")
+	fmt.Fprintln(context.VerboseOut, "Endpoint commands only work in a Brev project.")
 	if len(currBrevDirectories) == 0 {
 		// If no directories, check if they have some remote.
 
@@ -108,19 +108,19 @@ func CheckOutsideBrevErrorMessage(context *cmdcontext.Context) (bool, error) {
 
 		if len(rawProjects) == 0 {
 			// Encourage them to create their first project
-			fmt.Fprintln(context.Out, "You haven't made a brev project yet! Try running 'brev init'")
+			fmt.Fprintln(context.VerboseOut, "You haven't made a brev project yet! Try running 'brev init'")
 
 		} else {
 			// Encourage them to pull one of their existing projects
-			fmt.Fprintln(context.Out, "Set up one of your existing projects.")
-			fmt.Fprintln(context.Out, "For example, run 'brev init "+rawProjects[0].Name+"'")
+			fmt.Fprintln(context.VerboseOut, "Set up one of your existing projects.")
+			fmt.Fprintln(context.VerboseOut, "For example, run 'brev init "+rawProjects[0].Name+"'")
 		}
 
 	} else {
 		// Print active brev projects
-		fmt.Fprintln(context.Out, "Active Brev projects on your computer: ")
+		fmt.Fprintln(context.VerboseOut, "Active Brev projects on your computer: ")
 		for _, v := range currBrevDirectories {
-			fmt.Fprintln(context.Out, "\t"+v)
+			fmt.Fprintln(context.VerboseOut, "\t"+v)
 		}
 	}
 	return false, nil

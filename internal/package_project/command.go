@@ -18,41 +18,138 @@ package package_project
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/brevdev/brev-go-cli/internal/auth"
+	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 )
+
+func getTopPyPiPackages() []string {
+	return []string{"urllib3", "six", "boto3", "setuptools", "requests", "botocore", "idna", "certifi", "chardet", "pyyaml", "python-dateutil", "pip", "s3transfer", "wheel", "cffi", "rsa", "jmespath", "pyasn1", "numpy", "jinja"}
+}
+
+func getPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error) {
+	localContext, err := brev_ctx.GetLocal()
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := auth.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	brevAgent := brev_api.Agent{
+		Key: token,
+	}
+
+	packages, err := brevAgent.GetPackages(localContext.Project.Id, context)
+	if err != nil {
+		return nil, err
+	}
+
+	return packages, nil
+}
+
+// This is just used for autocomplete, so failures can just return no autocompletions
+func getCurrentPackages(context *cmdcontext.Context) []string {
+	packages, err := getPackages(context)
+	if err != nil {
+		return []string{}
+	}
+
+	var packageNames []string
+	for _, v := range packages {
+		packageNames = append(packageNames, v.Name)
+	}
+
+	return packageNames
+}
 
 func NewCmdPackage(context *cmdcontext.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "package",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-	and usage of using your command. For example:
-	
-	Cobra is a CLI library for Go that empowers applications.
-	This application is a tool to generate the needed files
-	to quickly create a Cobra application.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+		Short: "Add or remove packages from your Brev project",
+		Long: `Add or remove python packages from your project (like pip):
+		ex:
+			brev package add --name numpy
+			brev package remove --name numpy
+	`,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			return err
 		},
 	}
 
 	cmd.AddCommand(newCmdAdd(context))
+	cmd.AddCommand(newCmdRemove(context))
+	cmd.AddCommand(newCmdList(context))
 
 	return cmd
 }
 
 func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
+	var name string
+
 	cmd := &cobra.Command{
 		Use:   "add",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-	and usage of using your command. For example:
-	
-	Cobra is a CLI library for Go that empowers applications.
-	This application is a tool to generate the needed files
-	to quickly create a Cobra application.`,
+		Short: "Add a python package to your project",
+		Long: `Installs a python package to your project (like pip)
+			ex: 
+				brev package add --name numpy
+		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return addPackage(name, context)
+		},
+	}
+
+	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the package")
+	cmd.MarkFlagRequired("name")
+	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return getTopPyPiPackages(), cobra.ShellCompDirectiveNoSpace
+	})
+
+	return cmd
+}
+
+func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
+	var name string
+
+	cmd := &cobra.Command{
+		Use:   "remove",
+		Short: "Remove a python package from your project",
+		Long: `Uninstalls a python package to your project (like pip)
+			ex: 
+				brev package remove --name numpy
+		`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return removePackage(name, context)
+		},
+	}
+
+	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the package")
+	cmd.MarkFlagRequired("name")
+	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return getCurrentPackages(context), cobra.ShellCompDirectiveNoSpace
+	})
+
+	return cmd
+}
+
+func newCmdList(context *cmdcontext.Context) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List installed packages",
+		Long: `List installed packages
+			ex: 
+				brev package list
+		`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listPackages(context)
 		},
 	}
 
