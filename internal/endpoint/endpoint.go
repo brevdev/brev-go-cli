@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -27,12 +28,14 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
+	"github.com/briandowns/spinner"
 )
 
 func addEndpoint(name string, context *cmdcontext.Context) error {
 	// Create endpoint
-	proj, err := brev_api.GetActiveProject()
-	if err != nil {
+	
+	localContext, err := brev_ctx.GetLocal()
+	if (err != nil) {
 		context.PrintErr("Failed to get active project", err)
 		return err
 	}
@@ -47,7 +50,7 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 	}
 
 	var ep *brev_api.ResponseUpdateEndpoint
-	ep, err = brevAgent.CreateEndpoint(name, proj.Id)
+	ep, err = brevAgent.CreateEndpoint(name, localContext.Project.Id)
 	if err != nil {
 		context.PrintErr("Failed to create endpoint", err)
 		return err
@@ -120,11 +123,20 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 	}
 
 	// var ep *brev_api.ResponseRemoveEndpoint
+	fmt.Fprintln(context.VerboseOut, "Removing endpoint")
+	// TODO: add the writer
+	// spinner.WithWriter(os.Stderr)
+	s := spinner.New(spinner.CharSets[39], 100*time.Millisecond)
+	s.Start()
 	_,err = brevAgent.RemoveEndpoint(id)
 	if err != nil {
 		context.PrintErr("", err)
+		s.Stop()
 		return err
 	}
+	s.Stop()
+	
+	fmt.Fprintf(context.VerboseOut, "Removed endpoint %s successfully",  name)
 
 	// Remove the python file
 	files.DeleteFile(name +".py")

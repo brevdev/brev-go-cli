@@ -19,8 +19,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
-	"github.com/brevdev/brev-go-cli/internal/files"
 )
 
 func getSomeSetOfOptions(toComplete string) []string {
@@ -28,11 +28,15 @@ func getSomeSetOfOptions(toComplete string) []string {
 }
 
 func getEpNames() []string {
-	var endpoints []brev_api.Endpoint
-	files.ReadJSON(files.GetEndpointsPath() ,&endpoints)
-	
+
+	localContext, err_dir := brev_ctx.GetLocal()
+	if (err_dir != nil) {
+		// handle this
+		return []string{}
+	}
+
 	var epNames []string
-	for _, v := range endpoints {
+	for _, v := range localContext.Endpoints {
 		epNames = append(epNames, v.Name)
 	}
 
