@@ -99,11 +99,11 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 
 	var id string
 	for _, v := range endpoints {
-		if (v.Name==name) {
-			id=v.Id
+		if v.Name == name {
+			id = v.Id
 		}
 	}
-	if (id=="") {
+	if id == "" {
 		err := fmt.Errorf("Endpoint doesn't exist.")
 		context.PrintErr("Cannot delete Endpoint. ", err)
 		return err
@@ -120,19 +120,19 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 	}
 
 	// var ep *brev_api.ResponseRemoveEndpoint
-	_,err = brevAgent.RemoveEndpoint(id)
+	_, err = brevAgent.RemoveEndpoint(id)
 	if err != nil {
 		context.PrintErr("", err)
 		return err
 	}
 
 	// Remove the python file
-	files.DeleteFile(name +".py")
-	
+	files.DeleteFile(name + ".py")
+
 	// Update the endpoints.json
 	var updatedEndpoints []brev_api.Endpoint
 	for _, v := range endpoints {
-		if (v.Id!=id) {
+		if v.Id != id {
 			updatedEndpoints = append(updatedEndpoints, v)
 		}
 	}
@@ -144,22 +144,21 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 func runEndpoint(name string, method string, arg []string, jsonBody string, context *cmdcontext.Context) error {
 	fmt.Fprintf(context.Out, "Run ep file %s %s %s", name, method, arg)
 
-	localContext, err_dir := brev_ctx.GetLocal()
-	if (err_dir != nil) {
+	localContext, err := brev_ctx.GetLocal()
+	if err != nil {
 		// handle this
-		return err_dir
+		return err
 	}
-	
+
 	var endpoint brev_api.Endpoint
 	for _, v := range localContext.Endpoints {
-		if (v.Name == name) {
+		if v.Name == name {
 			endpoint = v
 		}
 	}
 
 	fmt.Println(localContext.Project.Domain)
 	fmt.Println(endpoint.Uri)
-
 
 	var params []requests.QueryParam
 	for _, v := range arg {
@@ -183,14 +182,16 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		context.PrintErr("Failed to run endpoint", err)
 		return err
 	}
-	
 
-	var response map[string]string
-	err = rawResponse.DecodePayload(response)
+	var response []string
+	err = rawResponse.UnmarshalPayload(&response)
 	if err != nil {
 		context.PrintErr("Failed to deserialize response payload", err)
 		return err
 	}
+
+	str, _ := rawResponse.PayloadAsString()
+	fmt.Println("out: " + str)
 
 	
 

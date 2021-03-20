@@ -40,7 +40,7 @@ func (a *Agent) GetModules(context *cmdcontext.Context) (*Modules, error) {
 	}
 
 	var payload Modules
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		context.PrintErr("Failed to deserialize response payload", err)
 		return nil, err
@@ -69,7 +69,7 @@ func (a *Agent) UpdateModule(moduleID string, source string) (*ResponseUpdateMod
 	}
 
 	var payload ResponseUpdateModule
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
