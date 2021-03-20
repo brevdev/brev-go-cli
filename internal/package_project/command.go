@@ -25,15 +25,15 @@ import (
 )
 
 func getTopPyPiPackages() []string {
-	return []string{"urllib3","six","boto3","setuptools","requests","botocore","idna","certifi","chardet","pyyaml","python-dateutil","pip","s3transfer","wheel","cffi","rsa","jmespath","pyasn1","numpy","jinja",}
+	return []string{"urllib3", "six", "boto3", "setuptools", "requests", "botocore", "idna", "certifi", "chardet", "pyyaml", "python-dateutil", "pip", "s3transfer", "wheel", "cffi", "rsa", "jmespath", "pyasn1", "numpy", "jinja"}
 }
 
 func getPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error) {
-	localContext, err_dir := brev_ctx.GetLocal()
-	if (err_dir != nil) {
-		return nil, err_dir
+	localContext, err := brev_ctx.GetLocal()
+	if err != nil {
+		return nil, err
 	}
-	
+
 	token, err := auth.GetToken()
 	if err != nil {
 		return nil, err
@@ -41,10 +41,10 @@ func getPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error)
 	brevAgent := brev_api.Agent{
 		Key: token,
 	}
-	
-	packages, err2 := brevAgent.GetPackages(localContext.Project.Id, context)
-	if err2 !=nil {
-		return nil, err2
+
+	packages, err := brevAgent.GetPackages(localContext.Project.Id, context)
+	if err != nil {
+		return nil, err
 	}
 
 	return packages, nil
@@ -52,8 +52,8 @@ func getPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error)
 
 // This is just used for autocomplete, so failures can just return no autocompletions
 func getCurrentPackages(context *cmdcontext.Context) []string {
-	packages, err2 := getPackages(context)
-	if err2 !=nil {
+	packages, err := getPackages(context)
+	if err != nil {
 		return []string{}
 	}
 
@@ -83,9 +83,6 @@ func NewCmdPackage(context *cmdcontext.Context) *cobra.Command {
 			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
 			return err
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
-		},
 	}
 
 	cmd.AddCommand(newCmdAdd(context))
@@ -108,7 +105,6 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return addPackage(name, context)
 		},
-
 	}
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the package")
@@ -116,7 +112,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return getTopPyPiPackages(), cobra.ShellCompDirectiveNoSpace
 	})
-	
+
 	return cmd
 }
 
@@ -133,7 +129,6 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removePackage(name, context)
 		},
-
 	}
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the package")
@@ -141,7 +136,7 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return getCurrentPackages(context), cobra.ShellCompDirectiveNoSpace
 	})
-	
+
 	return cmd
 }
 
@@ -156,8 +151,7 @@ func newCmdList(context *cmdcontext.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listPackages(context)
 		},
-
 	}
-	
+
 	return cmd
 }

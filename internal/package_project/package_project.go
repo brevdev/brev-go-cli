@@ -29,15 +29,14 @@ func logic(context *cmdcontext.Context) error {
 	return nil
 }
 
-
 func addPackage(name string, context *cmdcontext.Context) error {
 
-	localContext, err_dir := brev_ctx.GetLocal()
-	if (err_dir != nil) {
+	localContext, err := brev_ctx.GetLocal()
+	if err != nil {
 		// handle this
-		return err_dir
+		return err
 	}
-	
+
 	token, err := auth.GetToken()
 	if err != nil {
 		context.PrintErr("Failed to retrieve auth token", err)
@@ -46,28 +45,28 @@ func addPackage(name string, context *cmdcontext.Context) error {
 	brevAgent := brev_api.Agent{
 		Key: token,
 	}
-	
-	respPackage, err2 := brevAgent.AddPackage(localContext.Project.Id, name, context)
-	if err2 != nil {
-		context.PrintErr(fmt.Sprintf("Failed to add package %s", name), err2)
-		return err2
+
+	respPackage, err := brevAgent.AddPackage(localContext.Project.Id, name, context)
+	if err != nil {
+		context.PrintErr(fmt.Sprintf("Failed to add package %s", name), err)
+		return err
 	}
 
-	fmt.Fprintf(context.Out, "Package %s installed successfully." , respPackage.Package.Name) // this isn't working
-	
+	fmt.Fprintf(context.VerboseOut, "Package %s installed successfully.", respPackage.Package.Name) // this isn't working
+
 	return nil
 }
 
 func removePackage(name string, context *cmdcontext.Context) error {
 
-	packages, err2 := getPackages(context)
-	if err2 !=nil {
+	packages, err := getPackages(context)
+	if err != nil {
 		return nil
 	}
 
 	var packageToRemove brev_api.ProjectPackage
 	for _, v := range packages {
-		if v.Name==name {
+		if v.Name == name {
 			packageToRemove = v
 		}
 	}
@@ -81,35 +80,33 @@ func removePackage(name string, context *cmdcontext.Context) error {
 		Key: token,
 	}
 
-	fmt.Printf("this is the id: %s and the name: %s", packageToRemove.Id, packageToRemove.Name)
-	
-	_, err2 = brevAgent.RemovePackage(packageToRemove.Id)
-	if err2 != nil {
-		context.PrintErr(fmt.Sprintf("Failed to remove package %s", name), err2)
-		return err2
+	_, err = brevAgent.RemovePackage(packageToRemove.Id)
+	if err != nil {
+		context.PrintErr(fmt.Sprintf("Failed to remove package %s", name), err)
+		return err
 	}
 
-	fmt.Fprintf(context.Out, "\nPackage %s removed successfully.",packageToRemove.Name) // this isn't working
-	
+	fmt.Fprintf(context.VerboseOut, "\nPackage %s removed successfully.", packageToRemove.Name) // this isn't working
+
 	return nil
 }
 
 func listPackages(context *cmdcontext.Context) error {
-	packages, err2 := getPackages(context)
-	if err2 !=nil {
+	packages, err := getPackages(context)
+	if err != nil {
 		return nil
 	}
 
-	localContext, err_dir := brev_ctx.GetLocal()
-	if (err_dir != nil) {
+	localContext, err := brev_ctx.GetLocal()
+	if err != nil {
 		// handle this
-		return err_dir
+		return err
 	}
-	
-	fmt.Fprintf(context.Out, "Packages installed on project %s:\n", localContext.Project.Name)
+
+	fmt.Fprintf(context.VerboseOut, "Packages installed on project %s:\n", localContext.Project.Name)
 
 	for _, v := range packages {
-		fmt.Fprintf(context.Out, "\t%s==%s\n", v.Name, v.Version)
+		fmt.Fprintf(context.VerboseOut, "\t%s==%s\n", v.Name, v.Version)
 	}
 
 	return nil
