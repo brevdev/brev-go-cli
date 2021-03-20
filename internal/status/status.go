@@ -19,7 +19,9 @@ import (
 	"fmt"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/package_project"
 	"github.com/spf13/cobra"
 )
 
@@ -42,10 +44,50 @@ func NewCmdStatus(context *cmdcontext.Context) *cobra.Command {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("STATUS")
+			status(context)
 			return nil
 		},
 	}
 
 	return cmd
+}
+
+func status(context *cmdcontext.Context) error {
+
+	localContext, err := brev_ctx.GetLocal()
+	if err != nil {
+		return err
+	}
+
+	// Get packages
+	packages, err := package_project.GetPackages(context)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(context.VerboseOut, "\nProject %s", localContext.Project.Name)
+
+	// Print package info
+	if len(packages) == 0 {
+		fmt.Fprintln(context.VerboseOut, "\n\tNo packages installed.")
+	} else {
+		fmt.Fprintln(context.VerboseOut, "\n\tPackages:")
+	}
+
+	for _, v := range packages {
+		fmt.Fprintf(context.VerboseOut, "\t\t %s==%s %s\n", v.Name, v.Version, v.Status)
+	}
+
+	// Print Endpoint info
+	if len(localContext.Endpoints) == 0 {
+		fmt.Fprintln(context.VerboseOut, "\nYour project doesn't have any endpoints. Try running \n \t\t brev endpoint add --name newEP")
+	} else {
+		fmt.Fprintln(context.VerboseOut, "\n\tEndpoints:")
+
+		for _, v := range localContext.Endpoints {
+			fmt.Fprintf(context.VerboseOut, "\n\t\t%s\n\t\t\t%s", v.Name, localContext.Project.Domain+v.Uri)
+		}
+	}
+
+	return nil
 }

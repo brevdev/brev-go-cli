@@ -21,12 +21,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 func NewCmdEnv(context *cmdcontext.Context) *cobra.Command {
 	cmd := &cobra.Command{
-	Use:   "env",
-	Short: "Add or remove environment variables",
-	Long: `Use the Brev secrets manager for encrypted variables that get used at runtime.
+		Use:   "env",
+		Short: "Add or remove environment variables",
+		Long: `Use the Brev secrets manager for encrypted variables that get used at runtime.
 		
 		ex: 
 			brev env add XYZ
@@ -36,20 +35,19 @@ func NewCmdEnv(context *cmdcontext.Context) *cobra.Command {
 			...
 			print(variables.XYZ)
 	`,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
-		if err != nil {
-			return err
-		}
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
+			if err != nil {
+				return err
+			}
 
-		_, err = brev_api.CheckOutsideBrevErrorMessage(context)
-		return err
-	},
-}
-	
+			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			return err
+		},
+	}
+
 	cmd.AddCommand(newCmdAdd(context))
 	cmd.AddCommand(newCmdRemove(context))
-
 
 	return cmd
 }

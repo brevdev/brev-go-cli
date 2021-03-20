@@ -28,11 +28,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/initialize"
 	"github.com/brevdev/brev-go-cli/internal/package_project"
 	"github.com/brevdev/brev-go-cli/internal/project"
-<<<<<<< Updated upstream
-=======
 	"github.com/brevdev/brev-go-cli/internal/status"
-	"github.com/brevdev/brev-go-cli/internal/sync"
->>>>>>> Stashed changes
 	"github.com/brevdev/brev-go-cli/internal/version"
 )
 
