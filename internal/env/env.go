@@ -16,10 +16,11 @@ limitations under the License.
 package env
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"strings"
+	"syscall"
+
+	"golang.org/x/term"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -40,11 +41,12 @@ func addVariable(name string, context *cmdcontext.Context) error {
 	}
 	
 	fmt.Fprintf(context.VerboseOut, "Enter value for %s: ", name)	
-	reader := bufio.NewReader(os.Stdin)
-	
-	value, _ := reader.ReadString('\n')
-    // convert CRLF to LF
-    value = strings.Replace(value, "\n", "", -1)
+
+    bytepw, err := term.ReadPassword(int(syscall.Stdin))
+    if err != nil {
+        os.Exit(1)
+    }
+    value := string(bytepw)
 
 	token, err := auth.GetToken()
 	if err != nil {
