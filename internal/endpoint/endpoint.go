@@ -194,8 +194,8 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 
 	
 
-	fmt.Fprint(context.Out, "\n\n")
-	fmt.Fprint(context.Out, rawResponse.StatusCode)
+	fmt.Fprint(context.VerboseOut, "\n\n")
+	fmt.Fprint(context.VerboseOut, rawResponse.StatusCode)
 
 	jsonstr, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {
@@ -203,7 +203,8 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		return err
 	}
 
-	fmt.Fprint(context.Out, string(jsonstr))
+	fmt.Fprint(context.VerboseOut, jsonstr)
+	fmt.Fprint(context.VerboseOut, string(jsonstr))
 
 	// request2 := &requests.RESTRequest{
 	// 	Method:      "POST",
