@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -19,7 +20,7 @@ type RESTRequest struct {
 
 type RESTResponse struct {
 	StatusCode int
-	Payload    io.ReadCloser
+	Payload    []byte
 }
 
 type QueryParam struct {
@@ -90,24 +91,31 @@ func (r *RESTRequest) Submit() (*RESTResponse, error) {
 		return nil, err
 	}
 
+	payloadBytes, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
 	return &RESTResponse{
 		StatusCode: res.StatusCode,
-		Payload:    res.Body,
+		Payload:    payloadBytes,
 	}, nil
 }
 
-// DecodePayload converts the raw response body into the given interface
+// UnmarshalPayload converts the raw response body into the given interface
 // Usage:
 //   var foo MyStruct
-//   response.DecodePayload(&foo)
-func (r *RESTResponse) DecodePayload(v interface{}) error {
-	defer r.Payload.Close()
-	return json.NewDecoder(r.Payload).Decode(&v)
+//   response.UnmarshalPayload(&foo)
+func (r *RESTResponse) UnmarshalPayload(v interface{}) error {
+	err := json.Unmarshal(r.Payload, v)
+	return err
 }
 
-// func (m *map[string]string) DecodedPayloadAsString(v interface{}) error {
-// 	jsonstr, err := json.Marshal(m)
-// }
+// PayloadAsString returns the response body as a string
+func (r *RESTResponse) PayloadAsString() (string, error) {
+	return string(r.Payload), nil
+}
 
 // EXAMPLE USAGE:
 /*

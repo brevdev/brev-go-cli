@@ -46,7 +46,7 @@ func (a *Agent) GetPackages(projectID string) ([]ProjectPackage, error) {
 	}
 
 	var payload ProjectPackages
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialize response payload: %s", err)
 	}
@@ -75,7 +75,7 @@ func (a *Agent) AddPackage(projectID string, name string) (*ResponseAddPackage, 
 	}
 
 	var payload ResponseAddPackage
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialize response payload: %s", err)
 	}
@@ -100,7 +100,7 @@ func (a *Agent) RemovePackage(packageID string) (*ResponseRemovePackage, error) 
 	}
 
 	var payload ResponseRemovePackage
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}

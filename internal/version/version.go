@@ -76,7 +76,7 @@ func getLatestGithubReleaseMetadata() (*githubReleaseMetadata, error) {
 	}
 
 	var payload githubReleaseMetadata
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}

@@ -42,7 +42,7 @@ func (a *Agent) GetVariables(projectID string) ([]ProjectVariable, error) {
 	}
 
 	var payload ProjectVariables
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (a *Agent) AddVariable(projectID string, name string, value string) (*Respo
 	}
 
 	var payload ResponseAddVariable
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (a *Agent) RemoveVariable(variableID string) (*ResponseRemoveVariable, erro
 	}
 
 	var payload ResponseRemoveVariable
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
