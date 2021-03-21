@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/schollz/progressbar/v3"
 	"io"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -89,11 +91,24 @@ func (r *RESTRequest) Submit() (*RESTResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
+
+	var buf bytes.Buffer
+	bar := progressbar.DefaultBytes(
+		res.ContentLength,
+		"downloading",
+	)
+
+	io.Copy(io.MultiWriter(&buf, bar), res.Body)
+
+	// temporary
+	bodyReadr := ioutil.NopCloser(&buf)
 
 	return &RESTResponse{
 		StatusCode: res.StatusCode,
-		Payload:    res.Body,
+		Payload:    bodyReadr,
 	}, nil
+
 }
 
 // DecodePayload converts the raw response body into the given interface
