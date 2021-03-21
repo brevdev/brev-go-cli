@@ -46,6 +46,9 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 		Key: token,
 	}
 
+	// bar1 := newProgressBar("Doing things!", "1", "3", func() {
+	// 	fmt.Println("\n\nCompleted step 1!")
+	// })
 	var ep *brev_api.ResponseUpdateEndpoint
 	ep, err = brevAgent.CreateEndpoint(name, proj.Id)
 	if err != nil {
