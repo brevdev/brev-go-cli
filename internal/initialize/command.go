@@ -108,7 +108,7 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 	}
 
 	var endpoints brev_api.Endpoints
-	for _, v := range allEndpoints.Endpoints {
+	for _, v := range allEndpoints {
 		if v.ProjectId == project.Id {
 			endpoints.Endpoints = append(endpoints.Endpoints, v)
 		}

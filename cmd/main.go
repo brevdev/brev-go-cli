@@ -56,12 +56,12 @@ func newCmdBrev() *cobra.Command {
 	return brevCommand
 }
 
-func createCmdTree(brevCommand *cobra.Command, context *cmdcontext.Context) {
-	brevCommand.AddCommand(endpoint.NewCmdEndpoint(context))
-	brevCommand.AddCommand(auth.NewCmdLogin(context))
-	brevCommand.AddCommand(package_project.NewCmdPackage(context))
-	brevCommand.AddCommand(project.NewCmdProject(context))
-	brevCommand.AddCommand(version.NewCmdVersion(context))
-	brevCommand.AddCommand(initialize.NewCmdInit(context))
+func createCmdTree(brevCommand *cobra.Command, cmdContext *cmdcontext.Context) {
+	brevCommand.AddCommand(endpoint.NewCmdEndpoint(cmdContext))
+	brevCommand.AddCommand(auth.NewCmdLogin(cmdContext))
+	brevCommand.AddCommand(package_project.NewCmdPackage(cmdContext))
+	brevCommand.AddCommand(project.NewCmdProject(cmdContext))
+	brevCommand.AddCommand(version.NewCmdVersion(cmdContext))
+	brevCommand.AddCommand(initialize.NewCmdInit(cmdContext))
 	brevCommand.AddCommand(&completionCmd)
 }

@@ -5,18 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/files"
 )
-
-type GlobalContext struct {
-	ProjectPaths []string
-}
-
-type LocalContext struct {
-	Project   brev_api.Project
-	Endpoints []brev_api.Endpoint
-}
 
 const (
 	localBrevDirectory  = ".brev"
@@ -27,125 +19,387 @@ const (
 	globalActiveProjectsFile = "active_projects.json"
 )
 
-// GetLocal returns the global brev context.
-func GetGlobal() (*GlobalContext, error) {
-	globalActiveProjectsFileExists, err := files.Exists(getGlobalActiveProjectsPath())
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf(
-			"Failed to read from %s: %s", getGlobalActiveProjectsPath(), err,
-		))
-	}
-	if !globalActiveProjectsFileExists {
-		return &GlobalContext{}, nil
-	}
+// BrevContext bundles all contexts
+type BrevContext struct {
+	Local  *LocalContext
+	Global *GlobalContext
+	Remote *RemoteContext
+}
 
-	var brevProjectPaths []string
-	err = files.ReadJSON(getGlobalActiveProjectsPath(), &brevProjectPaths)
+// GlobalContext encapsulates the Brev state of the current machine (e.g. laptop)
+type GlobalContext struct{}
+
+// LocalContext encapsulates the Brev state of the project corresponding to the current working directory
+type LocalContext struct{}
+
+// RemoteContext encapsulates the remote Brev state corresponding to the authorized user
+type RemoteContext struct {
+	agent *brev_api.Agent
+}
+
+type GetEndpointsOptions struct {
+	ID        string
+	Name      string
+	ProjectID string
+}
+
+type GetProjectsOptions struct {
+	ID   string
+	Name string
+}
+
+type GetVariablesOptions struct {
+	Name string
+}
+
+type GetPackagesOptions struct {
+	Name string
+}
+
+// New instantiates a new instance of a BrevContext
+func New() (*BrevContext, error) {
+	local, err := NewLocal()
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf(
-			"Failed to read from %s: %s", getGlobalActiveProjectsPath(), err,
-		))
+		return nil, fmt.Errorf("could not instantiate local context: %s", err)
 	}
-	return &GlobalContext{
-		ProjectPaths: brevProjectPaths,
+	global, err := NewGlobal()
+	if err != nil {
+		return nil, fmt.Errorf("could not instantiate global context: %s", err)
+	}
+	remote, err := NewRemote()
+	if err != nil {
+		return nil, fmt.Errorf("could not instantiate remote context: %s", err)
+	}
+	return &BrevContext{
+		Local:  local,
+		Global: global,
+		Remote: remote,
 	}, nil
 }
 
-// SetGlobal overwrites the global brev context.
-func SetGlobal(context *GlobalContext) error {
-	err := files.OverwriteJSON(getGlobalActiveProjectsPath(), context.ProjectPaths)
+// NewGlobal creates a new instance of a GlobalContext
+func NewGlobal() (*GlobalContext, error) {
+	return &GlobalContext{}, nil
+}
+
+// GetProjectPaths returns the filepaths of all projects known to the current system
+func (c *GlobalContext) GetProjectPaths() ([]string, error) {
+	globalActiveProjectsFileExists, err := files.Exists(getGlobalActiveProjectsPath())
 	if err != nil {
-		return errors.New(fmt.Sprintf(
-			"Failed to write to %s: %s", getGlobalActiveProjectsPath(), err,
-		))
+		return nil, fmt.Errorf("failed to read from %s: %s", getGlobalActiveProjectsPath(), err)
+	}
+	if !globalActiveProjectsFileExists {
+		return nil, nil
+	}
+
+	var paths []string
+	err = files.ReadJSON(getGlobalActiveProjectsPath(), &paths)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from %s: %s", getGlobalActiveProjectsPath(), err)
+	}
+	return paths, nil
+}
+
+// SetProjectPath sets the given path into the global list of project filepaths
+func (c *GlobalContext) SetProjectPath(path string) error {
+	paths, err := c.GetProjectPaths()
+	if err != nil {
+		return fmt.Errorf("failed to get project paths: %s", err)
+	}
+
+	for _, savedPath := range paths {
+		if path == savedPath {
+			// already exists -- return early
+			return nil
+		}
+	}
+	paths = append(paths, path)
+
+	err = files.OverwriteJSON(getGlobalActiveProjectsPath(), paths)
+	if err != nil {
+		return fmt.Errorf("failed to write to %s: %s", getGlobalActiveProjectsPath(), err)
 	}
 	return nil
 }
 
-// SetGlobalProjectPath adds (or replaces) the given project path in the blobal brev context.
-func SetGlobalProjectPath(path string) error {
-	global, err := GetGlobal()
-	if err != nil {
-		return err
-	}
-	var exists bool
-	for _, globalProjectPath := range global.ProjectPaths {
-		if path == globalProjectPath {
-			exists = true
-		}
-	}
-	if !exists {
-		global.ProjectPaths = append(global.ProjectPaths, path)
-	}
-	return SetGlobal(global)
+// NewLocal creates a new instance of a LocalContext
+func NewLocal() (*LocalContext, error) {
+	return &LocalContext{}, nil
 }
 
-// GetLocal returns the local brev context. If the brev context is nil, the current
-// directory is not a bre project.
-func GetLocal() (*LocalContext, error) {
-	localProjectFileExists, err := files.Exists(getLocalProjectPath())
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf(
-			"Failed to read from %s: %s", getLocalProjectPath(), err,
-		))
-	}
+// GetEndpoints returns a list of endpoints for the current local brev project. An optional
+// GetEndpointsOptions struct may be provided to filter the results.
+//
+// Example usage:
+//   local, _ := NewLocal()
+//
+//   // no filtering
+//   endpoints, err := local.GetEndpoints(nil)
+//
+//   // filter by endpoint name
+//   endpointsForName, _ := remote.GetEndpoints(&GetProjectsOptions{
+//       Name: "foobarbaz",
+//   })
+func (c *LocalContext) GetEndpoints(options *GetEndpointsOptions) ([]brev_api.Endpoint, error) {
 	localEndpointsFileExists, err := files.Exists(getLocalEndpointsPath())
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf(
 			"Failed to read from %s: %s", getLocalEndpointsPath(), err,
 		))
 	}
-
-	if !localProjectFileExists && localEndpointsFileExists {
-		// endpoints.json exists, but projects.json does not
-		return nil, errors.New(fmt.Sprintf(
-			"Local project is corrupted: Failed to read from %s: %s", getLocalProjectPath(), err,
-		))
-	} else if !localEndpointsFileExists && localProjectFileExists {
-		// projects.json exists, but endpoints.json does not
-		return nil, errors.New(fmt.Sprintf(
-			"Local project is corrupted: Failed to read from %s: %s", getLocalEndpointsPath(), err,
-		))
-	} else if !localEndpointsFileExists && !localProjectFileExists {
-		// acceptable case -- no files exist
+	if !localEndpointsFileExists {
 		return nil, nil
 	}
 
-	var brevProject brev_api.Project
-	err = files.ReadJSON(getLocalProjectPath(), &brevProject)
+	var endpoints []brev_api.Endpoint
+	err = files.ReadJSON(getLocalEndpointsPath(), &endpoints)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from %s: %s", getLocalEndpointsPath(), err)
+	}
+
+	if options == nil {
+		return endpoints, nil
+	}
+
+	var filteredEndpoints []brev_api.Endpoint
+	for _, endpoint := range endpoints {
+		if options.ID != "" && endpoint.Id == options.ID {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+			break
+		}
+		if options.Name != "" && endpoint.Name == options.Name {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+		}
+		if options.ProjectID != "" && endpoint.ProjectId == options.ProjectID {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+		}
+	}
+	return filteredEndpoints, nil
+}
+
+// GetProject retrieves the project associated with the current working directory
+func (c *LocalContext) GetProject() (*brev_api.Project, error) {
+	localProjectFileExists, err := files.Exists(getLocalProjectPath())
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from %s: %s", getLocalProjectPath(), err)
+	}
+	if !localProjectFileExists {
+		return nil, nil
+	}
+	var project brev_api.Project
+	err = files.ReadJSON(getLocalProjectPath(), &project)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf(
 			"Failed to read from %s: %s", getLocalProjectPath(), err,
 		))
 	}
+	return &project, nil
+}
 
-	var brevEndpoints []brev_api.Endpoint
-	err = files.ReadJSON(getLocalEndpointsPath(), &brevEndpoints)
+// SetProject stores the state of the given project in the context of the current working directory
+func (c *LocalContext) SetProject(project brev_api.Project) error {
+	err := files.OverwriteJSON(getLocalProjectPath(), project)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf(
-			"Failed to read from %s: %s", getLocalEndpointsPath(), err,
-		))
+		return fmt.Errorf("failed to write to %s: %s", getLocalProjectPath(), err)
+	}
+	return nil
+}
+
+// SetEndpoints stores the state of the given endpoints in the context of the current working directory
+func (c *LocalContext) SetEndpoints(endpoints []brev_api.Endpoint) error {
+	err := files.OverwriteJSON(getLocalEndpointsPath(), endpoints)
+	if err != nil {
+		return fmt.Errorf("failed to write to %s: %s", getLocalEndpointsPath(), err)
+	}
+	return nil
+}
+
+// NewRemote returns a new instance of a RemoteContext, with an initialized auth token.
+// Further calls to NewRemote will re-authenticate and store new auth tokens.
+func NewRemote() (*RemoteContext, error) {
+	token, err := auth.GetToken()
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve auth token: %s", err)
 	}
 
-	return &LocalContext{
-		Project:   brevProject,
-		Endpoints: brevEndpoints,
+	return &RemoteContext{
+		agent: &brev_api.Agent{Key: token},
 	}, nil
 }
 
-// SetLocal overwrites the local brev context.
-func SetLocal(context *LocalContext) error {
-	err := files.OverwriteJSON(getLocalProjectPath(), context.Project)
+// GetProjects retrieves remote projects for the context user. An optional GetProjectsOptions
+// struct may be provided to filter the results.
+//
+// Example usage:
+//   remote, _ := NewRemote()
+//
+//   // no filtering
+//   projects, err := remote.GetProjects(nil)
+//
+//   // filter by project name
+//   projectsForName, _ := remote.GetProjects(&GetProjectsOptions{
+//       Name: "foobarbaz",
+//   })
+//
+//   // filter by project ID
+//   projectsForID, _ := remote.GetProjects(&GetProjectsOptions{
+//       ID: "abc123def456",
+//   })
+func (c *RemoteContext) GetProjects(options *GetProjectsOptions) ([]brev_api.Project, error) {
+	projects, err := c.agent.GetProjects()
 	if err != nil {
-		return errors.New(fmt.Sprintf(
-			"Failed to write to %s: %s", getLocalProjectPath(), err,
-		))
+		return nil, fmt.Errorf("failed to get endpoints: %s", err)
 	}
-	err = files.OverwriteJSON(getLocalEndpointsPath(), context.Endpoints)
+
+	if options == nil {
+		return projects, nil
+	}
+
+	var filteredProjects []brev_api.Project
+	for _, project := range projects {
+		if options.ID != "" && project.Id == options.ID {
+			filteredProjects = append(filteredProjects, project)
+			break
+		}
+		if options.Name != "" && project.Name == options.Name {
+			filteredProjects = append(filteredProjects, project)
+		}
+	}
+	return filteredProjects, nil
+}
+
+// GetEndpoints retrieves remote endpoints for the context user. An optional GetEndpointsOptions
+// struct may be provided to filter the results.
+//
+// Example usage:
+//   remote, _ := NewRemote()
+//
+//   // no filtering
+//   endpoints, err := remote.GetEndpoints(nil)
+//
+//   // filter by endpoint name
+//   endpointsForName, _ := remote.GetEndpoints(&GetEndpointsOptions{
+//       Name: "foobarbaz",
+//   })
+//
+//   // filter by project ID
+//   endpointsForProject, _ := remote.GetEndpoints(&GetEndpointsOptions{
+//       ProjectID: "abc123def456",
+//   })
+func (c *RemoteContext) GetEndpoints(options *GetEndpointsOptions) ([]brev_api.Endpoint, error) {
+	endpoints, err := c.agent.GetEndpoints()
 	if err != nil {
-		return errors.New(fmt.Sprintf(
-			"Failed to write to %s: %s", getLocalEndpointsPath(), err,
-		))
+		return nil, fmt.Errorf("failed to get endpoints: %s", err)
+	}
+
+	if options == nil {
+		return endpoints, nil
+	}
+
+	var filteredEndpoints []brev_api.Endpoint
+	for _, endpoint := range endpoints {
+		if options.ID != "" && endpoint.Id == options.ID {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+			break
+		}
+		if options.Name != "" && endpoint.Name == options.Name {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+		}
+		if options.ProjectID != "" && endpoint.ProjectId == options.ProjectID {
+			filteredEndpoints = append(filteredEndpoints, endpoint)
+		}
+	}
+	return filteredEndpoints, nil
+}
+
+// SetEndpoint updates the remote endpoint with the given ID with the state of the provided
+// endpoint struct.
+func (c *RemoteContext) SetEndpoint(endpoint brev_api.Endpoint) error {
+	_, err := c.agent.UpdateEndpoint(endpoint.Id, brev_api.RequestUpdateEndpoint{
+		Name:    endpoint.Name,
+		Methods: endpoint.Methods,
+		Code:    endpoint.Code,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update endpoint: %s", err)
+	}
+	return nil
+}
+
+// DeleteEndpoint removes the remote endpoint with the given ID.
+func (c *RemoteContext) DeleteEndpoint(endpoint brev_api.Endpoint) error {
+	_, err := c.agent.RemoveEndpoint(endpoint.Id)
+	if err != nil {
+		return fmt.Errorf("failed to delete endpoint: %s", err)
+	}
+	return nil
+}
+
+// GetVariables retrieves remote variables for the given project. An optional GetVariablesOptions
+// struct may be provided to filter the results.
+//
+// Example usage:
+//   remote, _ := NewRemote()
+//
+//   // no filtering
+//   endpoints, err := remote.GetVariables(nil)
+//
+//   // filter by variable name
+//   variablesForProject, _ := remote.GetVariables(&GetVariablesOptions{
+//       Name: "foobarbaz",
+//   })
+func (c *RemoteContext) GetVariables(project brev_api.Project, options *GetVariablesOptions) ([]brev_api.ProjectVariable, error) {
+	variables, err := c.agent.GetVariables(project.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get project variables: %s", err)
+	}
+
+	if options == nil {
+		return variables, nil
+	}
+
+	var filteredVariables []brev_api.ProjectVariable
+	for _, variable := range variables {
+		if options.Name != "" && variable.Name == options.Name {
+			filteredVariables = append(filteredVariables, variable)
+			break
+		}
+	}
+	return filteredVariables, nil
+}
+
+// SetVariable sets the given name/value pair for the given project.
+func (c *RemoteContext) SetVariable(project brev_api.Project, name string, value string) error {
+	_, err := c.agent.AddVariable(project.Id, name, value)
+	if err != nil {
+		return fmt.Errorf("failed to set project variable: %s", err)
+	}
+	return nil
+}
+
+func (c *RemoteContext) GetPackages(project brev_api.Project, options *GetPackagesOptions) ([]brev_api.ProjectPackage, error) {
+	packages, err := c.agent.GetPackages(project.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve project packages: %s", err)
+	}
+
+	if options == nil {
+		return packages, nil
+	}
+	var filteredPackages []brev_api.ProjectPackage
+	for _, projectPackage := range packages {
+		if options.Name != "" && projectPackage.Name == options.Name {
+			filteredPackages = append(filteredPackages, projectPackage)
+			break
+		}
+	}
+	return filteredPackages, nil
+}
+
+func (c *RemoteContext) SetPackage(project brev_api.Project, name string) error {
+	_, err := c.agent.AddPackage(project.Id, name)
+	if err != nil {
+		return fmt.Errorf("failed to add project package: %s", err)
 	}
 	return nil
 }

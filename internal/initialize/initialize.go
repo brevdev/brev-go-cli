@@ -19,19 +19,22 @@ func initializeExistingProject(projectName string, context *cmdcontext.Context) 
 	}
 
 	// Set local
-	err = brev_ctx.SetLocal(&brev_ctx.LocalContext{
-		Project:   *project,
-		Endpoints: endpoints.Endpoints,
-	})
+	brevCtx, err := brev_ctx.New()
 	if err != nil {
-		return errors.New("Failed to update local brev project")
+		return err
+	}
+
+	if err = brevCtx.Local.SetProject(*project); err != nil {
+		return err
+	}
+	if err = brevCtx.Local.SetEndpoints(endpoints.Endpoints); err != nil {
+		return err
 	}
 
 	// Update global
 	cwd, _ := os.Getwd()
-	err = brev_ctx.SetGlobalProjectPath(cwd + "/" + projectName)
-	if err != nil {
-		return errors.New("failed to update global brev state")
+	if err = brevCtx.Global.SetProjectPath(cwd + "/" + projectName); err != nil {
+		return err
 	}
 
 	return nil
@@ -67,7 +70,7 @@ func getRemoteProjectMatchingName(projectName string) (*brev_api.Project, *brev_
 
 	// Filter
 	var endpoints brev_api.Endpoints
-	for _, remoteEndpoint := range remoteEndpoints.Endpoints {
+	for _, remoteEndpoint := range remoteEndpoints {
 		if remoteEndpoint.ProjectId == project.Id {
 			endpoints.Endpoints = append(endpoints.Endpoints, remoteEndpoint)
 		}

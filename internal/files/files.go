@@ -129,7 +129,7 @@ func OverwriteJSON(filepath string, v interface{}) error {
 // Delete a single file altogether
 func DeleteFile(filepath string) error {
 	error := os.Remove(filepath)
-	if (error != nil) {
+	if error != nil {
 		return nil
 	}
 	return error

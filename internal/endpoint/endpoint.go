@@ -99,11 +99,11 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 
 	var id string
 	for _, v := range endpoints {
-		if (v.Name==name) {
-			id=v.Id
+		if v.Name == name {
+			id = v.Id
 		}
 	}
-	if (id=="") {
+	if id == "" {
 		err := fmt.Errorf("Endpoint doesn't exist.")
 		context.PrintErr("Cannot delete Endpoint. ", err)
 		return err
@@ -120,19 +120,19 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 	}
 
 	// var ep *brev_api.ResponseRemoveEndpoint
-	_,err = brevAgent.RemoveEndpoint(id)
+	_, err = brevAgent.RemoveEndpoint(id)
 	if err != nil {
 		context.PrintErr("", err)
 		return err
 	}
 
 	// Remove the python file
-	files.DeleteFile(name +".py")
-	
+	files.DeleteFile(name + ".py")
+
 	// Update the endpoints.json
 	var updatedEndpoints []brev_api.Endpoint
 	for _, v := range endpoints {
-		if (v.Id!=id) {
+		if v.Id != id {
 			updatedEndpoints = append(updatedEndpoints, v)
 		}
 	}
@@ -144,22 +144,29 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 func runEndpoint(name string, method string, arg []string, jsonBody string, context *cmdcontext.Context) error {
 	fmt.Fprintf(context.Out, "Run ep file %s %s %s", name, method, arg)
 
-	localContext, err_dir := brev_ctx.GetLocal()
-	if (err_dir != nil) {
-		// handle this
-		return err_dir
-	}
-	
-	var endpoint brev_api.Endpoint
-	for _, v := range localContext.Endpoints {
-		if (v.Name == name) {
-			endpoint = v
-		}
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
 	}
 
-	fmt.Println(localContext.Project.Domain)
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		Name: name,
+	})
+	if err != nil {
+		return err
+	}
+	if len(endpoints) != 0 {
+		return fmt.Errorf("unexpected number of endpoints: %d", len(endpoints))
+	}
+
+	domain := project.Domain
+	endpoint := endpoints[0]
+	fmt.Println(domain)
 	fmt.Println(endpoint.Uri)
-
 
 	var params []requests.QueryParam
 	for _, v := range arg {
@@ -172,7 +179,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 
 	request := &requests.RESTRequest{
 		Method:      "GET",
-		Endpoint:    fmt.Sprintf("%s%s", localContext.Project.Domain, endpoint.Uri),
+		Endpoint:    fmt.Sprintf("%s%s", project.Domain, endpoint.Uri),
 		QueryParams: params,
 		Headers: []requests.Header{
 			{Key: "Content-Type", Value: "application/json"},
@@ -183,7 +190,6 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		context.PrintErr("Failed to run endpoint", err)
 		return err
 	}
-	
 
 	var response map[string]string
 	err = rawResponse.DecodePayload(response)
@@ -191,8 +197,6 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		context.PrintErr("Failed to deserialize response payload", err)
 		return err
 	}
-
-	
 
 	fmt.Fprint(context.VerboseOut, "\n\n")
 	fmt.Fprint(context.VerboseOut, rawResponse.StatusCode)
@@ -263,7 +267,7 @@ func listEndpoints(context *cmdcontext.Context) error {
 	}
 
 	fmt.Fprintf(context.Out, "Endpoints in %s\n", proj.Name)
-	for _, v := range endpointsResponse.Endpoints {
+	for _, v := range endpointsResponse {
 		if v.ProjectId == proj.Id {
 			fmt.Fprintf(context.Out, "\tEp %s\n", v.Name)
 			fmt.Fprintf(context.Out, "\t%s\n\n", v.Uri)
