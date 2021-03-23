@@ -29,6 +29,53 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
+func addEndpointV2(name string, context *cmdcontext.Context) error {
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
+	}
+
+	// get current context project
+	fmt.Fprint(context.Out, "Determining local project...\n")
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+	fmt.Fprint(context.Out, fmt.Sprintf("Local project: %s\n", project.Name))
+
+	// store endpoint in remote state
+	fmt.Fprint(context.Out, "Submitting request to save new endpoint\n")
+	endpoint, err := brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
+		ProjectId: project.Id,
+		Name:      name,
+	})
+	if err != nil {
+		return err
+	}
+
+	// store endpoint in local state
+	fmt.Fprint(context.Out, "Saving endpoint locally...\n")
+	err = brevCtx.Local.SetEndpoint(*endpoint)
+	if err != nil {
+		return err
+	}
+
+	// create the endpoint code file
+	cwd, err := os.Getwd()
+	if err != nil {
+		context.PrintErr("Failed to determine working directory", err)
+		return err
+	}
+
+	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", cwd, endpoint.Name), endpoint.Code)
+	if err != nil {
+		context.PrintErr("Failed to write endpoints to local file", err)
+		return err
+	}
+
+	return nil
+}
+
 func addEndpoint(name string, context *cmdcontext.Context) error {
 	// Create endpoint
 	proj, err := brev_api.GetActiveProject()
@@ -142,32 +189,30 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 }
 
 func runEndpoint(name string, method string, arg []string, jsonBody string, context *cmdcontext.Context) error {
-	fmt.Fprintf(context.Out, "Run ep file %s %s %s", name, method, arg)
-
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
 
+	// get local context project
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
 	}
+
+	// get local endpoint for the given name
 	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		Name: name,
 	})
 	if err != nil {
 		return err
 	}
-	if len(endpoints) != 0 {
+	if len(endpoints) != 1 {
 		return fmt.Errorf("unexpected number of endpoints: %d", len(endpoints))
 	}
-
-	domain := project.Domain
 	endpoint := endpoints[0]
-	fmt.Println(domain)
-	fmt.Println(endpoint.Uri)
 
+	// prepare query params
 	var params []requests.QueryParam
 	for _, v := range arg {
 		if strings.Contains(v, "=") {
@@ -177,72 +222,72 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		}
 	}
 
+	// prepare payload
+	var payload map[string]interface{}
+	if jsonBody == "" {
+		payload = nil
+	} else if err := json.Unmarshal([]byte(jsonBody), &payload); err != nil {
+		return fmt.Errorf("failed to process JSON payload: %s", err)
+	}
+
+	// submit request
 	request := &requests.RESTRequest{
-		Method:      "GET",
+		Method:      method,
 		Endpoint:    fmt.Sprintf("%s%s", project.Domain, endpoint.Uri),
 		QueryParams: params,
 		Headers: []requests.Header{
 			{Key: "Content-Type", Value: "application/json"},
 		},
+		Payload: payload,
 	}
-	rawResponse, err := request.Submit()
+	response, err := request.Submit()
 	if err != nil {
 		context.PrintErr("Failed to run endpoint", err)
 		return err
 	}
 
-	var response []string
-	err = rawResponse.UnmarshalPayload(&response)
+	// print output
+	fmt.Fprint(context.VerboseOut, fmt.Sprintf("%s %s [%d]", request.Method, request.URI, response.StatusCode))
+	jsonStr, err := response.PayloadAsPrettyJSONString()
 	if err != nil {
-		context.PrintErr("Failed to deserialize response payload", err)
-		return err
-	}
-	
-	str, _ := rawResponse.PayloadAsString()
-	fmt.Println("out: " + str)
-
-
-	fmt.Fprint(context.VerboseOut, "\n\n")
-	fmt.Fprint(context.VerboseOut, rawResponse.StatusCode)
-
-	jsonstr, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
-		context.PrintErr("Failed to serialize response", err)
 		return err
 	}
 
-	fmt.Fprint(context.VerboseOut, jsonstr)
-	fmt.Fprint(context.VerboseOut, string(jsonstr))
+	fmt.Fprint(context.VerboseOut, "\n\nOutput:\n")
+	fmt.Fprint(context.VerboseOut, jsonStr)
+	fmt.Fprint(context.VerboseOut, "\n\nLogs:\n")
+	for _, header := range response.Headers {
+		if header.Key == "x-stdout" {
+			fmt.Fprint(context.VerboseOut, header)
+		}
+	}
 
-	// request2 := &requests.RESTRequest{
-	// 	Method:      "POST",
-	// 	Endpoint:    localContext.Project.Domain + endpoint.Uri,
-	// 	QueryParams: params,
-	// 	Headers: []requests.Header{
-	// 		{Key: "Content-Type", Value: "application/json"},
-	// 	},
-	// }
+	return nil
+}
 
-	// rawResponse2, err := request2.Submit()
-	// if err != nil {
-	// 	context.PrintErr("Failed to run endpoint", err)
-	// 	return err
-	// }
+func listEndpointsV2(context *cmdcontext.Context) error {
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
+	}
 
-	// var response2 map[string]string
-	// err = rawResponse2.DecodePayload(&response2)
-	// if err != nil {
-	// 	context.PrintErr("Failed to deserialize response", err)
-	// 	return err
-	// }
+	// get current context project
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
 
-	// fmt.Fprintln(context.Out, rawResponse2.StatusCode)
-	// jsonstr2, err := json.MarshalIndent(response2, "", "  ")
-	// if err != nil {
-	// 	context.PrintErr("Failed to serialize response", err)
-	// 	return err
-	// }
-	// fmt.Fprintln(context.Out, string(jsonstr2))
+	// get remote project endpoints
+	endpoints, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
+
+	// print
+	fmt.Fprintf(context.VerboseOut, "Endpoints in %s\n", project.Name)
+	for _, endpoint := range endpoints {
+		fmt.Fprintf(context.VerboseOut, "\tEp %s\n", endpoint.Name)
+		fmt.Fprintf(context.VerboseOut, "\t%s\n\n", endpoint.Uri)
+	}
 
 	return nil
 }

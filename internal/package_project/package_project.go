@@ -40,7 +40,7 @@ func addPackage(name string, context *cmdcontext.Context) error {
 		return err
 	}
 
-	err = brevCtx.Remote.SetPackage(*project, name)
+	_, err = brevCtx.Remote.SetPackage(*project, name)
 	if err != nil {
 		context.PrintErr(fmt.Sprintf("Failed to add package %s", name), err)
 		return err

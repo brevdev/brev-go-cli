@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -214,6 +215,30 @@ func (c *LocalContext) SetEndpoints(endpoints []brev_api.Endpoint) error {
 	return nil
 }
 
+func (c *LocalContext) SetEndpoint(endpoint brev_api.Endpoint) error {
+	endpoints, err := c.GetEndpoints(nil)
+	if err != nil {
+		return nil
+	}
+
+	// if endpoint is new, save
+	var exists bool
+	for _, savedEndpoint := range endpoints {
+		if reflect.DeepEqual(endpoint, savedEndpoint) {
+			exists = true
+		}
+	}
+	if !exists {
+		endpoints = append(endpoints, endpoint)
+		err = files.OverwriteJSON(getLocalEndpointsPath(), endpoints)
+		if err != nil {
+			return fmt.Errorf("failed to write to %s: %s", getLocalEndpointsPath(), err)
+		}
+	}
+
+	return nil
+}
+
 // NewRemote returns a new instance of a RemoteContext, with an initialized auth token.
 // Further calls to NewRemote will re-authenticate and store new auth tokens.
 func NewRemote() (*RemoteContext, error) {
@@ -314,16 +339,24 @@ func (c *RemoteContext) GetEndpoints(options *GetEndpointsOptions) ([]brev_api.E
 
 // SetEndpoint updates the remote endpoint with the given ID with the state of the provided
 // endpoint struct.
-func (c *RemoteContext) SetEndpoint(endpoint brev_api.Endpoint) error {
-	_, err := c.agent.UpdateEndpoint(endpoint.Id, brev_api.RequestUpdateEndpoint{
-		Name:    endpoint.Name,
-		Methods: endpoint.Methods,
-		Code:    endpoint.Code,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to update endpoint: %s", err)
+func (c *RemoteContext) SetEndpoint(endpoint brev_api.Endpoint) (*brev_api.Endpoint, error) {
+	if endpoint.Id == "" {
+		response, err := c.agent.CreateEndpoint(endpoint.Name, endpoint.ProjectId)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create endpoint: %s", err)
+		}
+		return &response.Endpoint, nil
+	} else {
+		response, err := c.agent.UpdateEndpoint(endpoint.Id, brev_api.RequestUpdateEndpoint{
+			Name:    endpoint.Name,
+			Methods: endpoint.Methods,
+			Code:    endpoint.Code,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to update endpoint: %s", err)
+		}
+		return &response.Endpoint, nil
 	}
-	return nil
 }
 
 // DeleteEndpoint removes the remote endpoint with the given ID.
@@ -369,12 +402,12 @@ func (c *RemoteContext) GetVariables(project brev_api.Project, options *GetVaria
 }
 
 // SetVariable sets the given name/value pair for the given project.
-func (c *RemoteContext) SetVariable(project brev_api.Project, name string, value string) error {
-	_, err := c.agent.AddVariable(project.Id, name, value)
+func (c *RemoteContext) SetVariable(project brev_api.Project, name string, value string) (*brev_api.ProjectVariable, error) {
+	response, err := c.agent.AddVariable(project.Id, name, value)
 	if err != nil {
-		return fmt.Errorf("failed to set project variable: %s", err)
+		return nil, fmt.Errorf("failed to set project variable: %s", err)
 	}
-	return nil
+	return &response.Variable, nil
 }
 
 func (c *RemoteContext) GetPackages(project brev_api.Project, options *GetPackagesOptions) ([]brev_api.ProjectPackage, error) {
@@ -396,12 +429,12 @@ func (c *RemoteContext) GetPackages(project brev_api.Project, options *GetPackag
 	return filteredPackages, nil
 }
 
-func (c *RemoteContext) SetPackage(project brev_api.Project, name string) error {
-	_, err := c.agent.AddPackage(project.Id, name)
+func (c *RemoteContext) SetPackage(project brev_api.Project, name string) (*brev_api.ProjectPackage, error) {
+	response, err := c.agent.AddPackage(project.Id, name)
 	if err != nil {
-		return fmt.Errorf("failed to add project package: %s", err)
+		return nil, fmt.Errorf("failed to add project package: %s", err)
 	}
-	return nil
+	return &response.Package, nil
 }
 
 func getGlobalActiveProjectsPath() string {

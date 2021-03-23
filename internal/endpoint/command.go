@@ -90,7 +90,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint add NewEp
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addEndpoint(name, context)
+			return addEndpointV2(name, context)
 		},
 	}
 
