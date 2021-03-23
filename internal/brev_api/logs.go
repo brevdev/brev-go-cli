@@ -43,7 +43,7 @@ func (a *Agent) GetLogs(projectID string, logType string) ([]ProjectLog, error) 
 	}
 
 	var payload ProjectLogs
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}

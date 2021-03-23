@@ -164,7 +164,7 @@ func fetchCotterPublicKeySet() (*jose.JSONWebKeySet, error) {
 	}
 
 	var cotterJWKS jose.JSONWebKeySet
-	err = response.DecodePayload(&cotterJWKS)
+	err = response.UnmarshalPayload(&cotterJWKS)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func requestCotterToken(code string, challengeID string, codeVerifier string) (*
 	}
 
 	var tokenResponse cotterTokenResponseBody
-	err = response.DecodePayload(&tokenResponse)
+	err = response.UnmarshalPayload(&tokenResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +340,7 @@ func refreshCotterToken(oldToken *CotterOauthToken) (*CotterOauthToken, error) {
 	}
 
 	var token CotterOauthToken
-	err = response.DecodePayload(&token)
+	err = response.UnmarshalPayload(&token)
 	if err != nil {
 		return nil, err
 	}

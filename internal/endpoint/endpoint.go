@@ -191,12 +191,16 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		return err
 	}
 
-	var response map[string]string
-	err = rawResponse.DecodePayload(response)
+	var response []string
+	err = rawResponse.UnmarshalPayload(&response)
 	if err != nil {
 		context.PrintErr("Failed to deserialize response payload", err)
 		return err
 	}
+	
+	str, _ := rawResponse.PayloadAsString()
+	fmt.Println("out: " + str)
+
 
 	fmt.Fprint(context.VerboseOut, "\n\n")
 	fmt.Fprint(context.VerboseOut, rawResponse.StatusCode)
