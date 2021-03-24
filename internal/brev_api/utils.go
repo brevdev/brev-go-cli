@@ -1,6 +1,7 @@
 package brev_api
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -72,7 +73,7 @@ func IsInProjectDirectory() (bool, error) {
 func CheckOutsideBrevErrorMessage(context *cmdcontext.Context) (bool, error) {
 	isInProjectDirectory, err := IsInProjectDirectory()
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
 	if isInProjectDirectory {
@@ -86,8 +87,10 @@ func CheckOutsideBrevErrorMessage(context *cmdcontext.Context) (bool, error) {
 		return false, err
 	}
 
+	var s string
 	// Exit with error message
-	fmt.Fprintln(context.VerboseOut, "Endpoint commands only work in a Brev project.")
+	// fmt.Fprintln(context.VerboseOut, "Endpoint commands only work in a Brev project.")
+	s+= "\nThese commands only work in a Brev project."
 	if len(currBrevDirectories) == 0 {
 		// If no directories, check if they have some remote.
 
@@ -108,22 +111,30 @@ func CheckOutsideBrevErrorMessage(context *cmdcontext.Context) (bool, error) {
 
 		if len(rawProjects) == 0 {
 			// Encourage them to create their first project
-			fmt.Fprintln(context.VerboseOut, "You haven't made a brev project yet! Try running 'brev init'")
+			// fmt.Fprintln(context.VerboseOut, "You haven't made a brev project yet! Try running 'brev init'")
+			s+= "\nYou haven't made a brev project yet! Try running 'brev init'"
+
 
 		} else {
 			// Encourage them to pull one of their existing projects
 			fmt.Fprintln(context.VerboseOut, "Set up one of your existing projects.")
-			fmt.Fprintln(context.VerboseOut, "For example, run 'brev init "+rawProjects[0].Name+"'")
+			s+= "\nSet up one of your existing projects."
+			s += fmt.Sprintf("For example, run 'brev init "+rawProjects[0].Name+"'")
+			// fmt.Fprintln(context.VerboseOut, "For example, run 'brev init "+rawProjects[0].Name+"'")
 		}
 
 	} else {
 		// Print active brev projects
-		fmt.Fprintln(context.VerboseOut, "Active Brev projects on your computer: ")
+		// fmt.Fprintln(context.VerboseOut, "Active Brev projects on your computer: ")
+		s+= "\nActive Brev projects on your computer: \n"
 		for _, v := range currBrevDirectories {
-			fmt.Fprintln(context.VerboseOut, "\t"+v)
+			s += "\t"+v
+			// fmt.Fprintln(context.VerboseOut, "\t"+v)
 		}
+		s += "\n"
 	}
-	return false, nil
+	return false, errors.New(s)
+	// return false, errors.New("Endpoint commands only work in a Brev project")
 }
 
 func StringInList(a string, list []string) bool {
