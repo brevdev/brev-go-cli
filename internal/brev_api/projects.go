@@ -38,7 +38,7 @@ func (a *Agent) GetProjects() ([]Project, error) {
 	}
 
 	var payload Projects
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (a *Agent) CreateProject(name string) (*ResponseCreateProject, error) {
 	}
 
 	var payload ResponseCreateProject
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}

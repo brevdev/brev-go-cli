@@ -30,29 +30,23 @@ func logic(context *cmdcontext.Context) error {
 }
 
 func addPackage(name string, context *cmdcontext.Context) error {
-
-	localContext, err := brev_ctx.GetLocal()
+	brevCtx, err := brev_ctx.New()
 	if err != nil {
-		// handle this
 		return err
 	}
 
-	token, err := auth.GetToken()
+	project, err := brevCtx.Local.GetProject()
 	if err != nil {
-		context.PrintErr("Failed to retrieve auth token", err)
 		return err
 	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
 
-	respPackage, err := brevAgent.AddPackage(localContext.Project.Id, name, context)
+	_, err = brevCtx.Remote.SetPackage(*project, name)
 	if err != nil {
 		context.PrintErr(fmt.Sprintf("Failed to add package %s", name), err)
 		return err
 	}
 
-	fmt.Fprintf(context.VerboseOut, "Package %s installed successfully.", respPackage.Package.Name) // this isn't working
+	fmt.Fprintf(context.VerboseOut, "Package %s installed successfully.", name) // this isn't working
 
 	return nil
 }
@@ -97,13 +91,17 @@ func listPackages(context *cmdcontext.Context) error {
 		return nil
 	}
 
-	localContext, err := brev_ctx.GetLocal()
+	brevCtx, err := brev_ctx.New()
 	if err != nil {
-		// handle this
 		return err
 	}
 
-	fmt.Fprintf(context.VerboseOut, "Packages installed on project %s:\n", localContext.Project.Name)
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(context.VerboseOut, "Packages installed on project %s:\n", project.Name)
 
 	for _, v := range packages {
 		fmt.Fprintf(context.VerboseOut, "\t%s==%s\n", v.Name, v.Version)

@@ -42,7 +42,7 @@ type ResponseRemoveEndpoint struct {
 	Success bool   `json:"success"`
 }
 
-func (a *Agent) GetEndpoints() (*Endpoints, error) {
+func (a *Agent) GetEndpoints() ([]Endpoint, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("_endpoint"),
@@ -59,12 +59,12 @@ func (a *Agent) GetEndpoints() (*Endpoints, error) {
 	}
 
 	var payload Endpoints
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
 
-	return &payload, nil
+	return payload.Endpoints, nil
 }
 
 const dummyCode = `import variables
@@ -105,7 +105,7 @@ func (a *Agent) CreateEndpoint(name string, projectId string) (*ResponseUpdateEn
 	}
 
 	var payload ResponseUpdateEndpoint
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (a *Agent) UpdateEndpoint(endpointID string, updateRequest RequestUpdateEnd
 	}
 
 	var payload ResponseUpdateEndpoint
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (a *Agent) RemoveEndpoint(endpointID string) (*ResponseRemoveEndpoint, erro
 	}
 
 	var payload ResponseRemoveEndpoint
-	err = response.DecodePayload(&payload)
+	err = response.UnmarshalPayload(&payload)
 	if err != nil {
 		return nil, err
 	}

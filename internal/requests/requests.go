@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type RESTRequest struct {
+	URI         string
 	Method      string
 	Endpoint    string
 	QueryParams []QueryParam
@@ -19,7 +22,8 @@ type RESTRequest struct {
 
 type RESTResponse struct {
 	StatusCode int
-	Payload    io.ReadCloser
+	Headers    []Header
+	Payload    []byte
 }
 
 type QueryParam struct {
@@ -64,6 +68,7 @@ func (r *RESTRequest) BuildHTTPRequest() (*http.Request, error) {
 		q.Add(param.Key, param.Value)
 	}
 	req.URL.RawQuery = q.Encode()
+	r.URI = req.URL.String()
 
 	// build headers
 	// TODO: remove assumed Content-Type header?
@@ -90,24 +95,70 @@ func (r *RESTRequest) Submit() (*RESTResponse, error) {
 		return nil, err
 	}
 
+	payloadBytes, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var headers []Header
+	for key, values := range res.Header {
+		headers = append(headers, Header{
+			Key:   key,
+			Value: strings.Join(values, "\n"),
+		})
+	}
 	return &RESTResponse{
+		Headers:    headers,
 		StatusCode: res.StatusCode,
-		Payload:    res.Body,
+		Payload:    payloadBytes,
 	}, nil
 }
 
-// DecodePayload converts the raw response body into the given interface
+// UnmarshalPayload converts the raw response body into the given interface
 // Usage:
 //   var foo MyStruct
-//   response.DecodePayload(&foo)
-func (r *RESTResponse) DecodePayload(v interface{}) error {
-	defer r.Payload.Close()
-	return json.NewDecoder(r.Payload).Decode(&v)
+//   response.UnmarshalPayload(&foo)
+func (r *RESTResponse) UnmarshalPayload(v interface{}) error {
+	err := json.Unmarshal(r.Payload, v)
+	return err
 }
 
-// func (m *map[string]string) DecodedPayloadAsString(v interface{}) error {
-// 	jsonstr, err := json.Marshal(m)
-// }
+// PayloadAsString returns the response body as a string
+func (r *RESTResponse) PayloadAsString() (string, error) {
+	return string(r.Payload), nil
+}
+
+// PayloadAsPrettyJSONString returns the response body as a formatted JSON string
+// The response body must be valid JSON in the form either of a list or a map.
+func (r *RESTResponse) PayloadAsPrettyJSONString() (string, error) {
+	prefix := ""
+	indent := "  "
+
+	// attempt to marshal as typical JSON (e.g.: { <el>: { <el>: ... }}
+	var payloadStructJson map[string]interface{}
+	err := json.Unmarshal(r.Payload, &payloadStructJson)
+	if err == nil {
+		jsonBytes, err := json.MarshalIndent(payloadStructJson, prefix, indent)
+		if err != nil {
+			return "", fmt.Errorf("failed to marhsal JSON struct: %s", err)
+		}
+		return string(jsonBytes), nil
+	}
+
+	// error -- try to marshal again, this time as a list
+	var payloadStructList []interface{}
+	err = json.Unmarshal(r.Payload, &payloadStructList)
+	if err == nil {
+		listBytes, err := json.MarshalIndent(payloadStructList, prefix, indent)
+		if err != nil {
+			return "", fmt.Errorf("failed to marhsal list struct: %s", err)
+		}
+		return string(listBytes), nil
+	}
+
+	return "", fmt.Errorf("response was not valid JSON")
+}
 
 // EXAMPLE USAGE:
 /*
