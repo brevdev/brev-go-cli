@@ -126,6 +126,26 @@ func OverwriteJSON(filepath string, v interface{}) error {
 	return err
 }
 
+// OverwriteString data in the target file with data from the given string
+//
+// Usage
+//   OverwriteString("tmp/a/b/c.txt", "hi there")
+func OverwriteString(filepath string, data string) error {
+	f, err := touchFile(filepath)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+
+	// clear
+	err = f.Truncate(0)
+
+	// write
+	err = ioutil.WriteFile(filepath, []byte(data), os.ModePerm)
+
+	return err
+}
+
 // Delete a single file altogether
 func DeleteFile(filepath string) error {
 	error := os.Remove(filepath)
