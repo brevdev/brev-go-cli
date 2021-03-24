@@ -252,14 +252,6 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 	if err != nil {
 		return err
 	}
-<<<<<<< HEAD
-
-	str, _ := rawResponse.PayloadAsString()
-	fmt.Println("out: " + str)
-
-	fmt.Fprint(context.VerboseOut, "\n\n")
-	fmt.Fprint(context.VerboseOut, rawResponse.StatusCode)
-=======
 
 	fmt.Fprint(context.VerboseOut, "\n\nOutput:\n")
 	fmt.Fprint(context.VerboseOut, jsonStr)
@@ -278,7 +270,6 @@ func listEndpointsV2(context *cmdcontext.Context) error {
 	if err != nil {
 		return err
 	}
->>>>>>> 71fcaf7 (buncha helpers)
 
 	// get current context project
 	project, err := brevCtx.Local.GetProject()
