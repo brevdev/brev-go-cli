@@ -42,7 +42,7 @@ type ResponseRemoveEndpoint struct {
 	Success bool   `json:"success"`
 }
 
-func (a *Agent) GetEndpoints() (*Endpoints, error) {
+func (a *Agent) GetEndpoints() ([]Endpoint, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("_endpoint"),
@@ -64,7 +64,7 @@ func (a *Agent) GetEndpoints() (*Endpoints, error) {
 		return nil, err
 	}
 
-	return &payload, nil
+	return payload.Endpoints, nil
 }
 
 const dummyCode = `import variables

@@ -144,20 +144,28 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 func runEndpoint(name string, method string, arg []string, jsonBody string, context *cmdcontext.Context) error {
 	fmt.Fprintf(context.Out, "Run ep file %s %s %s", name, method, arg)
 
-	localContext, err_dir := brev_ctx.GetLocal()
-	if err_dir != nil {
-		// handle this
-		return err_dir
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
 	}
 
-	var endpoint brev_api.Endpoint
-	for _, v := range localContext.Endpoints {
-		if v.Name == name {
-			endpoint = v
-		}
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		Name: name,
+	})
+	if err != nil {
+		return err
+	}
+	if len(endpoints) != 0 {
+		return fmt.Errorf("unexpected number of endpoints: %d", len(endpoints))
 	}
 
-	fmt.Println(localContext.Project.Domain)
+	domain := project.Domain
+	endpoint := endpoints[0]
+	fmt.Println(domain)
 	fmt.Println(endpoint.Uri)
 
 	var params []requests.QueryParam
@@ -171,7 +179,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 
 	request := &requests.RESTRequest{
 		Method:      "GET",
-		Endpoint:    fmt.Sprintf("%s%s", localContext.Project.Domain, endpoint.Uri),
+		Endpoint:    fmt.Sprintf("%s%s", project.Domain, endpoint.Uri),
 		QueryParams: params,
 		Headers: []requests.Header{
 			{Key: "Content-Type", Value: "application/json"},
@@ -259,7 +267,7 @@ func listEndpoints(context *cmdcontext.Context) error {
 	}
 
 	fmt.Fprintf(context.Out, "Endpoints in %s\n", proj.Name)
-	for _, v := range endpointsResponse.Endpoints {
+	for _, v := range endpointsResponse {
 		if v.ProjectId == proj.Id {
 			fmt.Fprintf(context.Out, "\tEp %s\n", v.Name)
 			fmt.Fprintf(context.Out, "\t%s\n\n", v.Uri)

@@ -18,7 +18,6 @@ package package_project
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
@@ -29,25 +28,16 @@ func getTopPyPiPackages() []string {
 }
 
 func GetPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error) {
-	localContext, err := brev_ctx.GetLocal()
+	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := auth.GetToken()
+	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return nil, err
 	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
-
-	packages, err := brevAgent.GetPackages(localContext.Project.Id, context)
-	if err != nil {
-		return nil, err
-	}
-
-	return packages, nil
+	return brevCtx.Remote.GetPackages(*project, nil)
 }
 
 // This is just used for autocomplete, so failures can just return no autocompletions
