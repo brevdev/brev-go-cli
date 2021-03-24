@@ -16,6 +16,7 @@ limitations under the License.
 package env
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"syscall"
@@ -33,11 +34,15 @@ func logic(context *cmdcontext.Context) error {
 }
 
 func addVariable(name string, context *cmdcontext.Context) error {
+	
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
+	}
 
-	localContext, err_dir := brev_ctx.GetLocal()
-	if err_dir != nil {
-		// handle this
-		return err_dir
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
 	}
 
 	fmt.Fprintf(context.VerboseOut, "Enter value for %s: ", name)
@@ -48,16 +53,7 @@ func addVariable(name string, context *cmdcontext.Context) error {
 	}
 	value := string(bytepw)
 
-	token, err := auth.GetToken()
-	if err != nil {
-		context.PrintErr("Failed to retrieve auth token", err)
-		return err
-	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
-
-	brevAgent.AddVariable(localContext.Project.Id, name, value)
+	brevCtx.Remote.SetVariable(*project, name, value)
 
 	fmt.Fprintf(context.VerboseOut, "\nVariable %s added to your project.", name)
 
@@ -66,10 +62,21 @@ func addVariable(name string, context *cmdcontext.Context) error {
 
 func removeVariable(name string, context *cmdcontext.Context) error {
 
-	localContext, err_dir := brev_ctx.GetLocal()
-	if err_dir != nil {
-		// handle this
-		return err_dir
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
+	}
+
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+
+	projVars, err := brevCtx.Remote.GetVariables(*project, &brev_ctx.GetVariablesOptions{
+		Name: name,
+	})
+	if err != nil {
+		return errors.New(fmt.Sprintf("There isn't a variable in your project named %s.", name))
 	}
 
 	token, err := auth.GetToken()
@@ -81,26 +88,8 @@ func removeVariable(name string, context *cmdcontext.Context) error {
 		Key: token,
 	}
 
-	// Find ID of variable requested to delete
-	projVars, err := brevAgent.GetVariables(localContext.Project.Id)
-	if err != nil {
-		context.PrintErr("Couldn't access project environment variables.", err)
-		return err
-	}
-
-	var varId string
-	for _, v := range projVars {
-		if v.Name == name {
-			varId = v.Id
-		}
-	}
-	if varId == "" {
-		context.PrintErr(fmt.Sprintf("There isn't a variable in your project named %s.", name), err)
-		return err
-	}
-
 	// Remove variable by ID
-	_, err = brevAgent.RemoveVariable(varId)
+	_, err = brevAgent.RemoveVariable(projVars[0].Id)
 	if err != nil {
 		context.PrintErr("Couldn't remove the variable.", err)
 		return err
