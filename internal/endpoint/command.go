@@ -29,8 +29,8 @@ func getSomeSetOfOptions(toComplete string) []string {
 
 func getEpNames() []string {
 	var endpoints []brev_api.Endpoint
-	files.ReadJSON(files.GetEndpointsPath() ,&endpoints)
-	
+	files.ReadJSON(files.GetEndpointsPath(), &endpoints)
+
 	var epNames []string
 	for _, v := range endpoints {
 		epNames = append(epNames, v.Name)

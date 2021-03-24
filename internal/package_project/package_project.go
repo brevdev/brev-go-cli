@@ -59,7 +59,7 @@ func addPackage(name string, context *cmdcontext.Context) error {
 
 func removePackage(name string, context *cmdcontext.Context) error {
 
-	packages, err := getPackages(context)
+	packages, err := GetPackages(context)
 	if err != nil {
 		return nil
 	}
@@ -92,7 +92,7 @@ func removePackage(name string, context *cmdcontext.Context) error {
 }
 
 func listPackages(context *cmdcontext.Context) error {
-	packages, err := getPackages(context)
+	packages, err := GetPackages(context)
 	if err != nil {
 		return nil
 	}

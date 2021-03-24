@@ -28,7 +28,7 @@ func getTopPyPiPackages() []string {
 	return []string{"urllib3", "six", "boto3", "setuptools", "requests", "botocore", "idna", "certifi", "chardet", "pyyaml", "python-dateutil", "pip", "s3transfer", "wheel", "cffi", "rsa", "jmespath", "pyasn1", "numpy", "jinja"}
 }
 
-func getPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error) {
+func GetPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error) {
 	localContext, err := brev_ctx.GetLocal()
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func getPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error)
 
 // This is just used for autocomplete, so failures can just return no autocompletions
 func getCurrentPackages(context *cmdcontext.Context) []string {
-	packages, err := getPackages(context)
+	packages, err := GetPackages(context)
 	if err != nil {
 		return []string{}
 	}
