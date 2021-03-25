@@ -17,6 +17,7 @@ package env
 
 import (
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/spf13/cobra"
 )
@@ -90,6 +91,36 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "variable name")
 	cmd.MarkFlagRequired("name")
+	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return getVariables(), cobra.ShellCompDirectiveNoSpace
+	})
 
 	return cmd
+}
+
+// For shell completions, let the command raise an error
+// if something fails here, just return nil 
+// i.e. don't provide completion but let user continue
+func getVariables() []string {
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return nil
+	}
+
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return nil
+	}
+
+	vars, err := brevCtx.Remote.GetVariables(*project, nil)
+	if err != nil {
+		return nil
+	}
+
+	var varNames []string
+	for _, v := range vars {
+		varNames = append(varNames, v.Name)
+	}
+	return varNames
+
 }
