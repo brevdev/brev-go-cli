@@ -59,21 +59,13 @@ func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
 			return err
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			if len(args) != 0 {
-				return nil, cobra.ShellCompDirectiveNoFileComp
-			}
-
-			if args[len(args)-1] == "run" || args[len(args)-1] == "remove" {
-				return getEpNames(), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
-			}
-
-			return getSomeSetOfOptions(toComplete), cobra.ShellCompDirectiveNoFileComp
+			return []string{}, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
 		}}
 
 	cmd.AddCommand(newCmdAdd(context))
 	cmd.AddCommand(newCmdRemove(context))
 	cmd.AddCommand(newCmdRun(context))
-	cmd.AddCommand(newCmdLog(context))
+	// cmd.AddCommand(newCmdLog(context))
 	cmd.AddCommand(newCmdList(context))
 
 	return cmd
@@ -111,19 +103,6 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removeEndpoint(name, context)
-		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			// fmt.Println("heeyy from this function")
-			return getEpNames(), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
-			// if len(args) != 0 {
-			// 	return nil, cobra.ShellCompDirectiveNoFileComp
-			// }
-
-			// if (args[len(args)-1] == "run" || args[len(args)-1] == "remove") {
-			// 	return getEpNames(), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
-			// }
-
-			// return getSomeSetOfOptions(toComplete), cobra.ShellCompDirectiveNoFileComp
 		},
 	}
 
