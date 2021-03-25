@@ -16,6 +16,8 @@ limitations under the License.
 package endpoint
 
 import (
+	"fmt"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"github.com/spf13/cobra"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -82,7 +84,14 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint add NewEp
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addEndpoint(name, context)
+			err := addEndpoint(name, context)
+			switch err.(type) {
+			case *brev_errors.CredentialsFileNotFound:
+				fmt.Println("no such file!")
+			default:
+				fmt.Println(":<")
+			}
+			return err
 		},
 	}
 

@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"net/http"
 	"os"
 	"os/exec"
@@ -274,6 +275,14 @@ func getTokenFromBrevConfigFile() (*CotterOauthToken, error) {
 	}
 
 	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + brevCredentialsFile
+
+	exists, err := files.Exists(brevCredentialsFile)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, &brev_errors.CredentialsFileNotFound{}
+	}
 
 	var token CotterOauthToken
 	err = files.ReadJSON(brevCredentialsFile, &token)
