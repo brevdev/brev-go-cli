@@ -18,6 +18,7 @@ package initialize
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -49,6 +50,13 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 			if err != nil {
 				context.PrintErr("Failed to retrieve projects", err)
 				return err
+			}
+
+			if project=="" {
+				err = initNewProject(context)
+				if err != nil {
+					return err
+				}
 			}
 
 			for _, v := range projects {
@@ -166,4 +174,65 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 	}
 
 	return nil
+}
+
+
+func initNewProject(context *cmdcontext.Context) error {
+
+	// Get Project Name (parent folder-- behavior just like git init)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(cwd)
+	dirs := strings.Split(cwd, "/")
+	projName := dirs[len(dirs)-1]
+	fmt.Println(projName)
+
+
+	// Create new project
+	token, _ := auth.GetToken()
+	brevAgent := brev_api.Agent{
+		Key: token,
+	}
+	projectResponse, _ := brevAgent.CreateProject(projName)
+	project := projectResponse.Project
+
+	// Make project.json
+	err = files.OverwriteJSON(cwd+"/"+files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
+	if err != nil {
+		context.PrintErr("Failed to write project to local file", err)
+		return err
+	}
+
+	// Make endpoints.json
+	err = files.OverwriteJSON(cwd+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), []string{})
+	if err != nil {
+		context.PrintErr("Failed to write project to local file", err)
+		return err
+	}
+
+
+	// TODO: create shared code module
+	
+	// Add to path
+	var currBrevDirectories []string
+	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
+	if err != nil {
+		context.PrintErr("Failed to read projects directory", err)
+		return err
+	}
+
+	if !brev_api.StringInList(cwd, currBrevDirectories) {
+		currBrevDirectories = append(currBrevDirectories, cwd)
+		err = files.OverwriteJSON(files.GetActiveProjectsPath(), currBrevDirectories)
+		if err != nil {
+			context.PrintErr("Failed to write projects to project file", err)
+			return err
+		}
+	}
+
+	return nil
+
 }
