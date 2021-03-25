@@ -61,11 +61,11 @@ func push(context *cmdcontext.Context) error {
 
 	for _, v := range endpoints {
 		fmt.Fprintf(context.VerboseOut, "\nUpdating ep %s", v.Name)
-		
+
 		brevAgent.UpdateEndpoint(v.Id, brev_api.RequestUpdateEndpoint{
-			Name: v.Name,
+			Name:    v.Name,
 			Methods: v.Methods,
-			Code: v.Code,
+			Code:    v.Code,
 		})
 	}
 
@@ -103,14 +103,14 @@ func pull(context *cmdcontext.Context) error {
 	if err != nil {
 		return err
 	}
-	
-	var path string;
+
+	var path string
 	for _, v := range paths {
 		if strings.Contains(cwd, v) {
 			path = v
 		}
 	}
-	if path=="" {
+	if path == "" {
 		return errors.New("this is not a Brev directory")
 	}
 

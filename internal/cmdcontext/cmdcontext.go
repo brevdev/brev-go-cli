@@ -44,8 +44,8 @@ func (c *Context) Init(verbose bool) {
 }
 
 func (c *Context) PrintErr(message string, err error) {
-	fmt.Fprintln(c.VerboseOut, message)
-	fmt.Fprintln(c.Err, err.Error())
+	fmt.Fprintln(c.Err, "Error: "+err.Error())
+	fmt.Fprintln(c.VerboseOut, "\n"+message)
 }
 
 // InvokeParentPersistentPreRun executes the immediate parent command's

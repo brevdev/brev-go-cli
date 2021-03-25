@@ -34,7 +34,7 @@ func logic(context *cmdcontext.Context) error {
 }
 
 func addVariable(name string, context *cmdcontext.Context) error {
-	
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err

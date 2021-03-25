@@ -17,6 +17,7 @@ package initialize
 
 import (
 	"fmt"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 	"strings"
 
@@ -41,21 +42,40 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 		// To init existing project
 		brev init <project_name>
 		`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			token, _ := auth.GetToken()
+		Run: func(cmd *cobra.Command, args []string) {
+			token, err := auth.GetToken()
+			if err != nil {
+				switch err.(type) {
+				case *brev_errors.CredentialsFileNotFound:
+					context.PrintErr("run `brev login`", err)
+				default:
+					fmt.Fprint(context.Err, err.Error())
+				}
+				return
+			}
+
 			brevAgent := brev_api.Agent{
 				Key: token,
 			}
 			projects, err := brevAgent.GetProjects()
 			if err != nil {
 				context.PrintErr("Failed to retrieve projects", err)
-				return err
+				return
 			}
 
-			if project=="" {
+			if project == "" {
 				err = initNewProject(context)
 				if err != nil {
-					return err
+					switch err.(type) {
+					case *brev_errors.GlobalProjectPathsFileNotFound:
+					case *brev_errors.InitExistingProjectFile:
+						context.PrintErr("move to a new directory or delete the local .brev directory", err)
+					case *brev_errors.InitExistingEndpointsFile:
+						context.PrintErr("move to a new directory or delete the local .brev directory", err)
+					default:
+						fmt.Fprint(context.Err, err.Error())
+					}
+					return
 				}
 			}
 
@@ -63,11 +83,11 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 				if v.Name == project {
 					err = initExistingProj(v, context)
 					if err != nil {
-						return err
+						context.PrintErr(fmt.Sprintf("Failed to initialize project %s", v.Name), err)
+						return
 					}
 				}
 			}
-			return nil
 		},
 	}
 	cmd.Flags().StringVarP(&project, "project", "p", "", "Project Name")
@@ -176,7 +196,6 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 	return nil
 }
 
-
 func initNewProject(context *cmdcontext.Context) error {
 
 	// Get Project Name (parent folder-- behavior just like git init)
@@ -185,11 +204,8 @@ func initNewProject(context *cmdcontext.Context) error {
 		return err
 	}
 
-	fmt.Println(cwd)
 	dirs := strings.Split(cwd, "/")
 	projName := dirs[len(dirs)-1]
-	fmt.Println(projName)
-
 
 	// Create new project
 	token, _ := auth.GetToken()
@@ -199,26 +215,52 @@ func initNewProject(context *cmdcontext.Context) error {
 	projectResponse, _ := brevAgent.CreateProject(projName)
 	project := projectResponse.Project
 
+	projectFilePath := cwd + "/" + files.GetBrevDirectory() + "/" + files.GetProjectsFile()
+	endpointsFilePath := cwd + "/" + files.GetBrevDirectory() + "/" + files.GetEndpointsFile()
+	activeProjectsFilePath := files.GetActiveProjectsPath()
+
+	// Check if this is already an existing project
+	if projectFileExists, err := files.Exists(projectFilePath); err != nil {
+		return err
+	} else if projectFileExists {
+		return &brev_errors.InitExistingProjectFile{}
+	}
+	if endpointsFileExists, err := files.Exists(endpointsFilePath); err != nil {
+		return err
+	} else if endpointsFileExists {
+		return &brev_errors.InitExistingEndpointsFile{}
+	}
+
 	// Make project.json
-	err = files.OverwriteJSON(cwd+"/"+files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
+	err = files.OverwriteJSON(projectFilePath, project)
 	if err != nil {
 		context.PrintErr("Failed to write project to local file", err)
 		return err
 	}
 
 	// Make endpoints.json
-	err = files.OverwriteJSON(cwd+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), []string{})
+	err = files.OverwriteJSON(endpointsFilePath, []string{})
 	if err != nil {
 		context.PrintErr("Failed to write project to local file", err)
 		return err
 	}
 
+	// Create active_projects.json if not exists
+	if activeProjectsFilePathExists, err := files.Exists(activeProjectsFilePath); err != nil {
+		return err
+	} else if !activeProjectsFilePathExists {
+		err = files.OverwriteJSON(activeProjectsFilePath, []string{})
+		if err != nil {
+			context.PrintErr("Failed to write active projects to global file", err)
+			return err
+		}
+	}
 
 	// TODO: create shared code module
-	
+
 	// Add to path
 	var currBrevDirectories []string
-	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
+	err = files.ReadJSON(activeProjectsFilePath, &currBrevDirectories)
 	if err != nil {
 		context.PrintErr("Failed to read projects directory", err)
 		return err
