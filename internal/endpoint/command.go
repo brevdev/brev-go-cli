@@ -152,7 +152,13 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 		return []string{"GET", "PUT", "POST", "DELETE"}, cobra.ShellCompDirectiveNoSpace
 	})
 	cmd.Flags().StringArrayVarP(&arg, "arg", "a", []string{}, "add query params")
+	cmd.RegisterFlagCompletionFunc("arg", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return nil, cobra.ShellCompDirectiveNoSpace
+	})
 	cmd.Flags().StringVarP(&body, "body", "b", "", "add json body")
+	cmd.RegisterFlagCompletionFunc("body", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return nil, cobra.ShellCompDirectiveNoSpace
+	})
 
 	return cmd
 }
