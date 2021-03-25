@@ -29,7 +29,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/requests"
 )
 
-func addEndpointV2(name string, context *cmdcontext.Context) error {
+func addEndpoint(name string, context *cmdcontext.Context) error {
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -68,64 +68,6 @@ func addEndpointV2(name string, context *cmdcontext.Context) error {
 	}
 
 	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", cwd, endpoint.Name), endpoint.Code)
-	if err != nil {
-		context.PrintErr("Failed to write endpoints to local file", err)
-		return err
-	}
-
-	return nil
-}
-
-func addEndpoint(name string, context *cmdcontext.Context) error {
-	// Create endpoint
-	proj, err := brev_api.GetActiveProject()
-	if err != nil {
-		context.PrintErr("Failed to get active project", err)
-		return err
-	}
-
-	token, err := auth.GetToken()
-	if err != nil {
-		context.PrintErr("Failed to retrieve auth token", err)
-		return err
-	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
-
-	var ep *brev_api.ResponseUpdateEndpoint
-	ep, err = brevAgent.CreateEndpoint(name, proj.Id)
-	if err != nil {
-		context.PrintErr("Failed to create endpoint", err)
-		return err
-	}
-
-	fmt.Fprintln(context.VerboseOut, ep.Endpoint.Name+" created!")
-
-	// Get contents of .brev/endpoints.json
-	var allEps []brev_api.Endpoint
-	err = files.ReadJSON(files.GetEndpointsPath(), &allEps)
-	if err != nil {
-		context.PrintErr("Failed to get endpoints", err)
-		return err
-	}
-
-	// Add new endpoint to .brev/endpoints.json
-	allEps = append(allEps, ep.Endpoint)
-	err = files.OverwriteJSON(files.GetEndpointsPath(), allEps)
-	if err != nil {
-		context.PrintErr("Failed to write endpoints to .brev file", err)
-		return err
-	}
-
-	// Create the endpoint code file
-	cwd, err := os.Getwd()
-	if err != nil {
-		context.PrintErr("Failed to determine working directory", err)
-		return err
-	}
-
-	err = files.OverwriteJSON(fmt.Sprintf("%s/%s.py", cwd, ep.Endpoint.Name), ep.Endpoint.Code)
 	if err != nil {
 		context.PrintErr("Failed to write endpoints to local file", err)
 		return err
@@ -265,7 +207,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 	return nil
 }
 
-func listEndpointsV2(context *cmdcontext.Context) error {
+func listEndpoints(context *cmdcontext.Context) error {
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -285,43 +227,10 @@ func listEndpointsV2(context *cmdcontext.Context) error {
 	// print
 	fmt.Fprintf(context.VerboseOut, "Endpoints in %s\n", project.Name)
 	for _, endpoint := range endpoints {
-		fmt.Fprintf(context.VerboseOut, "\tEp %s\n", endpoint.Name)
-		fmt.Fprintf(context.VerboseOut, "\t%s\n\n", endpoint.Uri)
+		fmt.Fprintf(context.VerboseOut, "\t%s\n", endpoint.Name)
+		fmt.Fprintf(context.VerboseOut, "\t%s%s\n\n", project.Domain, endpoint.Uri)
 	}
 
-	return nil
-}
-
-func listEndpoints(context *cmdcontext.Context) error {
-	// get active project
-	proj, err := brev_api.GetActiveProject()
-	if err != nil {
-		context.PrintErr("Failed to get active project", err)
-		return err
-	}
-
-	token, err := auth.GetToken()
-	if err != nil {
-		context.PrintErr("Failed to retrieve auth token", err)
-		return err
-	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
-
-	endpointsResponse, err := brevAgent.GetEndpoints()
-	if err != nil {
-		context.PrintErr("Failed to get endpoints", err)
-		return err
-	}
-
-	fmt.Fprintf(context.Out, "Endpoints in %s\n", proj.Name)
-	for _, v := range endpointsResponse {
-		if v.ProjectId == proj.Id {
-			fmt.Fprintf(context.Out, "\tEp %s\n", v.Name)
-			fmt.Fprintf(context.Out, "\t%s\n\n", v.Uri)
-		}
-	}
 	return nil
 }
 

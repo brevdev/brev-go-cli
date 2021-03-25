@@ -158,7 +158,7 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 
 	// Create endpoint files
 	for _, v := range endpoints.Endpoints {
-		err = files.OverwriteJSON(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
+		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
 			context.PrintErr("Failed to write code to local file", err)
 			return err
