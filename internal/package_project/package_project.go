@@ -104,7 +104,7 @@ func listPackages(context *cmdcontext.Context) error {
 	fmt.Fprintf(context.VerboseOut, "Packages installed on project %s:\n", project.Name)
 
 	for _, v := range packages {
-		fmt.Fprintf(context.VerboseOut, "\t%s==%s\n", v.Name, v.Version)
+		fmt.Fprintf(context.VerboseOut, "\t%s==%s %s\n", v.Name, v.Version, v.Status)
 	}
 
 	return nil
