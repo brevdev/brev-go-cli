@@ -17,15 +17,16 @@ package initialize
 
 import (
 	"fmt"
-	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
-	"github.com/spf13/cobra"
 )
 
 func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
@@ -46,6 +47,10 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 			token, err := auth.GetToken()
 			if err != nil {
 				switch err.(type) {
+				case *brev_errors.CotterClientError:
+					context.PrintErr("run `brev login`", err)
+				case *brev_errors.CotterServerError:
+					context.PrintErr("run `brev login`", err)
 				case *brev_errors.CredentialsFileNotFound:
 					context.PrintErr("run `brev login`", err)
 				default:

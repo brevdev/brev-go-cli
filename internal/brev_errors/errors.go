@@ -37,3 +37,15 @@ type InitExistingEndpointsFile struct{}
 func (e *InitExistingEndpointsFile) Error() string {
 	return fmt.Sprintf("Init called in a directory with an existing endpoints file")
 }
+
+type CotterClientError struct{}
+
+func (e *CotterClientError) Error() string {
+	return fmt.Sprintf("Invalid refresh token reported by auth server")
+}
+
+type CotterServerError struct{}
+
+func (e *CotterServerError) Error() string {
+	return fmt.Sprintf("Internal error reported by auth server")
+}

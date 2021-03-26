@@ -347,6 +347,12 @@ func refreshCotterToken(oldToken *CotterOauthToken) (*CotterOauthToken, error) {
 	if err != nil {
 		return nil, err
 	}
+	if response.StatusCode == http.StatusBadRequest {
+		return nil, &brev_errors.CotterClientError{}
+	}
+	if response.StatusCode == http.StatusInternalServerError {
+		return nil, &brev_errors.CotterServerError{}
+	}
 
 	var token CotterOauthToken
 	err = response.UnmarshalPayload(&token)
