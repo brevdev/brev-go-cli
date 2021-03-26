@@ -22,6 +22,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/fatih/color"
 )
 
 func logic(context *cmdcontext.Context) error {
@@ -86,6 +87,11 @@ func removePackage(name string, context *cmdcontext.Context) error {
 }
 
 func listPackages(context *cmdcontext.Context) error {
+
+	green := color.New(color.FgGreen).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+
 	packages, err := GetPackages(context)
 	if err != nil {
 		return nil
@@ -104,7 +110,14 @@ func listPackages(context *cmdcontext.Context) error {
 	fmt.Fprintf(context.VerboseOut, "Packages installed on project %s:\n", project.Name)
 
 	for _, v := range packages {
-		fmt.Fprintf(context.VerboseOut, "\t%s==%s %s\n", v.Name, v.Version, v.Status)
+		if v.Status == "pending" {
+			fmt.Fprintf(context.VerboseOut, "\t%s==%s %s\n", v.Name, v.Version, yellow(v.Status))
+		} else if v.Status == "installed" {
+			fmt.Fprintf(context.VerboseOut, "\t%s==%s %s\n", v.Name, v.Version, green(v.Status))
+		} else {
+			fmt.Fprintf(context.VerboseOut, "\t%s==%s %s\n", v.Name, v.Version, red(v.Status))
+
+		}
 	}
 
 	return nil
