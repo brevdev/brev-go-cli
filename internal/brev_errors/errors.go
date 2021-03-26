@@ -1,5 +1,14 @@
 package brev_errors
 
+import (
+	"fmt"
+	"os"
+
+	"github.com/fatih/color"
+)
+
+var red = color.New(color.FgRed).SprintFunc()
+
 type BrevError interface {
 
 	// Error returns a user-facing string explaining the error
@@ -87,4 +96,13 @@ func (e *CotterServerError) Directive() string {
 
 func (e *CotterServerError) Error() string {
 	return "internal error reported by auth server"
+}
+
+func PrettyPrintBrevError(err BrevError) {
+	fmt.Fprintln(os.Stderr, red("Error: "+err.Error()))
+	fmt.Fprintln(os.Stderr, red("\n"+err.Directive()))
+}
+
+func PrettyPrintError(err error) {
+	fmt.Fprintf(os.Stderr, red("Error: "+err.Error()))
 }

@@ -16,7 +16,6 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 
@@ -39,10 +38,9 @@ func main() {
 		if _, ok := err.(*brev_errors.SuppressedError); ok {
 			// error suppressed
 		} else if brevError, ok := err.(brev_errors.BrevError); ok {
-			fmt.Fprintln(os.Stderr, "Error: "+brevError.Error())
-			fmt.Fprintln(os.Stderr, "\n"+brevError.Directive())
+			brev_errors.PrettyPrintBrevError(brevError)
 		} else {
-			fmt.Fprint(os.Stderr, "Error: "+err.Error())
+			brev_errors.PrettyPrintError(err)
 		}
 		os.Exit(1)
 	}
