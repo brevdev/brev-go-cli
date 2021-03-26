@@ -43,20 +43,10 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 		// To init existing project
 		brev init <project_name>
 		`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			token, err := auth.GetToken()
 			if err != nil {
-				switch err.(type) {
-				case *brev_errors.CotterClientError:
-					context.PrintErr("run `brev login`", err)
-				case *brev_errors.CotterServerError:
-					context.PrintErr("run `brev login`", err)
-				case *brev_errors.CredentialsFileNotFound:
-					context.PrintErr("run `brev login`", err)
-				default:
-					fmt.Fprint(context.Err, err.Error())
-				}
-				return
+				return err
 			}
 
 			brevAgent := brev_api.Agent{
@@ -64,23 +54,13 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 			}
 			projects, err := brevAgent.GetProjects()
 			if err != nil {
-				context.PrintErr("Failed to retrieve projects", err)
-				return
+				return fmt.Errorf("failed to retrieve projects %v", err)
 			}
 
 			if project == "" {
 				err = initNewProject(context)
 				if err != nil {
-					switch err.(type) {
-					case *brev_errors.GlobalProjectPathsFileNotFound:
-					case *brev_errors.InitExistingProjectFile:
-						context.PrintErr("move to a new directory or delete the local .brev directory", err)
-					case *brev_errors.InitExistingEndpointsFile:
-						context.PrintErr("move to a new directory or delete the local .brev directory", err)
-					default:
-						fmt.Fprint(context.Err, err.Error())
-					}
-					return
+					return err
 				}
 			}
 
@@ -88,11 +68,12 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 				if v.Name == project {
 					err = initExistingProj(v, context)
 					if err != nil {
-						context.PrintErr(fmt.Sprintf("Failed to initialize project %s", v.Name), err)
-						return
+						return fmt.Errorf("failed to initialize project %v", err)
 					}
 				}
 			}
+
+			return nil
 		},
 	}
 	cmd.Flags().StringVarP(&project, "project", "p", "", "Project Name")

@@ -223,6 +223,9 @@ func listEndpoints(context *cmdcontext.Context) error {
 	endpoints, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		ProjectID: project.Id,
 	})
+	if err != nil {
+		return err
+	}
 
 	// print
 	fmt.Fprintf(context.VerboseOut, "Endpoints in %s\n", project.Name)

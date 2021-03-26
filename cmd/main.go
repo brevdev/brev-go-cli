@@ -17,6 +17,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -35,7 +36,14 @@ import (
 func main() {
 	cmd := newCmdBrev()
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		if _, ok := err.(*brev_errors.SuppressedError); ok {
+			// error suppressed
+		} else if brevError, ok := err.(brev_errors.BrevError); ok {
+			fmt.Fprintln(os.Stderr, "Error: "+brevError.Error())
+			fmt.Fprintln(os.Stderr, "\n"+brevError.Directive())
+		} else {
+			fmt.Fprint(os.Stderr, "Error: "+err.Error())
+		}
 		os.Exit(1)
 	}
 }
@@ -50,9 +58,17 @@ func newCmdBrev() *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			cmdContext.Init(verbose)
 		},
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
 
 	brevCommand.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
+	brevCommand.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		cmd.Println(err)
+		cmd.Println() // extra newline
+		cmd.Println(cmd.UsageString())
+		return &brev_errors.SuppressedError{}
+	})
 
 	createCmdTree(brevCommand, cmdContext)
 	return brevCommand

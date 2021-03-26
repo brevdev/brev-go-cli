@@ -1,51 +1,90 @@
 package brev_errors
 
-import "fmt"
+type BrevError interface {
+
+	// Error returns a user-facing string explaining the error
+	Error() string
+
+	// Directive returns a user-facing string explaining how to overcome the error
+	Directive() string
+}
+
+type SuppressedError struct{}
+
+func (e *SuppressedError) Directive() string {
+	return ""
+}
+
+func (e *SuppressedError) Error() string {
+	return ""
+}
 
 type CredentialsFileNotFound struct{}
 
-func (e *CredentialsFileNotFound) Error() string {
-	return fmt.Sprintf("Credentials file not found")
+func (e *CredentialsFileNotFound) Directive() string {
+	return "run `brev login`"
 }
 
-type GlobalProjectPathsFileNotFound struct{}
-
-func (e *GlobalProjectPathsFileNotFound) Error() string {
-	return fmt.Sprintf("Global project paths file not found")
+func (e *CredentialsFileNotFound) Error() string {
+	return "credentials file not found"
 }
 
 type LocalProjectFileNotFound struct{}
 
+func (e *LocalProjectFileNotFound) Directive() string {
+	return "run `brev init`"
+}
+
 func (e *LocalProjectFileNotFound) Error() string {
-	return fmt.Sprintf("Local project file not found")
+	return "local project file not found"
 }
 
 type LocalEndpointFileNotFound struct{}
 
+func (e *LocalEndpointFileNotFound) Directive() string {
+	return "run `brev init`"
+}
+
 func (e *LocalEndpointFileNotFound) Error() string {
-	return fmt.Sprintf("Local endpoint file not found")
+	return "local endpoint file not found"
 }
 
 type InitExistingProjectFile struct{}
 
+func (e *InitExistingProjectFile) Directive() string {
+	return "move to a new directory or delete the local .brev directory"
+}
+
 func (e *InitExistingProjectFile) Error() string {
-	return fmt.Sprintf("Init called in a directory with an existing project file")
+	return "`brev init` called in a directory with an existing project file"
 }
 
 type InitExistingEndpointsFile struct{}
 
+func (e *InitExistingEndpointsFile) Directive() string {
+	return "move to a new directory or delete the local .brev directory"
+}
+
 func (e *InitExistingEndpointsFile) Error() string {
-	return fmt.Sprintf("Init called in a directory with an existing endpoints file")
+	return "init called in a directory with an existing endpoints file"
 }
 
 type CotterClientError struct{}
 
+func (e *CotterClientError) Directive() string {
+	return "run `brev login`"
+}
+
 func (e *CotterClientError) Error() string {
-	return fmt.Sprintf("Invalid refresh token reported by auth server")
+	return "invalid refresh token reported by auth server"
 }
 
 type CotterServerError struct{}
 
+func (e *CotterServerError) Directive() string {
+	return "wait for 60 seconds and run `brev login`"
+}
+
 func (e *CotterServerError) Error() string {
-	return fmt.Sprintf("Internal error reported by auth server")
+	return "internal error reported by auth server"
 }
