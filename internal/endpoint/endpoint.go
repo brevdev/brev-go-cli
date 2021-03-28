@@ -27,6 +27,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
+	"github.com/fatih/color"
 )
 
 func addEndpoint(name string, context *cmdcontext.Context) error {
@@ -208,6 +209,9 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 }
 
 func listEndpoints(context *cmdcontext.Context) error {
+
+	green := color.New(color.FgGreen).SprintFunc()
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -225,9 +229,9 @@ func listEndpoints(context *cmdcontext.Context) error {
 	})
 
 	// print
-	fmt.Fprintf(context.VerboseOut, "Endpoints in %s\n", project.Name)
+	fmt.Fprintf(context.VerboseOut, "Endpoints in %s:\n", project.Name)
 	for _, endpoint := range endpoints {
-		fmt.Fprintf(context.VerboseOut, "\t%s\n", endpoint.Name)
+		fmt.Fprintf(context.VerboseOut, "\t%s:\n", green(endpoint.Name))
 		fmt.Fprintf(context.VerboseOut, "\t%s%s\n\n", project.Domain, endpoint.Uri)
 	}
 

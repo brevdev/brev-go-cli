@@ -48,7 +48,9 @@ func newCmdBrev() *cobra.Command {
 	brevCommand := &cobra.Command{
 		Use: "brev",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			fmt.Print("\n")
 			cmdContext.Init(verbose)
+
 		},
 	}
 
