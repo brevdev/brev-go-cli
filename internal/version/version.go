@@ -6,26 +6,30 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/requests"
+	"github.com/fatih/color"
 )
 
 const (
 	cliReleaseURL = "https://api.github.com/repos/brevdev/brev-go-cli/releases/latest"
 )
 
+var green = color.New(color.FgGreen).SprintfFunc()
+
 var upToDateString = `
 Current version: %s
 
-You're up to date!
-`
+` + green("You're up to date!")
 
 var outOfDateString = `
 Current version: %s
 
-A new version of brev has been released!
+` + green("A new version of brev has been released!") + `
 
 Version: %s
 
 Details: %s
+
+` + green("run 'brew upgrade brevdev/tap/brev' to upgrade") + `
 
 %s
 `
