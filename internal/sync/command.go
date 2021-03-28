@@ -21,7 +21,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
@@ -31,15 +30,6 @@ import (
 func push(context *cmdcontext.Context) error {
 
 	// TODO: push module/shared code
-
-	token, err := auth.GetToken()
-	if err != nil {
-		context.PrintErr("", err)
-		return err
-	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -62,11 +52,14 @@ func push(context *cmdcontext.Context) error {
 	for _, v := range endpoints {
 		fmt.Fprintf(context.VerboseOut, "\nUpdating ep %s", v.Name)
 
-		brevAgent.UpdateEndpoint(v.Id, brev_api.RequestUpdateEndpoint{
+		fmt.Println(v.Code)
+
+		brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
 			Name:    v.Name,
 			Methods: v.Methods,
 			Code:    v.Code,
 		})
+
 	}
 
 	return nil
