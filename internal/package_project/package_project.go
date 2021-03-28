@@ -25,12 +25,13 @@ import (
 	"github.com/fatih/color"
 )
 
-func logic(context *cmdcontext.Context) error {
-	fmt.Fprintln(context.Out, "package called")
-	return nil
-}
-
 func addPackage(name string, context *cmdcontext.Context) error {
+	green := color.New(color.FgGreen).SprintfFunc()
+	yellow := color.New(color.FgYellow).SprintfFunc()
+	red := color.New(color.FgRed).SprintfFunc()
+
+	fmt.Fprint(context.VerboseOut, "\nAdding package "+yellow(name))
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -43,16 +44,24 @@ func addPackage(name string, context *cmdcontext.Context) error {
 
 	_, err = brevCtx.Remote.SetPackage(*project, name)
 	if err != nil {
-		context.PrintErr(fmt.Sprintf("Failed to add package %s", name), err)
+		context.PrintErr(red("\nFailed to add package %s", name), err)
 		return err
 	}
 
-	fmt.Fprintf(context.VerboseOut, "Package %s installed successfully.", name) // this isn't working
+	fmt.Fprint(context.VerboseOut, green("\nPackage "))
+	fmt.Fprint(context.VerboseOut, yellow("%s", name))
+	fmt.Fprint(context.VerboseOut, green(" installed successfully 🥞"))
 
 	return nil
 }
 
 func removePackage(name string, context *cmdcontext.Context) error {
+
+	green := color.New(color.FgGreen).SprintfFunc()
+	yellow := color.New(color.FgYellow).SprintfFunc()
+	red := color.New(color.FgRed).SprintfFunc()
+
+	fmt.Fprint(context.VerboseOut, "\nRemoving package "+yellow(name))
 
 	packages, err := GetPackages(context)
 	if err != nil {
@@ -68,7 +77,7 @@ func removePackage(name string, context *cmdcontext.Context) error {
 
 	token, err := auth.GetToken()
 	if err != nil {
-		context.PrintErr("Failed to retrieve auth token", err)
+		context.PrintErr(red("Failed to retrieve auth token"), err)
 		return err
 	}
 	brevAgent := brev_api.Agent{
@@ -77,11 +86,13 @@ func removePackage(name string, context *cmdcontext.Context) error {
 
 	_, err = brevAgent.RemovePackage(packageToRemove.Id)
 	if err != nil {
-		context.PrintErr(fmt.Sprintf("Failed to remove package %s", name), err)
+		context.PrintErr(red("Failed to remove package %s", name), err)
 		return err
 	}
 
-	fmt.Fprintf(context.VerboseOut, "\nPackage %s removed successfully.", packageToRemove.Name) // this isn't working
+	fmt.Fprint(context.VerboseOut, green("\nPackage "))
+	fmt.Fprint(context.VerboseOut, yellow("%s", name))
+	fmt.Fprint(context.VerboseOut, green(" removed successfully 🥞"))
 
 	return nil
 }
