@@ -21,7 +21,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
@@ -78,55 +77,41 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 }
 
 func removeEndpoint(name string, context *cmdcontext.Context) error {
-	// Get the ID
-	endpointFilePath := files.GetEndpointsPath()
-
-	var endpoints []brev_api.Endpoint
-	errFile := files.ReadJSON(endpointFilePath, &endpoints)
-	if errFile != nil {
-		return errFile
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
 	}
-
-	var id string
-	for _, v := range endpoints {
-		if v.Name == name {
-			id = v.Id
-		}
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		context.PrintErr("Cannot delete Endpoint. ", err)
+		return err
 	}
-	if id == "" {
-		err := fmt.Errorf("Endpoint doesn't exist.")
+	eps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		Name: name,
+	})
+	if err != nil {
 		context.PrintErr("Cannot delete Endpoint. ", err)
 		return err
 	}
 
-	// Remove the endpoint
-	token, err := auth.GetToken()
-	if err != nil {
-		context.PrintErr("", err)
-		return err
-	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
-
-	// var ep *brev_api.ResponseRemoveEndpoint
-	_, err = brevAgent.RemoveEndpoint(id)
-	if err != nil {
-		context.PrintErr("", err)
-		return err
-	}
+	brevCtx.Remote.DeleteEndpoint(eps[0].Id)
 
 	// Remove the python file
 	files.DeleteFile(name + ".py")
 
 	// Update the endpoints.json
-	var updatedEndpoints []brev_api.Endpoint
-	for _, v := range endpoints {
-		if v.Id != id {
-			updatedEndpoints = append(updatedEndpoints, v)
-		}
+	allEndpoints, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
+	for _, v := range allEndpoints {
+		fmt.Println(v.Name)
 	}
-	files.OverwriteJSON(endpointFilePath, updatedEndpoints)
+	if err != nil {
+		context.PrintErr("Cannot delete Endpoint. ", err)
+		return err
+	}
+	files.OverwriteJSON(files.GetEndpointsPath(), allEndpoints)
+	brevCtx.Local.SetEndpoints(allEndpoints)
 
 	return nil
 }

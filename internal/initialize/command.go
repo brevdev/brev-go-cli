@@ -52,7 +52,7 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			if project=="" {
+			if project == "" {
 				err = initNewProject(context)
 				if err != nil {
 					return err
@@ -176,7 +176,6 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 	return nil
 }
 
-
 func initNewProject(context *cmdcontext.Context) error {
 
 	// Get Project Name (parent folder-- behavior just like git init)
@@ -189,7 +188,6 @@ func initNewProject(context *cmdcontext.Context) error {
 	dirs := strings.Split(cwd, "/")
 	projName := dirs[len(dirs)-1]
 	fmt.Println(projName)
-
 
 	// Create new project
 	token, _ := auth.GetToken()
@@ -213,9 +211,8 @@ func initNewProject(context *cmdcontext.Context) error {
 		return err
 	}
 
-
 	// TODO: create shared code module
-	
+
 	// Add to path
 	var currBrevDirectories []string
 	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
