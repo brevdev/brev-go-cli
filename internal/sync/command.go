@@ -61,8 +61,6 @@ func push(context *cmdcontext.Context) error {
 			return err
 		}
 
-		fmt.Println(v.Code)
-
 		brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
 			Id:      v.Id,
 			Name:    v.Name,
