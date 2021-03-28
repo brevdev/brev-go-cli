@@ -16,7 +16,6 @@ limitations under the License.
 package sync
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -52,9 +51,20 @@ func push(context *cmdcontext.Context) error {
 	for _, v := range endpoints {
 		fmt.Fprintf(context.VerboseOut, "\nUpdating ep %s", v.Name)
 
+		path, err := getRootProjectDir(context)
+		if err != nil {
+			return err
+		}
+
+		v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
+		if err != nil {
+			return err
+		}
+
 		fmt.Println(v.Code)
 
 		brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
+			Id:      v.Id,
 			Name:    v.Name,
 			Methods: v.Methods,
 			Code:    v.Code,
@@ -86,25 +96,9 @@ func pull(context *cmdcontext.Context) error {
 		return err
 	}
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		context.PrintErr("Failed to determine working directory", err)
-		return err
-	}
-
-	paths, err := brevCtx.Global.GetProjectPaths()
+	path, err := getRootProjectDir(context)
 	if err != nil {
 		return err
-	}
-
-	var path string
-	for _, v := range paths {
-		if strings.Contains(cwd, v) {
-			path = v
-		}
-	}
-	if path == "" {
-		return errors.New("this is not a Brev directory")
 	}
 
 	for _, v := range remoteEndpoints {
@@ -120,4 +114,31 @@ func pull(context *cmdcontext.Context) error {
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
 
 	return nil
+}
+
+func getRootProjectDir(context *cmdcontext.Context) (string, error) {
+
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return "", err
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		context.PrintErr("Failed to determine working directory", err)
+		return "", err
+	}
+
+	paths, err := brevCtx.Global.GetProjectPaths()
+	if err != nil {
+		return "", err
+	}
+
+	var path string
+	for _, v := range paths {
+		if strings.Contains(cwd, v) {
+			path = v
+		}
+	}
+	return path, nil
 }

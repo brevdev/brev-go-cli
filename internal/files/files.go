@@ -95,6 +95,24 @@ func ReadJSON(filepath string, v interface{}) error {
 	return json.Unmarshal(dataBytes, v)
 }
 
+func ReadString(filepath string) (string, error) {
+	f, err := os.Open(filepath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	dataBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+
+	return string(dataBytes), nil
+	// fmt.Println(dataBytes)
+	// fmt.Println(string(dataBytes))
+
+}
+
 // OverwriteJSON data in the target file with data from the given struct
 //
 // Usage (unstructured):
