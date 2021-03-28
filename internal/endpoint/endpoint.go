@@ -27,9 +27,16 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
+	"github.com/fatih/color"
 )
 
 func addEndpoint(name string, context *cmdcontext.Context) error {
+
+	green := color.New(color.FgGreen).SprintfFunc()
+	yellow := color.New(color.FgYellow).SprintfFunc()
+	red := color.New(color.FgRed).SprintfFunc()
+	fmt.Fprint(context.VerboseOut, "\nAdding endpoint "+yellow(name))
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -52,6 +59,9 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 	if err != nil {
 		return err
 	}
+	fmt.Fprint(context.VerboseOut, green("\nEndpoint "))
+	fmt.Fprint(context.VerboseOut, yellow("%s", name))
+	fmt.Fprint(context.VerboseOut, green(" created and deployed 🚀"))
 
 	// store endpoint in local state
 	fmt.Fprint(context.Out, "Saving endpoint locally...\n")
@@ -63,20 +73,28 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 	// create the endpoint code file
 	cwd, err := os.Getwd()
 	if err != nil {
-		context.PrintErr("Failed to determine working directory", err)
+		context.PrintErr(red("\nFailed to determine working directory"), err)
 		return err
 	}
 
-	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", cwd, endpoint.Name), endpoint.Code)
+	err = files.OverwriteString(fmt.Sprintf("\n%s/%s.py", cwd, endpoint.Name), endpoint.Code)
 	if err != nil {
-		context.PrintErr("Failed to write endpoints to local file", err)
+		context.PrintErr(red("\nFailed to write endpoints to local file"), err)
 		return err
 	}
+	fmt.Fprint(context.VerboseOut, yellow("\n%s.py", name))
+	fmt.Fprint(context.VerboseOut, green(" created 🥞"))
 
 	return nil
 }
 
 func removeEndpoint(name string, context *cmdcontext.Context) error {
+
+	green := color.New(color.FgGreen).SprintfFunc()
+	yellow := color.New(color.FgYellow).SprintfFunc()
+	red := color.New(color.FgRed).SprintfFunc()
+	fmt.Fprint(context.VerboseOut, "\nRemoving endpoint "+yellow(name))
+
 	// Get the ID
 	endpointFilePath := files.GetEndpointsPath()
 
@@ -94,7 +112,7 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 	}
 	if id == "" {
 		err := fmt.Errorf("Endpoint doesn't exist.")
-		context.PrintErr("Cannot delete Endpoint. ", err)
+		context.PrintErr(red("\nCannot delete Endpoint. "), err)
 		return err
 	}
 
@@ -115,6 +133,10 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 		return err
 	}
 
+	fmt.Fprint(context.VerboseOut, green("\nEndpoint "))
+	fmt.Fprint(context.VerboseOut, yellow("%s", name))
+	fmt.Fprint(context.VerboseOut, green(" removed."))
+
 	// Remove the python file
 	files.DeleteFile(name + ".py")
 
@@ -127,10 +149,20 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 	}
 	files.OverwriteJSON(endpointFilePath, updatedEndpoints)
 
+	fmt.Fprint(context.VerboseOut, green("\nFile "))
+	fmt.Fprint(context.VerboseOut, yellow("%s.py", name))
+	fmt.Fprint(context.VerboseOut, green(" removed."))
+
 	return nil
 }
 
 func runEndpoint(name string, method string, arg []string, jsonBody string, context *cmdcontext.Context) error {
+
+	green := color.New(color.FgGreen).SprintfFunc()
+	yellow := color.New(color.FgYellow).SprintfFunc()
+	red := color.New(color.FgRed).SprintfFunc()
+	fmt.Fprint(context.VerboseOut, "\nRunning endpoint "+yellow(name))
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -150,7 +182,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		return err
 	}
 	if len(endpoints) != 1 {
-		return fmt.Errorf("unexpected number of endpoints: %d", len(endpoints))
+		return fmt.Errorf(red("unexpected number of endpoints: %d", len(endpoints)))
 	}
 	endpoint := endpoints[0]
 
@@ -169,7 +201,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 	if jsonBody == "" {
 		payload = nil
 	} else if err := json.Unmarshal([]byte(jsonBody), &payload); err != nil {
-		return fmt.Errorf("failed to process JSON payload: %s", err)
+		return fmt.Errorf(red("failed to process JSON payload: %s", err))
 	}
 
 	// submit request
@@ -184,12 +216,20 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 	}
 	response, err := request.Submit()
 	if err != nil {
-		context.PrintErr("Failed to run endpoint", err)
+		context.PrintErr(red("Failed to run endpoint"), err)
 		return err
 	}
 
 	// print output
-	fmt.Fprint(context.VerboseOut, fmt.Sprintf("%s %s [%d]", request.Method, request.URI, response.StatusCode))
+	fmt.Fprint(context.VerboseOut, yellow("\n%s %s", request.Method, request.URI))
+	if 200 <= response.StatusCode && response.StatusCode < 300 {
+		fmt.Fprint(context.VerboseOut, green(" [%d]", response.StatusCode))
+	} else if response.StatusCode >= 400 {
+		fmt.Fprint(context.VerboseOut, red(" [%d]", response.StatusCode))
+	} else {
+		fmt.Fprint(context.VerboseOut, yellow(" [%d]", response.StatusCode))
+	}
+
 	jsonStr, err := response.PayloadAsPrettyJSONString()
 	if err != nil {
 		return err
@@ -208,6 +248,9 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 }
 
 func listEndpoints(context *cmdcontext.Context) error {
+
+	green := color.New(color.FgGreen).SprintFunc()
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -225,9 +268,9 @@ func listEndpoints(context *cmdcontext.Context) error {
 	})
 
 	// print
-	fmt.Fprintf(context.VerboseOut, "Endpoints in %s\n", project.Name)
+	fmt.Fprintf(context.VerboseOut, "Endpoints in project %s:\n", project.Name)
 	for _, endpoint := range endpoints {
-		fmt.Fprintf(context.VerboseOut, "\t%s\n", endpoint.Name)
+		fmt.Fprintf(context.VerboseOut, "\t%s:\n", green(endpoint.Name))
 		fmt.Fprintf(context.VerboseOut, "\t%s%s\n\n", project.Domain, endpoint.Uri)
 	}
 
