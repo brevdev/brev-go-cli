@@ -1,13 +1,13 @@
 package brev_api
 
 import (
-	"github.com/brevdev/brev-go-cli/internal/terminal"
 	"os"
 	"strings"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/files"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 type Agent struct {

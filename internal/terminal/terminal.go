@@ -55,8 +55,12 @@ func (t *Terminal) Eprint(a string) {
 	fmt.Fprintln(t.err, a)
 }
 
-func (t *Terminal) Errprint(err error, a ...interface{}) {
-	if a != nil {
+func (t *Terminal) Eprintf(format string, a ...interface{}) {
+	fmt.Fprintf(t.err, format, a)
+}
+
+func (t *Terminal) Errprint(err error, a string) {
+	if a != "" {
 		t.Vprint(t.Red("Error: " + fmt.Sprint(a)))
 	}
 	t.Eprint(err.Error())
