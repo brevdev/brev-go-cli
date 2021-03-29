@@ -127,7 +127,6 @@ func listPackages(context *cmdcontext.Context) error {
 			fmt.Fprintf(context.VerboseOut, "\t%s==%s %s\n", v.Name, v.Version, green(v.Status))
 		} else {
 			fmt.Fprintf(context.VerboseOut, "\t%s==%s %s\n", v.Name, v.Version, red(v.Status))
-
 		}
 	}
 

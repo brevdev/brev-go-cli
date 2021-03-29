@@ -21,8 +21,13 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
+
+var green = color.New(color.FgGreen).SprintfFunc()
+var yellow = color.New(color.FgYellow).SprintfFunc()
+var red = color.New(color.FgRed).SprintfFunc()
 
 func NewCmdStatus(context *cmdcontext.Context) *cobra.Command {
 
@@ -75,27 +80,37 @@ func status(context *cmdcontext.Context) error {
 		return err
 	}
 
-	fmt.Fprintf(context.VerboseOut, "\nProject %s", project.Name)
+	fmt.Fprint(context.VerboseOut, yellow("\nProject %s", project.Name))
 
 	// Print package info
 	if len(packages) == 0 {
 		fmt.Fprintln(context.VerboseOut, "\n\tNo packages installed.")
 	} else {
-		fmt.Fprintln(context.VerboseOut, "\n\tPackages:")
+		fmt.Fprintln(context.VerboseOut, yellow("\n\tPackages:"))
 	}
 
 	for _, v := range packages {
-		fmt.Fprintf(context.VerboseOut, "\t\t %s==%s %s\n", v.Name, v.Version, v.Status)
+		// fmt.Fprintf(context.VerboseOut, "\t\t %s==%s %s\n", v.Name, v.Version, v.Status)
+		if v.Status == "pending" {
+			fmt.Fprintf(context.VerboseOut, "\t\t%s==%s %s\n", v.Name, v.Version, yellow(v.Status))
+		} else if v.Status == "installed" {
+			fmt.Fprintf(context.VerboseOut, "\t\t%s==%s %s\n", v.Name, v.Version, green(v.Status))
+		} else {
+			fmt.Fprintf(context.VerboseOut, "\t\t%s==%s %s\n", v.Name, v.Version, red(v.Status))
+		}
 	}
 
 	// Print Endpoint info
 	if len(endpoints) == 0 {
 		fmt.Fprintln(context.VerboseOut, "\nYour project doesn't have any endpoints. Try running \n \t\t brev endpoint add --name newEP")
 	} else {
-		fmt.Fprintln(context.VerboseOut, "\n\tEndpoints:")
+		fmt.Fprintln(context.VerboseOut, yellow("\n\tEndpoints:"))
 
 		for _, v := range endpoints {
-			fmt.Fprintf(context.VerboseOut, "\n\t\t%s\n\t\t\t%s", v.Name, project.Domain+v.Uri)
+			fmt.Fprint(context.VerboseOut, "\n\t\t")
+			fmt.Fprint(context.VerboseOut, yellow("%s", v.Name))
+			fmt.Fprint(context.VerboseOut, "\n\t\t\t")
+			fmt.Fprintf(context.VerboseOut, "%s", project.Domain+v.Uri)
 		}
 	}
 
