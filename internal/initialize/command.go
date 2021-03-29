@@ -22,6 +22,7 @@ import (
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/fatih/color"
@@ -72,11 +73,13 @@ func NewCmdInit(context *cmdcontext.Context) *cobra.Command {
 			}
 
 			for _, v := range projects {
+
 				if v.Name == project {
 					err = initExistingProj(v, context)
 					if err != nil {
 						return err
 					}
+					break // in case of error where multiple projects share name. We should prohibit this.
 				}
 			}
 			return nil
@@ -111,49 +114,42 @@ func getProjectNames() []string {
 
 func initExistingProj(project brev_api.Project, context *cmdcontext.Context) error {
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		context.PrintErr(red("Failed to determine working directory"), err)
+		return err
+	}
+
+	fmt.Fprint(context.VerboseOut, "\nCloning Brev project in "+yellow(cwd))
+	fmt.Fprint(context.VerboseOut, green("\nCreating local files..."))
+
 	// Get endpoints for project
-	token, err := auth.GetToken()
+	brevCtx, err := brev_ctx.New()
 	if err != nil {
-		context.PrintErr("Failed to retrieve auth token", err)
 		return err
 	}
 
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
-	allEndpoints, err := brevAgent.GetEndpoints()
+	endpoints, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
 	if err != nil {
-		context.PrintErr("Failed to get endpoints", err)
 		return err
-	}
-
-	var endpoints brev_api.Endpoints
-	for _, v := range allEndpoints {
-		if v.ProjectId == project.Id {
-			endpoints.Endpoints = append(endpoints.Endpoints, v)
-		}
 	}
 
 	// Init the new folder at pwd + project name
-	cwd, err := os.Getwd()
-	if err != nil {
-		context.PrintErr("Failed to determine working directory", err)
-		return err
-	}
-
 	path := fmt.Sprintf("%s/%s", cwd, project.Name)
 
 	// Make project.json
 	err = files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
 	if err != nil {
-		context.PrintErr("Failed to write project to local file", err)
+		context.PrintErr(red("Failed to write project to local file"), err)
 		return err
 	}
 
 	// Make endpoints.json
-	err = files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints.Endpoints)
+	err = files.OverwriteJSON(path+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), endpoints)
 	if err != nil {
-		context.PrintErr("Failed to write endpoints to local file", err)
+		context.PrintErr(red("Failed to write endpoints to local file"), err)
 		return err
 	}
 
@@ -161,7 +157,7 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 	var currBrevDirectories []string
 	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
 	if err != nil {
-		context.PrintErr("Failed to read projects directory", err)
+		context.PrintErr(red("Failed to read projects directory"), err)
 		return err
 	}
 
@@ -169,7 +165,7 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 		currBrevDirectories = append(currBrevDirectories, path)
 		err = files.OverwriteJSON(files.GetActiveProjectsPath(), currBrevDirectories)
 		if err != nil {
-			context.PrintErr("Failed to write projects to project file", err)
+			context.PrintErr(red("Failed to write projects to project file"), err)
 			return err
 		}
 	}
@@ -177,13 +173,18 @@ func initExistingProj(project brev_api.Project, context *cmdcontext.Context) err
 	// TODO: copy shared code
 
 	// Create endpoint files
-	for _, v := range endpoints.Endpoints {
+	for _, v := range endpoints {
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
 			context.PrintErr("Failed to write code to local file", err)
 			return err
 		}
 	}
+
+	fmt.Fprint(context.VerboseOut, green("\n\nBrev project %s cloned.", project.Name))
+	fmt.Fprint(context.VerboseOut, yellow("\ncd %s", project.Name))
+	fmt.Fprint(context.VerboseOut, green(" and get started!"))
+	fmt.Fprint(context.VerboseOut, green("\n\nHappy Hacking 🥞"))
 
 	return nil
 }
@@ -243,7 +244,7 @@ func initNewProject(context *cmdcontext.Context) error {
 			return err
 		}
 	}
-	fmt.Fprint(context.VerboseOut, green("\n\nBrev project created and deployed."))
+	fmt.Fprint(context.VerboseOut, green("\n\nBrev project %s created and deployed.", projName))
 	fmt.Fprint(context.VerboseOut, yellow("\ncd %s", projName))
 	fmt.Fprint(context.VerboseOut, green(" and get started!"))
 	fmt.Fprint(context.VerboseOut, green("\n\nHappy Hacking 🥞"))
