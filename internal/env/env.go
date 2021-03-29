@@ -27,14 +27,26 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/fatih/color"
 )
 
-func logic(context *cmdcontext.Context) error {
-	return nil
-}
+var green = color.New(color.FgGreen).SprintfFunc()
+var yellow = color.New(color.FgYellow).SprintfFunc()
+var red = color.New(color.FgRed).SprintfFunc()
 
 func addVariable(name string, context *cmdcontext.Context) error {
-	
+
+	fmt.Fprintf(context.VerboseOut, "Enter value for %s: ", name)
+
+	bytepw, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		os.Exit(1)
+	}
+	value := string(bytepw)
+
+	fmt.Fprint(context.VerboseOut, green("\nAdding Variable "))
+	fmt.Fprint(context.VerboseOut, yellow(" %s", name))
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -45,22 +57,19 @@ func addVariable(name string, context *cmdcontext.Context) error {
 		return err
 	}
 
-	fmt.Fprintf(context.VerboseOut, "Enter value for %s: ", name)
-
-	bytepw, err := term.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		os.Exit(1)
-	}
-	value := string(bytepw)
-
 	brevCtx.Remote.SetVariable(*project, name, value)
 
-	fmt.Fprintf(context.VerboseOut, "\nVariable %s added to your project.", name)
+	fmt.Fprint(context.VerboseOut, green("\nVariable "))
+	fmt.Fprint(context.VerboseOut, yellow("%s", name))
+	fmt.Fprint(context.VerboseOut, green(" added to your project 🥞"))
 
 	return nil
 }
 
 func removeVariable(name string, context *cmdcontext.Context) error {
+
+	fmt.Fprint(context.VerboseOut, green("\nRemoving Variable "))
+	fmt.Fprint(context.VerboseOut, yellow(" %s", name))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -76,12 +85,12 @@ func removeVariable(name string, context *cmdcontext.Context) error {
 		Name: name,
 	})
 	if err != nil {
-		return errors.New(fmt.Sprintf("There isn't a variable in your project named %s.", name))
+		return errors.New(red("There isn't a variable in your project named %s.", name))
 	}
 
 	token, err := auth.GetToken()
 	if err != nil {
-		context.PrintErr("Failed to retrieve auth token", err)
+		context.PrintErr(red("Failed to retrieve auth token"), err)
 		return err
 	}
 	brevAgent := brev_api.Agent{
@@ -91,11 +100,13 @@ func removeVariable(name string, context *cmdcontext.Context) error {
 	// Remove variable by ID
 	_, err = brevAgent.RemoveVariable(projVars[0].Id)
 	if err != nil {
-		context.PrintErr("Couldn't remove the variable.", err)
+		context.PrintErr(red("Couldn't remove the variable."), err)
 		return err
 	}
 
-	fmt.Fprintf(context.VerboseOut, "\nVariable %s removed from your project.", name)
+	fmt.Fprint(context.VerboseOut, green("\nVariable "))
+	fmt.Fprint(context.VerboseOut, yellow("%s", name))
+	fmt.Fprint(context.VerboseOut, green(" removed from your project 🥞"))
 
 	return nil
 }

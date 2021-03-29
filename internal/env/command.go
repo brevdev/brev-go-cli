@@ -99,7 +99,7 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 }
 
 // For shell completions, let the command raise an error
-// if something fails here, just return nil 
+// if something fails here, just return nil
 // i.e. don't provide completion but let user continue
 func getVariables() []string {
 	brevCtx, err := brev_ctx.New()
