@@ -21,7 +21,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
@@ -89,65 +88,49 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 }
 
 func removeEndpoint(name string, context *cmdcontext.Context) error {
-
 	green := color.New(color.FgGreen).SprintfFunc()
 	yellow := color.New(color.FgYellow).SprintfFunc()
-	red := color.New(color.FgRed).SprintfFunc()
+
 	fmt.Fprint(context.VerboseOut, "\nRemoving endpoint "+yellow(name))
 
-	// Get the ID
-	endpointFilePath := files.GetEndpointsPath()
-
-	var endpoints []brev_api.Endpoint
-	errFile := files.ReadJSON(endpointFilePath, &endpoints)
-	if errFile != nil {
-		return errFile
-	}
-
-	var id string
-	for _, v := range endpoints {
-		if v.Name == name {
-			id = v.Id
-		}
-	}
-	if id == "" {
-		err := fmt.Errorf("Endpoint doesn't exist.")
-		context.PrintErr(red("\nCannot delete Endpoint. "), err)
-		return err
-	}
-
-	// Remove the endpoint
-	token, err := auth.GetToken()
+	brevCtx, err := brev_ctx.New()
 	if err != nil {
-		context.PrintErr("", err)
 		return err
 	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
-
-	// var ep *brev_api.ResponseRemoveEndpoint
-	_, err = brevAgent.RemoveEndpoint(id)
+	project, err := brevCtx.Local.GetProject()
 	if err != nil {
-		context.PrintErr("", err)
+		context.PrintErr("Cannot delete Endpoint. ", err)
+		return err
+	}
+	eps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		Name: name,
+	})
+	if err != nil {
+		context.PrintErr("Cannot delete Endpoint. ", err)
 		return err
 	}
 
+	brevCtx.Remote.DeleteEndpoint(eps[0].Id)
 	fmt.Fprint(context.VerboseOut, green("\nEndpoint "))
 	fmt.Fprint(context.VerboseOut, yellow("%s", name))
-	fmt.Fprint(context.VerboseOut, green(" removed."))
+	fmt.Fprint(context.VerboseOut, green(" deleted."))
 
 	// Remove the python file
 	files.DeleteFile(name + ".py")
 
 	// Update the endpoints.json
-	var updatedEndpoints []brev_api.Endpoint
-	for _, v := range endpoints {
-		if v.Id != id {
-			updatedEndpoints = append(updatedEndpoints, v)
-		}
+	allEndpoints, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
+	for _, v := range allEndpoints {
+		fmt.Println(v.Name)
 	}
-	files.OverwriteJSON(endpointFilePath, updatedEndpoints)
+	if err != nil {
+		context.PrintErr("Cannot delete Endpoint. ", err)
+		return err
+	}
+	files.OverwriteJSON(files.GetEndpointsPath(), allEndpoints)
+	brevCtx.Local.SetEndpoints(allEndpoints)
 
 	fmt.Fprint(context.VerboseOut, green("\nFile "))
 	fmt.Fprint(context.VerboseOut, yellow("%s.py", name))

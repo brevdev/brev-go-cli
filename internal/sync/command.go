@@ -16,12 +16,10 @@ limitations under the License.
 package sync
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
@@ -37,15 +35,6 @@ func push(context *cmdcontext.Context) error {
 
 	// TODO: push module/shared code
 	fmt.Fprint(context.VerboseOut, green("\nPushing your changes..."))
-
-	token, err := auth.GetToken()
-	if err != nil {
-		context.PrintErr(red(""), err)
-		return err
-	}
-	brevAgent := brev_api.Agent{
-		Key: token,
-	}
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -68,11 +57,23 @@ func push(context *cmdcontext.Context) error {
 	for _, v := range endpoints {
 		fmt.Fprint(context.VerboseOut, green("\nUpdating ep %s", v.Name))
 
-		brevAgent.UpdateEndpoint(v.Id, brev_api.RequestUpdateEndpoint{
+		path, err := getRootProjectDir(context)
+		if err != nil {
+			return err
+		}
+
+		v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
+		if err != nil {
+			return err
+		}
+
+		brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
+			Id:      v.Id,
 			Name:    v.Name,
 			Methods: v.Methods,
 			Code:    v.Code,
 		})
+
 	}
 
 	fmt.Fprint(context.VerboseOut, green("\n\nYour project is synced 🥞"))
@@ -102,25 +103,9 @@ func pull(context *cmdcontext.Context) error {
 		return err
 	}
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		context.PrintErr(red("Failed to determine working directory"), err)
-		return err
-	}
-
-	paths, err := brevCtx.Global.GetProjectPaths()
+	path, err := getRootProjectDir(context)
 	if err != nil {
 		return err
-	}
-
-	var path string
-	for _, v := range paths {
-		if strings.Contains(cwd, v) {
-			path = v
-		}
-	}
-	if path == "" {
-		return errors.New(red("this is not a Brev directory"))
 	}
 
 	for _, v := range remoteEndpoints {
@@ -138,4 +123,31 @@ func pull(context *cmdcontext.Context) error {
 	fmt.Fprint(context.VerboseOut, green("\n\nYour project is synced 🥞"))
 
 	return nil
+}
+
+func getRootProjectDir(context *cmdcontext.Context) (string, error) {
+
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return "", err
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		context.PrintErr("Failed to determine working directory", err)
+		return "", err
+	}
+
+	paths, err := brevCtx.Global.GetProjectPaths()
+	if err != nil {
+		return "", err
+	}
+
+	var path string
+	for _, v := range paths {
+		if strings.Contains(cwd, v) {
+			path = v
+		}
+	}
+	return path, nil
 }
