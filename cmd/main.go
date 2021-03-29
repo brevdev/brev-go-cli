@@ -22,13 +22,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/endpoint"
 	"github.com/brevdev/brev-go-cli/internal/env"
 	"github.com/brevdev/brev-go-cli/internal/initialize"
 	"github.com/brevdev/brev-go-cli/internal/package_project"
 	"github.com/brevdev/brev-go-cli/internal/status"
 	"github.com/brevdev/brev-go-cli/internal/sync"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 	"github.com/brevdev/brev-go-cli/internal/version"
 )
 
@@ -42,34 +42,32 @@ func main() {
 
 func newCmdBrev() *cobra.Command {
 	var verbose bool
-
-	cmdContext := &cmdcontext.Context{}
+	t := &terminal.Terminal{}
 
 	brevCommand := &cobra.Command{
 		Use: "brev",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			fmt.Print("\n")
-			cmdContext.Init(verbose)
-
+			t.Init(verbose)
 		},
 	}
 
 	brevCommand.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 
-	createCmdTree(brevCommand, cmdContext)
+	createCmdTree(brevCommand, t)
 	return brevCommand
 }
 
-func createCmdTree(brevCommand *cobra.Command, context *cmdcontext.Context) {
-	brevCommand.AddCommand(endpoint.NewCmdEndpoint(context))
-	brevCommand.AddCommand(auth.NewCmdLogin(context))
-	brevCommand.AddCommand(package_project.NewCmdPackage(context))
+func createCmdTree(brevCommand *cobra.Command, t *terminal.Terminal) {
+	brevCommand.AddCommand(endpoint.NewCmdEndpoint(t))
+	brevCommand.AddCommand(auth.NewCmdLogin(t))
+	brevCommand.AddCommand(package_project.NewCmdPackage(t))
 	// brevCommand.AddCommand(project.NewCmdProject(context))
-	brevCommand.AddCommand(version.NewCmdVersion(context))
-	brevCommand.AddCommand(initialize.NewCmdInit(context))
-	brevCommand.AddCommand(env.NewCmdEnv(context))
-	brevCommand.AddCommand(status.NewCmdStatus(context))
-	brevCommand.AddCommand(sync.NewCmdPull(context))
-	brevCommand.AddCommand(sync.NewCmdPush(context))
+	brevCommand.AddCommand(version.NewCmdVersion(t))
+	brevCommand.AddCommand(initialize.NewCmdInit(t))
+	brevCommand.AddCommand(env.NewCmdEnv(t))
+	brevCommand.AddCommand(status.NewCmdStatus(t))
+	brevCommand.AddCommand(sync.NewCmdPull(t))
+	brevCommand.AddCommand(sync.NewCmdPush(t))
 	brevCommand.AddCommand(&completionCmd)
 }

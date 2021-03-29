@@ -3,10 +3,11 @@ package version
 import (
 	"fmt"
 
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/fatih/color"
+
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/requests"
-	"github.com/fatih/color"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 const (
@@ -42,12 +43,12 @@ type githubReleaseMetadata struct {
 	Body         string `json:"body"`
 }
 
-func buildVersionString(context *cmdcontext.Context) (string, error) {
+func buildVersionString(t *terminal.Terminal) (string, error) {
 	currentVersion := config.GetVersion()
 
 	githubRelease, err := getLatestGithubReleaseMetadata()
 	if err != nil {
-		context.PrintErr("Failed to retrieve latest version", err)
+		t.Errprint(err, "Failed to retrieve latest version")
 		return "", err
 	}
 

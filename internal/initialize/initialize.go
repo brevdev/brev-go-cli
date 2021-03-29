@@ -8,13 +8,13 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-func initializeExistingProject(projectName string, context *cmdcontext.Context) error {
+func initializeExistingProject(projectName string, t *terminal.Terminal) error {
 	project, endpoints, err := getRemoteProjectMatchingName(projectName)
 	if err != nil {
-		context.PrintErr(fmt.Sprintf("Failed to retrieve project with name '%s': %s", projectName, err), err)
+		t.Errprintf(err, "Failed to retrieve project with name '%s'", projectName)
 		return err
 	}
 

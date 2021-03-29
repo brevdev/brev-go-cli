@@ -16,13 +16,15 @@ limitations under the License.
 package env
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
-	"github.com/spf13/cobra"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-func NewCmdEnv(context *cmdcontext.Context) *cobra.Command {
+func NewCmdEnv(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "env",
 		Short: "Add or remove environment variables",
@@ -42,18 +44,18 @@ func NewCmdEnv(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(t)
 			return err
 		},
 	}
 
-	cmd.AddCommand(newCmdAdd(context))
-	cmd.AddCommand(newCmdRemove(context))
+	cmd.AddCommand(newCmdAdd(t))
+	cmd.AddCommand(newCmdRemove(t))
 
 	return cmd
 }
 
-func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
+func newCmdAdd(t *terminal.Terminal) *cobra.Command {
 	var name string
 	cmd := &cobra.Command{
 		Use:   "add",
@@ -65,7 +67,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 		You will then be prompted for the value.
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addVariable(name, context)
+			return addVariable(name, t)
 		},
 	}
 	cmd.Flags().StringVarP(&name, "name", "n", "", "variable name")
@@ -74,7 +76,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 	return cmd
 }
 
-func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
+func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
@@ -85,7 +87,7 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 			brev env remove --name XYZ
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removeVariable(name, context)
+			return removeVariable(name, t)
 		},
 	}
 

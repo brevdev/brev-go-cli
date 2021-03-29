@@ -18,10 +18,10 @@ import (
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 const (
@@ -63,33 +63,33 @@ var successHTML embed.FS
 //   3. Start a local web server awaiting a redirect to localhost
 //   4. Capture the Cotter token upon redirect
 //   5. Write the Cotter token to a file in the hidden brev directory
-func login(context *cmdcontext.Context) error {
+func login(t *terminal.Terminal) error {
 	cotterCodeVerifier := generateCodeVerifier()
 
 	cotterURL, err := buildCotterAuthURL(cotterCodeVerifier)
 	if err != nil {
-		context.PrintErr("Failed to construct auth URL", err)
+		t.Errprint(err, "Failed to construct auth URL")
 		return err
 	}
 
 	// TODO: pretty print URL?
-	fmt.Fprintln(context.Out, cotterURL)
+	t.Print(cotterURL)
 
 	err = openInDefaultBrowser(cotterURL)
 	if err != nil {
-		context.PrintErr("Failed to open default browser", err)
+		t.Errprint(err, "Failed to open default browser")
 		return err
 	}
 
 	token, err := captureCotterToken(cotterCodeVerifier)
 	if err != nil {
-		context.PrintErr("Failed to capture auth token", err)
+		t.Errprint(err, "Failed to capture auth token")
 		return err
 	}
 
 	err = writeTokenToBrevConfigFile(token)
 	if err != nil {
-		context.PrintErr("Failed to write auth token to file", err)
+		t.Errprint(err, "Failed to write auth token to file")
 		return err
 	}
 

@@ -18,16 +18,18 @@ package package_project
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 func getTopPyPiPackages() []string {
 	return []string{"urllib3", "six", "boto3", "setuptools", "requests", "botocore", "idna", "certifi", "chardet", "pyyaml", "python-dateutil", "pip", "s3transfer", "wheel", "cffi", "rsa", "jmespath", "pyasn1", "numpy", "jinja"}
 }
 
-func GetPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error) {
+func GetPackages(t *terminal.Terminal) ([]brev_api.ProjectPackage, error) {
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return nil, err
@@ -41,8 +43,8 @@ func GetPackages(context *cmdcontext.Context) ([]brev_api.ProjectPackage, error)
 }
 
 // This is just used for autocomplete, so failures can just return no autocompletions
-func getCurrentPackages(context *cmdcontext.Context) []string {
-	packages, err := GetPackages(context)
+func getCurrentPackages(t *terminal.Terminal) []string {
+	packages, err := GetPackages(t)
 	if err != nil {
 		return []string{}
 	}
@@ -55,7 +57,7 @@ func getCurrentPackages(context *cmdcontext.Context) []string {
 	return packageNames
 }
 
-func NewCmdPackage(context *cmdcontext.Context) *cobra.Command {
+func NewCmdPackage(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "package",
 		Short: "Add or remove packages from your Brev project",
@@ -70,19 +72,19 @@ func NewCmdPackage(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(t)
 			return err
 		},
 	}
 
-	cmd.AddCommand(newCmdAdd(context))
-	cmd.AddCommand(newCmdRemove(context))
-	cmd.AddCommand(newCmdList(context))
+	cmd.AddCommand(newCmdAdd(t))
+	cmd.AddCommand(newCmdRemove(t))
+	cmd.AddCommand(newCmdList(t))
 
 	return cmd
 }
 
-func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
+func newCmdAdd(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
@@ -93,7 +95,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 				brev package add --name numpy
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addPackage(name, context)
+			return addPackage(name, t)
 		},
 	}
 
@@ -106,7 +108,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 	return cmd
 }
 
-func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
+func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
@@ -117,20 +119,20 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 				brev package remove --name numpy
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removePackage(name, context)
+			return removePackage(name, t)
 		},
 	}
 
 	cmd.Flags().StringVarP(&name, "name", "n", "", "name of the package")
 	cmd.MarkFlagRequired("name")
 	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return getCurrentPackages(context), cobra.ShellCompDirectiveNoSpace
+		return getCurrentPackages(t), cobra.ShellCompDirectiveNoSpace
 	})
 
 	return cmd
 }
 
-func newCmdList(context *cmdcontext.Context) *cobra.Command {
+func newCmdList(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List installed packages",
@@ -139,7 +141,7 @@ func newCmdList(context *cmdcontext.Context) *cobra.Command {
 				brev package list
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listPackages(context)
+			return listPackages(t)
 		},
 	}
 

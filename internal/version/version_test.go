@@ -3,14 +3,14 @@ package version
 import (
 	"testing"
 
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 func TestBuildVersionString(t *testing.T) {
-	contextStub := &cmdcontext.Context{}
+	terminalStub := &terminal.Terminal{}
 
 	want := "unknown"
-	got, err := buildVersionString(contextStub)
+	got, err := buildVersionString(terminalStub)
 
 	if want != got || err != nil {
 		t.Errorf(`buildVersionString() = %q, %v, want match for %#q, nil`, got, err, want)

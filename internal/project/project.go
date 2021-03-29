@@ -1,9 +1,7 @@
 package project
 
 import (
-	"fmt"
-
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 type Project struct {
@@ -14,7 +12,7 @@ type Project struct {
 	UserId     string `json:"user_id"`
 }
 
-func logic(context *cmdcontext.Context) error {
-	fmt.Fprintln(context.Out, "project called")
+func logic(t *terminal.Terminal) error {
+	t.Print("project called")
 	return nil
 }

@@ -23,18 +23,13 @@ import (
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
-	"github.com/fatih/color"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-func addEndpoint(name string, context *cmdcontext.Context) error {
-
-	green := color.New(color.FgGreen).SprintfFunc()
-	yellow := color.New(color.FgYellow).SprintfFunc()
-	red := color.New(color.FgRed).SprintfFunc()
-	fmt.Fprint(context.VerboseOut, "\nAdding endpoint "+yellow(name))
+func addEndpoint(name string, t *terminal.Terminal) error {
+	t.Vprint("\nAdding endpoint " + t.Yellow(name))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -42,15 +37,15 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 	}
 
 	// get current context project
-	fmt.Fprint(context.Out, "Determining local project...\n")
+	t.Print("Determining local project...\n")
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
 	}
-	fmt.Fprint(context.Out, fmt.Sprintf("Local project: %s\n", project.Name))
+	t.Print(fmt.Sprintf("Local project: %s\n", project.Name))
 
 	// store endpoint in remote state
-	fmt.Fprint(context.Out, "Submitting request to save new endpoint\n")
+	t.Print("Submitting request to save new endpoint\n")
 	endpoint, err := brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
 		ProjectId: project.Id,
 		Name:      name,
@@ -58,12 +53,12 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprint(context.VerboseOut, green("\nEndpoint "))
-	fmt.Fprint(context.VerboseOut, yellow("%s", name))
-	fmt.Fprint(context.VerboseOut, green(" created and deployed 🚀"))
+	t.Vprint(t.Green("\nEndpoint "))
+	t.Vprint(t.Yellow("%s", name))
+	t.Vprint(t.Green(" created and deployed 🚀"))
 
 	// store endpoint in local state
-	fmt.Fprint(context.Out, "Saving endpoint locally...\n")
+	t.Print("Saving endpoint locally...\n")
 	err = brevCtx.Local.SetEndpoint(*endpoint)
 	if err != nil {
 		return err
@@ -72,26 +67,23 @@ func addEndpoint(name string, context *cmdcontext.Context) error {
 	// create the endpoint code file
 	cwd, err := os.Getwd()
 	if err != nil {
-		context.PrintErr(red("\nFailed to determine working directory"), err)
+		t.Errprint(err, "\nFailed to determine working directory")
 		return err
 	}
 
 	err = files.OverwriteString(fmt.Sprintf("\n%s/%s.py", cwd, endpoint.Name), endpoint.Code)
 	if err != nil {
-		context.PrintErr(red("\nFailed to write endpoints to local file"), err)
+		t.Errprint(err, "\nFailed to write endpoints to local file")
 		return err
 	}
-	fmt.Fprint(context.VerboseOut, yellow("\n%s.py", name))
-	fmt.Fprint(context.VerboseOut, green(" created 🥞"))
+	t.Vprint(t.Yellow("\n%s.py", name))
+	t.Vprint(t.Green(" created 🥞"))
 
 	return nil
 }
 
-func removeEndpoint(name string, context *cmdcontext.Context) error {
-	green := color.New(color.FgGreen).SprintfFunc()
-	yellow := color.New(color.FgYellow).SprintfFunc()
-
-	fmt.Fprint(context.VerboseOut, "\nRemoving endpoint "+yellow(name))
+func removeEndpoint(name string, t *terminal.Terminal) error {
+	t.Vprint("\nRemoving endpoint " + t.Yellow(name))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -99,21 +91,21 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 	}
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
-		context.PrintErr("Cannot delete Endpoint. ", err)
+		t.Errprint(err, "Cannot delete Endpoint. ")
 		return err
 	}
 	eps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		Name: name,
 	})
 	if err != nil {
-		context.PrintErr("Cannot delete Endpoint. ", err)
+		t.Errprint(err, "Cannot delete Endpoint.")
 		return err
 	}
 
 	brevCtx.Remote.DeleteEndpoint(eps[0].Id)
-	fmt.Fprint(context.VerboseOut, green("\nEndpoint "))
-	fmt.Fprint(context.VerboseOut, yellow("%s", name))
-	fmt.Fprint(context.VerboseOut, green(" deleted."))
+	t.Vprint(t.Green("\nEndpoint "))
+	t.Vprint(t.Yellow("%s", name))
+	t.Vprint(t.Green(" deleted."))
 
 	// Remove the python file
 	files.DeleteFile(name + ".py")
@@ -126,25 +118,21 @@ func removeEndpoint(name string, context *cmdcontext.Context) error {
 		fmt.Println(v.Name)
 	}
 	if err != nil {
-		context.PrintErr("Cannot delete Endpoint. ", err)
+		t.Errprint(err, "Cannot delete Endpoint.")
 		return err
 	}
 	files.OverwriteJSON(files.GetEndpointsPath(), allEndpoints)
 	brevCtx.Local.SetEndpoints(allEndpoints)
 
-	fmt.Fprint(context.VerboseOut, green("\nFile "))
-	fmt.Fprint(context.VerboseOut, yellow("%s.py", name))
-	fmt.Fprint(context.VerboseOut, green(" removed."))
+	t.Vprint(t.Green("\nFile "))
+	t.Vprint(t.Yellow("%s.py", name))
+	t.Vprint(t.Green(" removed."))
 
 	return nil
 }
 
-func runEndpoint(name string, method string, arg []string, jsonBody string, context *cmdcontext.Context) error {
-
-	green := color.New(color.FgGreen).SprintfFunc()
-	yellow := color.New(color.FgYellow).SprintfFunc()
-	red := color.New(color.FgRed).SprintfFunc()
-	fmt.Fprint(context.VerboseOut, "\nRunning endpoint "+yellow(name))
+func runEndpoint(name string, method string, arg []string, jsonBody string, t *terminal.Terminal) error {
+	t.Vprint("\nRunning endpoint " + t.Yellow(name))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -165,7 +153,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		return err
 	}
 	if len(endpoints) != 1 {
-		return fmt.Errorf(red("unexpected number of endpoints: %d", len(endpoints)))
+		return fmt.Errorf(t.Red("unexpected number of endpoints: %d", len(endpoints)))
 	}
 	endpoint := endpoints[0]
 
@@ -184,7 +172,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 	if jsonBody == "" {
 		payload = nil
 	} else if err := json.Unmarshal([]byte(jsonBody), &payload); err != nil {
-		return fmt.Errorf(red("failed to process JSON payload: %s", err))
+		return fmt.Errorf(t.Red("failed to process JSON payload: %s", err))
 	}
 
 	// submit request
@@ -199,18 +187,18 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 	}
 	response, err := request.Submit()
 	if err != nil {
-		context.PrintErr(red("Failed to run endpoint"), err)
+		t.Errprint(err, "Failed to run endpoint")
 		return err
 	}
 
 	// print output
-	fmt.Fprint(context.VerboseOut, yellow("\n%s %s", request.Method, request.URI))
+	t.Vprint(t.Yellow("\n%s %s", request.Method, request.URI))
 	if 200 <= response.StatusCode && response.StatusCode < 300 {
-		fmt.Fprint(context.VerboseOut, green(" [%d]", response.StatusCode))
+		t.Vprint(t.Green(" [%d]", response.StatusCode))
 	} else if response.StatusCode >= 400 {
-		fmt.Fprint(context.VerboseOut, red(" [%d]", response.StatusCode))
+		t.Vprint(t.Red(" [%d]", response.StatusCode))
 	} else {
-		fmt.Fprint(context.VerboseOut, yellow(" [%d]", response.StatusCode))
+		t.Vprint(t.Yellow(" [%d]", response.StatusCode))
 	}
 
 	jsonStr, err := response.PayloadAsPrettyJSONString()
@@ -218,22 +206,19 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, cont
 		return err
 	}
 
-	fmt.Fprint(context.VerboseOut, "\n\nOutput:\n")
-	fmt.Fprint(context.VerboseOut, jsonStr)
-	fmt.Fprint(context.VerboseOut, "\n\nLogs:\n")
+	t.Vprint("\n\nOutput:\n")
+	t.Vprint(jsonStr)
+	t.Vprint("\n\nLogs:\n")
 	for _, header := range response.Headers {
 		if header.Key == "x-stdout" {
-			fmt.Fprint(context.VerboseOut, header)
+			t.Vprint(header.Value)
 		}
 	}
 
 	return nil
 }
 
-func listEndpoints(context *cmdcontext.Context) error {
-
-	green := color.New(color.FgGreen).SprintFunc()
-
+func listEndpoints(t *terminal.Terminal) error {
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
@@ -251,16 +236,16 @@ func listEndpoints(context *cmdcontext.Context) error {
 	})
 
 	// print
-	fmt.Fprintf(context.VerboseOut, "Endpoints in project %s:\n", project.Name)
+	t.Vprintf("Endpoints in project %s:\n", project.Name)
 	for _, endpoint := range endpoints {
-		fmt.Fprintf(context.VerboseOut, "\t%s:\n", green(endpoint.Name))
-		fmt.Fprintf(context.VerboseOut, "\t%s%s\n\n", project.Domain, endpoint.Uri)
+		t.Vprintf("\t%s:\n", t.Green(endpoint.Name))
+		t.Vprintf("\t%s%s\n\n", project.Domain, endpoint.Uri)
 	}
 
 	return nil
 }
 
-func logEndpoint(name string, context *cmdcontext.Context) error {
-	fmt.Fprintf(context.Out, "Log ep file %s", name)
+func logEndpoint(name string, t *terminal.Terminal) error {
+	t.Printf("Log ep file %s", name)
 	return nil
 }

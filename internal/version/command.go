@@ -1,23 +1,21 @@
 package version
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-func NewCmdVersion(context *cmdcontext.Context) *cobra.Command {
+func NewCmdVersion(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "version",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			version, err := buildVersionString(context)
+			version, err := buildVersionString(t)
 			if err != nil {
-				context.PrintErr("Failed to determine version", err)
+				t.Errprint(err, "Failed to determine version")
 				return err
 			}
-			fmt.Fprintln(context.VerboseOut, version)
+			t.Vprint(version)
 			return nil
 		},
 	}
