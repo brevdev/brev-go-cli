@@ -26,15 +26,21 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
+	"github.com/fatih/color"
 )
+
+var green = color.New(color.FgGreen).SprintfFunc()
+var yellow = color.New(color.FgYellow).SprintfFunc()
+var red = color.New(color.FgRed).SprintfFunc()
 
 func push(context *cmdcontext.Context) error {
 
 	// TODO: push module/shared code
+	fmt.Fprint(context.VerboseOut, green("\nPushing your changes..."))
 
 	token, err := auth.GetToken()
 	if err != nil {
-		context.PrintErr("", err)
+		context.PrintErr(red(""), err)
 		return err
 	}
 	brevAgent := brev_api.Agent{
@@ -60,14 +66,16 @@ func push(context *cmdcontext.Context) error {
 	}
 
 	for _, v := range endpoints {
-		fmt.Fprintf(context.VerboseOut, "\nUpdating ep %s", v.Name)
-		
+		fmt.Fprint(context.VerboseOut, green("\nUpdating ep %s", v.Name))
+
 		brevAgent.UpdateEndpoint(v.Id, brev_api.RequestUpdateEndpoint{
-			Name: v.Name,
+			Name:    v.Name,
 			Methods: v.Methods,
-			Code: v.Code,
+			Code:    v.Code,
 		})
 	}
+
+	fmt.Fprint(context.VerboseOut, green("\n\nYour project is synced 🥞"))
 
 	return nil
 }
@@ -75,6 +83,7 @@ func push(context *cmdcontext.Context) error {
 func pull(context *cmdcontext.Context) error {
 
 	// TODO: module/shared code
+	fmt.Fprint(context.VerboseOut, green("\nPulling changes from the console..."))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -95,7 +104,7 @@ func pull(context *cmdcontext.Context) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		context.PrintErr("Failed to determine working directory", err)
+		context.PrintErr(red("Failed to determine working directory"), err)
 		return err
 	}
 
@@ -103,28 +112,30 @@ func pull(context *cmdcontext.Context) error {
 	if err != nil {
 		return err
 	}
-	
-	var path string;
+
+	var path string
 	for _, v := range paths {
 		if strings.Contains(cwd, v) {
 			path = v
 		}
 	}
-	if path=="" {
-		return errors.New("this is not a Brev directory")
+	if path == "" {
+		return errors.New(red("this is not a Brev directory"))
 	}
 
 	for _, v := range remoteEndpoints {
-		fmt.Fprintf(context.VerboseOut, "\nPulling ep %s", v.Name)
+		fmt.Fprint(context.VerboseOut, green("\nPulling ep %s", v.Name))
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
-			context.PrintErr("Failed to write code to local file", err)
+			context.PrintErr(red("Failed to write code to local file"), err)
 			return err
 		}
 	}
 
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
+
+	fmt.Fprint(context.VerboseOut, green("\n\nYour project is synced 🥞"))
 
 	return nil
 }

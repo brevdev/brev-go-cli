@@ -90,7 +90,6 @@ func status(context *cmdcontext.Context) error {
 	}
 
 	for _, v := range packages {
-		// fmt.Fprintf(context.VerboseOut, "\t\t %s==%s %s\n", v.Name, v.Version, v.Status)
 		if v.Status == "pending" {
 			fmt.Fprintf(context.VerboseOut, "\t\t%s==%s %s\n", v.Name, v.Version, yellow(v.Status))
 		} else if v.Status == "installed" {
