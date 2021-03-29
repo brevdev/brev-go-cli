@@ -18,10 +18,9 @@ package package_project
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
-
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
+	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 

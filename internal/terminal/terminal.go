@@ -2,9 +2,10 @@ package terminal
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"io"
 	"os"
+
+	"github.com/fatih/color"
 )
 
 type Terminal struct {
@@ -34,7 +35,7 @@ func (t *Terminal) Init(verbose bool) {
 	t.Red = color.New(color.FgRed).SprintfFunc()
 }
 
-func (t *Terminal) Print(a ...interface{}) {
+func (t *Terminal) Print(a string) {
 	fmt.Fprintln(t.out, a)
 }
 
@@ -42,7 +43,7 @@ func (t *Terminal) Printf(format string, a ...interface{}) {
 	fmt.Fprintf(t.out, format, a)
 }
 
-func (t *Terminal) Vprint(a ...interface{}) {
+func (t *Terminal) Vprint(a string) {
 	fmt.Fprintln(t.verbose, a)
 }
 
@@ -50,7 +51,7 @@ func (t *Terminal) Vprintf(format string, a ...interface{}) {
 	fmt.Fprintf(t.verbose, format, a)
 }
 
-func (t *Terminal) Eprint(a ...interface{}) {
+func (t *Terminal) Eprint(a string) {
 	fmt.Fprintln(t.err, a)
 }
 
