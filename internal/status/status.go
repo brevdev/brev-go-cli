@@ -16,20 +16,15 @@ limitations under the License.
 package status
 
 import (
-	"fmt"
+	"github.com/spf13/cobra"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-var green = color.New(color.FgGreen).SprintfFunc()
-var yellow = color.New(color.FgYellow).SprintfFunc()
-var red = color.New(color.FgRed).SprintfFunc()
-
-func NewCmdStatus(context *cmdcontext.Context) *cobra.Command {
+func NewCmdStatus(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "status",
@@ -44,11 +39,11 @@ func NewCmdStatus(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(t)
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			status(context)
+			status(t)
 			return nil
 		},
 	}
@@ -56,7 +51,7 @@ func NewCmdStatus(context *cmdcontext.Context) *cobra.Command {
 	return cmd
 }
 
-func status(context *cmdcontext.Context) error {
+func status(t *terminal.Terminal) error {
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -80,36 +75,36 @@ func status(context *cmdcontext.Context) error {
 		return err
 	}
 
-	fmt.Fprint(context.VerboseOut, yellow("\nProject %s", project.Name))
+	t.Vprint(t.Yellow("\nProject %s", project.Name))
 
 	// Print package info
 	if len(packages) == 0 {
-		fmt.Fprintln(context.VerboseOut, "\n\tNo packages installed.")
+		t.Vprint("\n\tNo packages installed.")
 	} else {
-		fmt.Fprintln(context.VerboseOut, yellow("\n\tPackages:"))
+		t.Vprint(t.Yellow("\n\tPackages:"))
 	}
 
 	for _, v := range packages {
 		if v.Status == "pending" {
-			fmt.Fprintf(context.VerboseOut, "\t\t%s==%s %s\n", v.Name, v.Version, yellow(v.Status))
+			t.Vprintf("\t\t%s==%s %s\n", v.Name, v.Version, t.Yellow(v.Status))
 		} else if v.Status == "installed" {
-			fmt.Fprintf(context.VerboseOut, "\t\t%s==%s %s\n", v.Name, v.Version, green(v.Status))
+			t.Vprintf("\t\t%s==%s %s\n", v.Name, v.Version, t.Green(v.Status))
 		} else {
-			fmt.Fprintf(context.VerboseOut, "\t\t%s==%s %s\n", v.Name, v.Version, red(v.Status))
+			t.Vprintf("\t\t%s==%s %s\n", v.Name, v.Version, t.Red(v.Status))
 		}
 	}
 
 	// Print Endpoint info
 	if len(endpoints) == 0 {
-		fmt.Fprintln(context.VerboseOut, "\nYour project doesn't have any endpoints. Try running \n \t\t brev endpoint add --name newEP")
+		t.Vprint("\nYour project doesn't have any endpoints. Try running \n \t\t brev endpoint add --name newEP")
 	} else {
-		fmt.Fprintln(context.VerboseOut, yellow("\n\tEndpoints:"))
+		t.Vprint(t.Yellow("\n\tEndpoints:"))
 
 		for _, v := range endpoints {
-			fmt.Fprint(context.VerboseOut, "\n\t\t")
-			fmt.Fprint(context.VerboseOut, yellow("%s", v.Name))
-			fmt.Fprint(context.VerboseOut, "\n\t\t\t")
-			fmt.Fprintf(context.VerboseOut, "%s", project.Domain+v.Uri)
+			t.Vprint("\n\t\t")
+			t.Vprint(t.Yellow("%s", v.Name))
+			t.Vprint("\n\t\t\t")
+			t.Vprintf("%s", project.Domain+v.Uri)
 		}
 	}
 

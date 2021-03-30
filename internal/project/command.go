@@ -18,10 +18,10 @@ package project
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-func NewCmdProject(context *cmdcontext.Context) *cobra.Command {
+func NewCmdProject(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "project",
 		Short: "A brief description of your command",
@@ -32,22 +32,22 @@ func NewCmdProject(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 
-	cmd.AddCommand(newCmdInit(context))
-	cmd.AddCommand(newCmdList(context))
-	cmd.AddCommand(newCmdLog(context))
-	cmd.AddCommand(newCmdPull(context))
-	cmd.AddCommand(newCmdPush(context))
-	cmd.AddCommand(newCmdRemove(context))
-	cmd.AddCommand(newCmdStatus(context))
+	cmd.AddCommand(newCmdInit(t))
+	cmd.AddCommand(newCmdList(t))
+	cmd.AddCommand(newCmdLog(t))
+	cmd.AddCommand(newCmdPull(t))
+	cmd.AddCommand(newCmdPush(t))
+	cmd.AddCommand(newCmdRemove(t))
+	cmd.AddCommand(newCmdStatus(t))
 
 	return cmd
 }
 
-func newCmdInit(context *cmdcontext.Context) *cobra.Command {
+func newCmdInit(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "A brief description of your command",
@@ -58,14 +58,14 @@ func newCmdInit(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 
 	return cmd
 }
 
-func newCmdList(context *cmdcontext.Context) *cobra.Command {
+func newCmdList(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "A brief description of your command",
@@ -76,14 +76,14 @@ func newCmdList(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 
 	return cmd
 }
 
-func newCmdLog(context *cmdcontext.Context) *cobra.Command {
+func newCmdLog(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "log",
 		Short: "A brief description of your command",
@@ -94,14 +94,14 @@ func newCmdLog(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 
 	return cmd
 }
 
-func newCmdPull(context *cmdcontext.Context) *cobra.Command {
+func newCmdPull(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pull",
 		Short: "A brief description of your command",
@@ -112,14 +112,14 @@ func newCmdPull(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 
 	return cmd
 }
 
-func newCmdPush(context *cmdcontext.Context) *cobra.Command {
+func newCmdPush(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push",
 		Short: "A brief description of your command",
@@ -130,14 +130,14 @@ func newCmdPush(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 
 	return cmd
 }
 
-func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
+func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove",
 		Short: "A brief description of your command",
@@ -148,14 +148,14 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 
 	return cmd
 }
 
-func newCmdStatus(context *cmdcontext.Context) *cobra.Command {
+func newCmdStatus(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "A brief description of your command",
@@ -166,7 +166,7 @@ func newCmdStatus(context *cmdcontext.Context) *cobra.Command {
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logic(context)
+			return logic(t)
 		},
 	}
 

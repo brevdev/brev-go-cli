@@ -16,12 +16,14 @@ limitations under the License.
 package sync
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
-	"github.com/spf13/cobra"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-func NewCmdPush(context *cmdcontext.Context) *cobra.Command {
+func NewCmdPush(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push",
 		Short: "Push your local changes to remote",
@@ -34,18 +36,18 @@ func NewCmdPush(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(t)
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return push(context)
+			return push(t)
 		},
 	}
 
 	return cmd
 }
 
-func NewCmdPull(context *cmdcontext.Context) *cobra.Command {
+func NewCmdPull(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "pull",
@@ -59,11 +61,11 @@ func NewCmdPull(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(t)
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pull(context)
+			return pull(t)
 		},
 	}
 

@@ -22,19 +22,14 @@ import (
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
-	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
-	"github.com/fatih/color"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-var green = color.New(color.FgGreen).SprintfFunc()
-var yellow = color.New(color.FgYellow).SprintfFunc()
-var red = color.New(color.FgRed).SprintfFunc()
-
-func push(context *cmdcontext.Context) error {
+func push(t *terminal.Terminal) error {
 
 	// TODO: push module/shared code
-	fmt.Fprint(context.VerboseOut, green("\nPushing your changes..."))
+	t.Vprint(t.Green("\nPushing your changes..."))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -55,9 +50,9 @@ func push(context *cmdcontext.Context) error {
 	}
 
 	for _, v := range endpoints {
-		fmt.Fprint(context.VerboseOut, green("\nUpdating ep %s", v.Name))
+		t.Vprint(t.Green("\nUpdating ep %s", v.Name))
 
-		path, err := getRootProjectDir(context)
+		path, err := getRootProjectDir(t)
 		if err != nil {
 			return err
 		}
@@ -76,15 +71,15 @@ func push(context *cmdcontext.Context) error {
 
 	}
 
-	fmt.Fprint(context.VerboseOut, green("\n\nYour project is synced 🥞"))
+	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
 
 	return nil
 }
 
-func pull(context *cmdcontext.Context) error {
+func pull(t *terminal.Terminal) error {
 
 	// TODO: module/shared code
-	fmt.Fprint(context.VerboseOut, green("\nPulling changes from the console..."))
+	t.Vprint(t.Green("\nPulling changes from the console..."))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -103,29 +98,29 @@ func pull(context *cmdcontext.Context) error {
 		return err
 	}
 
-	path, err := getRootProjectDir(context)
+	path, err := getRootProjectDir(t)
 	if err != nil {
 		return err
 	}
 
 	for _, v := range remoteEndpoints {
-		fmt.Fprint(context.VerboseOut, green("\nPulling ep %s", v.Name))
+		t.Vprint(t.Green("\nPulling ep %s", v.Name))
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
-			context.PrintErr(red("Failed to write code to local file"), err)
+			t.Errprint(err, "Failed to write code to local file")
 			return err
 		}
 	}
 
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
 
-	fmt.Fprint(context.VerboseOut, green("\n\nYour project is synced 🥞"))
+	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
 
 	return nil
 }
 
-func getRootProjectDir(context *cmdcontext.Context) (string, error) {
+func getRootProjectDir(t *terminal.Terminal) (string, error) {
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -134,7 +129,7 @@ func getRootProjectDir(context *cmdcontext.Context) (string, error) {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		context.PrintErr("Failed to determine working directory", err)
+		t.Errprint(err, "Failed to determine working directory")
 		return "", err
 	}
 

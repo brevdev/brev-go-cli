@@ -21,6 +21,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/cmdcontext"
 	"github.com/brevdev/brev-go-cli/internal/files"
+	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 func getSomeSetOfOptions(toComplete string) []string {
@@ -39,7 +40,7 @@ func getEpNames() []string {
 	return epNames
 }
 
-func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
+func NewCmdEndpoint(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "endpoint",
 		Short: "Create, Run, or Remove Endpoints",
@@ -55,23 +56,23 @@ func NewCmdEndpoint(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(t)
 			return err
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return []string{}, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
 		}}
 
-	cmd.AddCommand(newCmdAdd(context))
-	cmd.AddCommand(newCmdRemove(context))
-	cmd.AddCommand(newCmdRun(context))
+	cmd.AddCommand(newCmdAdd(t))
+	cmd.AddCommand(newCmdRemove(t))
+	cmd.AddCommand(newCmdRun(t))
 	// cmd.AddCommand(newCmdLog(context))
-	cmd.AddCommand(newCmdList(context))
+	cmd.AddCommand(newCmdList(t))
 
 	return cmd
 }
 
-func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
+func newCmdAdd(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
@@ -82,7 +83,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint add NewEp
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addEndpoint(name, context)
+			return addEndpoint(name, t)
 		},
 	}
 
@@ -91,7 +92,7 @@ func newCmdAdd(context *cmdcontext.Context) *cobra.Command {
 	return cmd
 }
 
-func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
+func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
@@ -102,7 +103,7 @@ func newCmdRemove(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint remove NewEp
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removeEndpoint(name, context)
+			return removeEndpoint(name, t)
 		},
 	}
 
@@ -123,7 +124,7 @@ const (
 	DELETE
 )
 
-func newCmdRun(context *cmdcontext.Context) *cobra.Command {
+func newCmdRun(t *terminal.Terminal) *cobra.Command {
 	var name string
 	var method string
 	var arg []string
@@ -137,7 +138,7 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint run MyEp
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEndpoint(name, method, arg, body, context)
+			return runEndpoint(name, method, arg, body, t)
 		},
 	}
 
@@ -163,7 +164,7 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 	return cmd
 }
 
-func newCmdLog(context *cmdcontext.Context) *cobra.Command {
+func newCmdLog(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
@@ -174,7 +175,7 @@ func newCmdLog(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint log NewEp
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logEndpoint(name, context)
+			return logEndpoint(name, t)
 		},
 	}
 
@@ -183,7 +184,7 @@ func newCmdLog(context *cmdcontext.Context) *cobra.Command {
 	return cmd
 }
 
-func newCmdList(context *cmdcontext.Context) *cobra.Command {
+func newCmdList(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -193,7 +194,7 @@ func newCmdList(context *cmdcontext.Context) *cobra.Command {
 			brev endpoint list
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listEndpoints(context)
+			return listEndpoints(t)
 		},
 	}
 
