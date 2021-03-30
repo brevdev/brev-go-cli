@@ -48,7 +48,7 @@ func getRemoteProjectMatchingName(projectName string) (*brev_api.Project, *brev_
 	}
 	remoteProjects, err := brevAgent.GetProjects()
 	if err != nil {
-		return nil, nil, errors.New(fmt.Sprintf("Failed to retrieve remote projects: %s", err))
+		return nil, nil, errors.New(fmt.Sprintf("Failed to retrieve projects in the console: %s", err))
 	}
 
 	// Filter
@@ -65,7 +65,7 @@ func getRemoteProjectMatchingName(projectName string) (*brev_api.Project, *brev_
 	// Get endpoints for project
 	remoteEndpoints, err := brevAgent.GetEndpoints()
 	if err != nil {
-		return nil, nil, errors.New(fmt.Sprintf("Failed to retrieve remote endpoints: %s", err))
+		return nil, nil, errors.New(fmt.Sprintf("Failed to retrieve endpoints in the console: %s", err))
 	}
 
 	// Filter

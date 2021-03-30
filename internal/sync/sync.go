@@ -24,7 +24,7 @@ import (
 func NewCmdPush(context *cmdcontext.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push",
-		Short: "Push your local changes to remote",
+		Short: "Push your local changes to the console.",
 		Long: `To push your local changes:
 
 			brev push
@@ -49,7 +49,7 @@ func NewCmdPull(context *cmdcontext.Context) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "pull",
-		Short: "Pull latest changes from your server",
+		Short: "Pull latest changes from the console.",
 		Long: `To pull latest changes:
 
 			brev pull

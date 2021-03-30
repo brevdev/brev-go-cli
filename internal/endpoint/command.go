@@ -132,7 +132,7 @@ func newCmdRun(context *cmdcontext.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run your endpoint",
-		Long: `Run your endpoint  on the remote server. Similar to cURL and Postman, etc
+		Long: `Run your deployed endpoint in the console. Similar to cURL and Postman, etc
 		ex:
 			brev endpoint run MyEp
 		`,
