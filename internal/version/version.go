@@ -43,7 +43,7 @@ type githubReleaseMetadata struct {
 	Body         string `json:"body"`
 }
 
-func buildVersionString(t *terminal.Terminal) (string, error) {
+func BuildVersionString(t *terminal.Terminal) (string, error) {
 	currentVersion := config.GetVersion()
 
 	githubRelease, err := getLatestGithubReleaseMetadata()
