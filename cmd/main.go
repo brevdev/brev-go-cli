@@ -83,5 +83,6 @@ func createCmdTree(brevCommand *cobra.Command, t *terminal.Terminal) {
 	brevCommand.AddCommand(status.NewCmdStatus(t))
 	brevCommand.AddCommand(sync.NewCmdPull(t))
 	brevCommand.AddCommand(sync.NewCmdPush(t))
+	brevCommand.AddCommand(sync.NewCmdDiff(t))
 	brevCommand.AddCommand(&completionCmd)
 }
