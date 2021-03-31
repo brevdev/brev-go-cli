@@ -18,6 +18,7 @@ import (
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"github.com/brevdev/brev-go-cli/internal/config"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/requests"
@@ -158,7 +159,7 @@ func fetchCotterPublicKeySet() (*jose.JSONWebKeySet, error) {
 		Method:   "GET",
 		Endpoint: cotterJwksEndpoint,
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -274,6 +275,13 @@ func getTokenFromBrevConfigFile() (*CotterOauthToken, error) {
 	}
 
 	brevCredentialsFile := home + "/" + files.GetBrevDirectory() + "/" + brevCredentialsFile
+	exists, err := files.Exists(brevCredentialsFile)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, &brev_errors.CredentialsFileNotFound{}
+	}
 
 	var token CotterOauthToken
 	err = files.ReadJSON(brevCredentialsFile, &token)
@@ -307,7 +315,7 @@ func requestCotterToken(code string, challengeID string, codeVerifier string) (*
 			RedirectURL:       localEndpoint,
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -337,6 +345,12 @@ func refreshCotterToken(oldToken *CotterOauthToken) (*CotterOauthToken, error) {
 	response, err := request.Submit()
 	if err != nil {
 		return nil, err
+	}
+	if response.StatusCode == http.StatusBadRequest {
+		return nil, &brev_errors.CotterClientError{}
+	}
+	if response.StatusCode == http.StatusInternalServerError {
+		return nil, &brev_errors.CotterServerError{}
 	}
 
 	var token CotterOauthToken

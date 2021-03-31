@@ -40,7 +40,7 @@ func (a *Agent) GetPackages(projectID string) ([]ProjectPackage, error) {
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get packages: %s", err)
 	}
@@ -69,7 +69,7 @@ func (a *Agent) AddPackage(projectID string, name string) (*ResponseAddPackage, 
 			"project_id": projectID,
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create package: %s", err)
 	}
@@ -94,7 +94,7 @@ func (a *Agent) RemovePackage(packageID string) (*ResponseRemovePackage, error) 
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}

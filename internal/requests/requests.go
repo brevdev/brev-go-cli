@@ -36,6 +36,15 @@ type Header struct {
 	Value string
 }
 
+type RESTResponseError struct {
+	RequestURI         string
+	ResponseStatusCode int
+}
+
+func (e *RESTResponseError) Error() string {
+	return fmt.Sprintf("REST request to `%s` returned an error status code: %d", e.RequestURI, e.ResponseStatusCode)
+}
+
 // BuildHTTPRequest constructs the complete net/http object which is needed to
 // perform a final HTTP request.
 //
@@ -113,6 +122,24 @@ func (r *RESTRequest) Submit() (*RESTResponse, error) {
 		StatusCode: res.StatusCode,
 		Payload:    payloadBytes,
 	}, nil
+}
+
+// SubmitStrict performs the HTTP request, returning a resultant RESTResponse if the response's status code is < 400.
+// Usage:
+//   request = &RESTRequest{ ... }
+//   response, _ := request.Submit()
+func (r *RESTRequest) SubmitStrict() (*RESTResponse, error) {
+	response, err := r.Submit()
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode >= 400 {
+		return nil, &RESTResponseError{
+			RequestURI:         r.URI,
+			ResponseStatusCode: response.StatusCode,
+		}
+	}
+	return response, nil
 }
 
 // UnmarshalPayload converts the raw response body into the given interface

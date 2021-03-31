@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 )
 
 type Terminal struct {
@@ -60,17 +62,23 @@ func (t *Terminal) Eprintf(format string, a ...interface{}) {
 }
 
 func (t *Terminal) Errprint(err error, a string) {
+	t.Eprint(t.Red("Error: " + err.Error()))
 	if a != "" {
-		t.Vprint(t.Red("Error: " + fmt.Sprint(a)))
+		t.Eprint(t.Red(a))
 	}
-	t.Eprint(err.Error())
+	if brevErr, ok := err.(brev_errors.BrevError); ok {
+		t.Eprint(t.Red(brevErr.Directive()))
+	}
 }
 
 func (t *Terminal) Errprintf(err error, format string, a ...interface{}) {
+	t.Eprint(t.Red("Error: " + err.Error()))
 	if a != nil {
-		t.Vprintf(t.Red("Error: " + fmt.Sprintf(format, a)))
+		t.Eprint(t.Red(format, a))
 	}
-	t.Eprint(err.Error())
+	if brevErr, ok := err.(brev_errors.BrevError); ok {
+		t.Eprint(t.Red(brevErr.Directive()))
+	}
 }
 
 type silentWriter struct{}

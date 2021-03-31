@@ -53,7 +53,7 @@ func (a *Agent) GetEndpoints() ([]Endpoint, error) {
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (a *Agent) CreateEndpoint(name string, projectId string) (*ResponseUpdateEn
 		},
 	}
 
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (a *Agent) UpdateEndpoint(endpointID string, updateRequest RequestUpdateEnd
 		},
 		Payload: updateRequest,
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (a *Agent) RemoveEndpoint(endpointID string) (*ResponseRemoveEndpoint, erro
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}

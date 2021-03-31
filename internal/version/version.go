@@ -75,7 +75,7 @@ func getLatestGithubReleaseMetadata() (*githubReleaseMetadata, error) {
 		Method:   "GET",
 		Endpoint: cliReleaseURL,
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
