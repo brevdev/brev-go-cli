@@ -71,3 +71,29 @@ func NewCmdPull(t *terminal.Terminal) *cobra.Command {
 
 	return cmd
 }
+
+func NewCmdDiff(context *cmdcontext.Context) *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use:   "diff",
+		Short: "See a diff of your local changes compared to what's deployed in the console",
+		Long: `To see a diff of your local changes compared to what's deployed in the console,
+			from an active brev project directory, run:
+
+			brev diff
+		`, PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			return err
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return diffCmd()
+		},
+	}
+
+	return cmd
+}

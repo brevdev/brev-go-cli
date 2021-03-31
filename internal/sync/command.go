@@ -20,6 +20,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/andreyvit/diff"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
 	"github.com/brevdev/brev-go-cli/internal/files"
@@ -145,4 +146,43 @@ func getRootProjectDir(t *terminal.Terminal) (string, error) {
 		}
 	}
 	return path, nil
+}
+
+func diffCmd() error {
+	green := color.New(color.FgGreen).SprintfFunc()
+	red := color.New(color.FgRed).SprintfFunc()
+	// Per endpoint,
+	// perform diff
+	var s1 = `
+	test test this is a test
+	new line in test
+
+	hello
+	`
+	var s2 = `
+	test test this is a test
+
+	hello
+	`
+
+	diff := diffTwoFiles(s1, s2)
+
+	// fmt.Println(diff)
+
+	for _, v := range strings.Split(diff, "\n") {
+		if strings.Compare(string(v[0]), "+") == 0 {
+			fmt.Println(green(v))
+		} else if strings.Compare(string(v[0]), "-") == 0 {
+			fmt.Println(red(v))
+		}
+	}
+
+	return nil
+}
+
+func diffTwoFiles(s1 string, s2 string) string {
+	s1Trimmed := strings.TrimSpace(s1)
+	s2Trimmed := strings.TrimSpace(s2)
+	return diff.LineDiff(s1Trimmed, s2Trimmed)
+
 }
