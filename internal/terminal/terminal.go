@@ -2,11 +2,12 @@ package terminal
 
 import (
 	"fmt"
-	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"io"
 	"os"
 
 	"github.com/fatih/color"
+
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 )
 
 type Terminal struct {

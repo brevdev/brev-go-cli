@@ -2,7 +2,6 @@ package initialize
 
 import (
 	"fmt"
-	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"github.com/brevdev/brev-go-cli/internal/files"
 	"github.com/brevdev/brev-go-cli/internal/terminal"
 )

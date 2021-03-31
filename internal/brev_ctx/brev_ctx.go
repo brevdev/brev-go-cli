@@ -3,12 +3,12 @@ package brev_ctx
 import (
 	"errors"
 	"fmt"
-	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 	"reflect"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"github.com/brevdev/brev-go-cli/internal/files"
 )
 
