@@ -148,7 +148,9 @@ func getRootProjectDir(t *terminal.Terminal) (string, error) {
 	return path, nil
 }
 
-func diffCmd(context *cmdcontext.Context) error {
+func diffCmd(t *terminal.Terminal) error {
+
+	numChanges := 0
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -181,12 +183,13 @@ func diffCmd(context *cmdcontext.Context) error {
 	if err != nil {
 		return err
 	}
+	t.Vprint(t.Yellow("Diff for Project %s :", project.Name))
 
 	// per local endpoint, diff the remote contents
 	for _, v := range localEps {
 		// if the local ep has a remote counter part, run a diff
 		if brev_api.StringInList(v.Id, remoteEPIds) {
-			path, err := getRootProjectDir(context)
+			path, err := getRootProjectDir(t)
 			if err != nil {
 				return err
 			}
@@ -196,22 +199,35 @@ func diffCmd(context *cmdcontext.Context) error {
 				return err
 			}
 			diff := diffTwoFiles(remoteEpMap[v.Id].Code, v.Code)
-			diffString := printDiff(v.Name, diff)
-			fmt.Fprint(context.VerboseOut, diffString)
+			diffString := printDiff(v.Name, diff, t)
+			if len(diffString) > 0 {
+				t.Vprint(diffString)
+				numChanges += 1
+			}
 		} else {
 			// The endpoint doesn't exist in remote
 			diff := diffTwoFiles("", v.Code)
-			diffString := printDiff(v.Name, diff)
-			fmt.Fprint(context.VerboseOut, diffString)
+			diffString := printDiff(v.Name, diff, t)
+			if len(diffString) > 0 {
+				t.Vprint(diffString)
+				numChanges += 1
+			}
 		}
 	}
 	// if remote endpoint isn't local, then it needs to be pulled
 	for _, v := range remoteEps {
 		if !brev_api.StringInList(v.Id, localEPIds) {
 			diff := diffTwoFiles(remoteEpMap[v.Id].Code, "")
-			diffString := printDiff(v.Name, diff)
-			fmt.Fprint(context.VerboseOut, diffString)
+			diffString := printDiff(v.Name, diff, t)
+			if len(diffString) > 0 {
+				t.Vprint(diffString)
+				numChanges += 1
+			}
 		}
+	}
+
+	if numChanges == 0 {
+		t.Vprint(t.Green("All Synced 🥞"))
 	}
 
 	return nil
@@ -224,24 +240,21 @@ func diffTwoFiles(s1 string, s2 string) string {
 
 }
 
-func printDiff(filename string, diff string) string {
-	green := color.New(color.FgGreen).SprintfFunc()
-	yellow := color.New(color.FgYellow).SprintfFunc()
-	red := color.New(color.FgRed).SprintfFunc()
+func printDiff(filename string, diff string, t *terminal.Terminal) string {
 
 	diffOutputString := ""
 	totalDiffLines := 0
 	for _, v := range strings.Split(diff, "\n") {
 		if strings.Compare(string(v[0]), "+") == 0 {
-			diffOutputString += "\n" + green(v)
+			diffOutputString += "\n" + t.Green(v)
 			totalDiffLines += 1
 		} else if strings.Compare(string(v[0]), "-") == 0 {
-			diffOutputString += "\n" + red(v)
+			diffOutputString += "\n" + t.Red(v)
 			totalDiffLines += 1
 		}
 	}
 	if totalDiffLines > 0 {
-		diffOutputString = yellow("\n%s.py: ", filename) + diffOutputString + "\n"
+		diffOutputString = t.Yellow("%s.py: ", filename) + diffOutputString + "\n"
 	}
 	return diffOutputString
 }

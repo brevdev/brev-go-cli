@@ -72,7 +72,7 @@ func NewCmdPull(t *terminal.Terminal) *cobra.Command {
 	return cmd
 }
 
-func NewCmdDiff(context *cmdcontext.Context) *cobra.Command {
+func NewCmdDiff(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "diff",
@@ -87,11 +87,11 @@ func NewCmdDiff(context *cmdcontext.Context) *cobra.Command {
 				return err
 			}
 
-			_, err = brev_api.CheckOutsideBrevErrorMessage(context)
+			_, err = brev_api.CheckOutsideBrevErrorMessage(t)
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return diffCmd(context)
+			return diffCmd(t)
 		},
 	}
 
