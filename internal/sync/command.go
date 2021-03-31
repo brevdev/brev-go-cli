@@ -148,32 +148,69 @@ func getRootProjectDir(t *terminal.Terminal) (string, error) {
 	return path, nil
 }
 
-func diffCmd() error {
-	green := color.New(color.FgGreen).SprintfFunc()
-	red := color.New(color.FgRed).SprintfFunc()
-	// Per endpoint,
-	// perform diff
-	var s1 = `
-	test test this is a test
-	new line in test
+func diffCmd(context *cmdcontext.Context) error {
 
-	hello
-	`
-	var s2 = `
-	test test this is a test
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
+	}
 
-	hello
-	`
+	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+	localEps, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
+	var localEPIds []string
+	for _, v := range localEps {
+		localEPIds = append(localEPIds, v.Id)
+	}
+	if err != nil {
+		return err
+	}
+	remoteEps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
+	var remoteEPIds []string
+	remoteEpMap := make(map[string]brev_api.Endpoint)
+	for _, v := range remoteEps {
+		remoteEPIds = append(remoteEPIds, v.Id)
+		remoteEpMap[v.Id] = v
+	}
+	if err != nil {
+		return err
+	}
 
-	diff := diffTwoFiles(s1, s2)
+	// per local endpoint, diff the remote contents
+	for _, v := range localEps {
+		// if the local ep has a remote counter part, run a diff
+		if brev_api.StringInList(v.Id, remoteEPIds) {
+			path, err := getRootProjectDir(context)
+			if err != nil {
+				return err
+			}
 
-	// fmt.Println(diff)
-
-	for _, v := range strings.Split(diff, "\n") {
-		if strings.Compare(string(v[0]), "+") == 0 {
-			fmt.Println(green(v))
-		} else if strings.Compare(string(v[0]), "-") == 0 {
-			fmt.Println(red(v))
+			v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
+			if err != nil {
+				return err
+			}
+			diff := diffTwoFiles(remoteEpMap[v.Id].Code, v.Code)
+			diffString := printDiff(v.Name, diff)
+			fmt.Fprint(context.VerboseOut, diffString)
+		} else {
+			// The endpoint doesn't exist in remote
+			diff := diffTwoFiles("", v.Code)
+			diffString := printDiff(v.Name, diff)
+			fmt.Fprint(context.VerboseOut, diffString)
+		}
+	}
+	// if remote endpoint isn't local, then it needs to be pulled
+	for _, v := range remoteEps {
+		if !brev_api.StringInList(v.Id, localEPIds) {
+			diff := diffTwoFiles(remoteEpMap[v.Id].Code, "")
+			diffString := printDiff(v.Name, diff)
+			fmt.Fprint(context.VerboseOut, diffString)
 		}
 	}
 
@@ -185,4 +222,26 @@ func diffTwoFiles(s1 string, s2 string) string {
 	s2Trimmed := strings.TrimSpace(s2)
 	return diff.LineDiff(s1Trimmed, s2Trimmed)
 
+}
+
+func printDiff(filename string, diff string) string {
+	green := color.New(color.FgGreen).SprintfFunc()
+	yellow := color.New(color.FgYellow).SprintfFunc()
+	red := color.New(color.FgRed).SprintfFunc()
+
+	diffOutputString := ""
+	totalDiffLines := 0
+	for _, v := range strings.Split(diff, "\n") {
+		if strings.Compare(string(v[0]), "+") == 0 {
+			diffOutputString += "\n" + green(v)
+			totalDiffLines += 1
+		} else if strings.Compare(string(v[0]), "-") == 0 {
+			diffOutputString += "\n" + red(v)
+			totalDiffLines += 1
+		}
+	}
+	if totalDiffLines > 0 {
+		diffOutputString = yellow("\n%s.py: ", filename) + diffOutputString + "\n"
+	}
+	return diffOutputString
 }

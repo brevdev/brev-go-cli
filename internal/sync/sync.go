@@ -91,7 +91,7 @@ func NewCmdDiff(context *cmdcontext.Context) *cobra.Command {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return diffCmd()
+			return diffCmd(context)
 		},
 	}
 
