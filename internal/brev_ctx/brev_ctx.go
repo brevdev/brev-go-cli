@@ -3,6 +3,7 @@ package brev_ctx
 import (
 	"errors"
 	"fmt"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 	"reflect"
 
@@ -69,7 +70,7 @@ func New() (*BrevContext, error) {
 	}
 	remote, err := NewRemote()
 	if err != nil {
-		return nil, fmt.Errorf("could not instantiate remote context: %s", err)
+		return nil, err
 	}
 	return &BrevContext{
 		Local:  local,
@@ -149,7 +150,7 @@ func (c *LocalContext) GetEndpoints(options *GetEndpointsOptions) ([]brev_api.En
 		))
 	}
 	if !localEndpointsFileExists {
-		return nil, nil
+		return nil, &brev_errors.LocalEndpointFileNotFound{}
 	}
 
 	var endpoints []brev_api.Endpoint
@@ -185,7 +186,7 @@ func (c *LocalContext) GetProject() (*brev_api.Project, error) {
 		return nil, fmt.Errorf("failed to read from %s: %s", getLocalProjectPath(), err)
 	}
 	if !localProjectFileExists {
-		return nil, nil
+		return nil, &brev_errors.LocalProjectFileNotFound{}
 	}
 	var project brev_api.Project
 	err = files.ReadJSON(getLocalProjectPath(), &project)
@@ -244,7 +245,7 @@ func (c *LocalContext) SetEndpoint(endpoint brev_api.Endpoint) error {
 func NewRemote() (*RemoteContext, error) {
 	token, err := auth.GetToken()
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve auth token: %s", err)
+		return nil, err
 	}
 
 	return &RemoteContext{

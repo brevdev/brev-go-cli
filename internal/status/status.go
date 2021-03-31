@@ -1,4 +1,3 @@
-
 package status
 
 import (

@@ -32,7 +32,7 @@ func (a *Agent) GetProjects() ([]Project, error) {
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (a *Agent) CreateProject(name string) (*ResponseCreateProject, error) {
 			"name": name,
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}

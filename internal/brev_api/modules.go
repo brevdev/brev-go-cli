@@ -33,7 +33,7 @@ func (a *Agent) GetModules(t *terminal.Terminal) (*Modules, error) {
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		t.Errprint(err, "Failed to get modules")
 		return nil, err
@@ -63,7 +63,7 @@ func (a *Agent) UpdateModule(moduleID string, source string) (*ResponseUpdateMod
 			"source": source,
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}

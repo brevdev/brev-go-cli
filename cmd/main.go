@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/brevdev/brev-go-cli/internal/auth"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"github.com/brevdev/brev-go-cli/internal/endpoint"
 	"github.com/brevdev/brev-go-cli/internal/env"
 	"github.com/brevdev/brev-go-cli/internal/initialize"
@@ -18,26 +18,30 @@ import (
 )
 
 func main() {
-	cmd := newCmdBrev()
+	t := &terminal.Terminal{}
+
+	cmd := newCmdBrev(t)
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		if _, ok := err.(*brev_errors.SuppressedError); ok {
+			// error suppressed
+		} else {
+			t.Errprint(err, "")
+		}
 		os.Exit(1)
 	}
 }
 
-func newCmdBrev() *cobra.Command {
+func newCmdBrev(t *terminal.Terminal) *cobra.Command {
 	var verbose bool
-	var print_version bool
-	t := &terminal.Terminal{}
+	var printVersion bool
 
 	brevCommand := &cobra.Command{
 		Use: "brev",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			fmt.Print("\n")
 			t.Init(verbose)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if print_version {
+			if printVersion {
 				v, err := version.BuildVersionString(t)
 				if err != nil {
 					t.Errprint(err, "Failed to determine version")
@@ -49,10 +53,18 @@ func newCmdBrev() *cobra.Command {
 				return cmd.Usage()
 			}
 		},
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
 
 	brevCommand.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
-	brevCommand.PersistentFlags().BoolVar(&print_version, "version", false, "Print version output")
+	brevCommand.PersistentFlags().BoolVar(&printVersion, "version", false, "Print version output")
+	brevCommand.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		cmd.Println(err)
+		cmd.Println() // extra newline
+		cmd.Println(cmd.UsageString())
+		return &brev_errors.SuppressedError{}
+	})
 
 	createCmdTree(brevCommand, t)
 	return brevCommand

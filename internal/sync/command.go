@@ -1,4 +1,3 @@
-
 package sync
 
 import (
@@ -30,7 +29,6 @@ func push(t *terminal.Terminal) error {
 	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		ProjectID: project.Id,
 	})
-
 	if err != nil {
 		return err
 	}

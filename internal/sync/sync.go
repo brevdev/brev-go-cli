@@ -1,4 +1,3 @@
-
 package sync
 
 import (

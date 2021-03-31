@@ -37,7 +37,7 @@ func (a *Agent) GetLogs(projectID string, logType string) ([]ProjectLog, error) 
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}

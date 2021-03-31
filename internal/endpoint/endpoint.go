@@ -219,6 +219,9 @@ func listEndpoints(t *terminal.Terminal) error {
 	endpoints, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		ProjectID: project.Id,
 	})
+	if err != nil {
+		return err
+	}
 
 	// print
 	t.Vprintf("Endpoints in project %s:\n", project.Name)

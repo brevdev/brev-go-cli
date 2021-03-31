@@ -36,7 +36,7 @@ func (a *Agent) GetVariables(projectID string) ([]ProjectVariable, error) {
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (a *Agent) AddVariable(projectID string, name string, value string) (*Respo
 			"project_id": projectID,
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (a *Agent) RemoveVariable(variableID string) (*ResponseRemoveVariable, erro
 			{"Authorization", "Bearer " + a.Key.AccessToken},
 		},
 	}
-	response, err := request.Submit()
+	response, err := request.SubmitStrict()
 	if err != nil {
 		return nil, err
 	}

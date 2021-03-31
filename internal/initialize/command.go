@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"fmt"
+	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 	"os"
 	"strings"
 
@@ -36,14 +37,17 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 				t.Vprint(t.Yellow("\nInitializing project %s", project))
 			}
 
-			token, _ := auth.GetToken()
+			token, err := auth.GetToken()
+			if err != nil {
+				return err
+			}
+
 			brevAgent := brev_api.Agent{
 				Key: token,
 			}
 			projects, err := brevAgent.GetProjects()
 			if err != nil {
-				t.Errprint(err, "Failed to retrieve projects")
-				return err
+				return fmt.Errorf("failed to retrieve projects %v", err)
 			}
 
 			if project == "" {
@@ -58,7 +62,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 				if v.Name == project {
 					err = initExistingProj(v, t)
 					if err != nil {
-						return err
+						return fmt.Errorf("failed to initialize project %v", err)
 					}
 					break // in case of error where multiple projects share name. We should prohibit this.
 				}
@@ -191,20 +195,46 @@ func initNewProject(t *terminal.Terminal) error {
 	projectResponse, _ := brevAgent.CreateProject(projName)
 	project := projectResponse.Project
 
+	projectFilePath := cwd + "/" + files.GetBrevDirectory() + "/" + files.GetProjectsFile()
+	endpointsFilePath := cwd + "/" + files.GetBrevDirectory() + "/" + files.GetEndpointsFile()
+	activeProjectsFilePath := files.GetActiveProjectsPath()
+
+	// Check if this is already an existing project
+	if projectFileExists, err := files.Exists(projectFilePath); err != nil {
+		return err
+	} else if projectFileExists {
+		return &brev_errors.InitExistingProjectFile{}
+	}
+	if endpointsFileExists, err := files.Exists(endpointsFilePath); err != nil {
+		return err
+	} else if endpointsFileExists {
+		return &brev_errors.InitExistingEndpointsFile{}
+	}
+
 	t.Vprint(t.Green("\nCreating local files..."))
 
 	// Make project.json
-	err = files.OverwriteJSON(cwd+"/"+files.GetBrevDirectory()+"/"+files.GetProjectsFile(), project)
+	err = files.OverwriteJSON(projectFilePath, project)
 	if err != nil {
 		t.Errprint(err, "Failed to write project to local file")
 		return err
 	}
 
 	// Make endpoints.json
-	err = files.OverwriteJSON(cwd+"/"+files.GetBrevDirectory()+"/"+files.GetEndpointsFile(), []string{})
+	err = files.OverwriteJSON(endpointsFilePath, []string{})
 	if err != nil {
 		t.Errprint(err, "Failed to write project to local file")
 		return err
+	}
+
+	// Make active_projects.json if not exists
+	if activeProjectsFilePathExists, err := files.Exists(activeProjectsFilePath); err != nil {
+		return err
+	} else if !activeProjectsFilePathExists {
+		err = files.OverwriteJSON(activeProjectsFilePath, []string{})
+		if err != nil {
+			return fmt.Errorf("failed to write active projects to global file %v", err)
+		}
 	}
 
 	// TODO: create shared code module
@@ -219,7 +249,7 @@ func initNewProject(t *terminal.Terminal) error {
 
 	if !brev_api.StringInList(cwd, currBrevDirectories) {
 		currBrevDirectories = append(currBrevDirectories, cwd)
-		err = files.OverwriteJSON(files.GetActiveProjectsPath(), currBrevDirectories)
+		err = files.OverwriteJSON(activeProjectsFilePath, currBrevDirectories)
 		if err != nil {
 			t.Errprint(err, "Failed to write projects to project file")
 			return err
