@@ -1,5 +1,5 @@
 BIN_NAME?=brev
-BIN_VERSION?=0.1.2
+BIN_VERSION?=0.1.3
 API_KEY_COTTER?=unknown
 
 GOCMD=GO
@@ -43,13 +43,6 @@ test_unit:
 
 fmt:
 	$(GOFMT) ./...
-
-dist: build dist-linux dist-darwin
-
-dist-linux:
-	mkdir -p $(PATH_DIST)/nix
-	tar -C $(PATH_BIN)/nix/ -czf $(PATH_DIST)/nix/brev-nix-64.tar.gz $(BIN_NAME)
-	shasum -a 256 $(PATH_DIST)/nix/brev-nix-64.tar.gz | awk '{print $$1}' > $(PATH_DIST)/nix/brev-nix-64.tar.gz.sha256
 
 dist-homebrew: darwin-homebrew
 	mkdir -p $(PATH_DIST)/homebrew
