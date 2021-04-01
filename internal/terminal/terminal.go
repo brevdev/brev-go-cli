@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_errors"
+	"github.com/schollz/progressbar/v3"
 )
 
 type Terminal struct {
@@ -18,6 +19,8 @@ type Terminal struct {
 	Green  func(format string, a ...interface{}) string
 	Yellow func(format string, a ...interface{}) string
 	Red    func(format string, a ...interface{}) string
+
+	NewProgressBar func(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar
 }
 
 func (t *Terminal) Init(verbose bool) {
@@ -35,6 +38,7 @@ func (t *Terminal) Init(verbose bool) {
 	t.Green = color.New(color.FgGreen).SprintfFunc()
 	t.Yellow = color.New(color.FgYellow).SprintfFunc()
 	t.Red = color.New(color.FgRed).SprintfFunc()
+	t.NewProgressBar = NewProgressBar
 }
 
 func (t *Terminal) Print(a string) {
@@ -85,4 +89,21 @@ type silentWriter struct{}
 
 func (w silentWriter) Write(p []byte) (n int, err error) {
 	return 0, nil
+}
+
+func NewProgressBar(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar {
+	bar := progressbar.NewOptions(100,
+		progressbar.OptionOnCompletion(onComplete),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(15),
+		progressbar.OptionSetDescription(fmt.Sprintf("[cyan][%s/%s][reset] %s", step, stepTotal, description)),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]🥞[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
+	return bar
 }

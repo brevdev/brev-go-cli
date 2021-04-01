@@ -84,6 +84,10 @@ func push(t *terminal.Terminal) error {
 
 func pull(t *terminal.Terminal) error {
 
+	bar1 := t.NewProgressBar("\nPulling changes from the console", "1", "3", func() {
+		t.Vprint(t.Green("\n\nYour project is synced 🥞"))
+	})
+
 	// TODO: module/shared code
 	t.Vprint(t.Green("\nPulling changes from the console..."))
 
@@ -91,6 +95,11 @@ func pull(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
+	bar1.Add(10)
+	bar1.Add(1)
+	bar1.Add(1)
+	bar1.Add(1)
+	bar1.Add(1)
 
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
@@ -121,6 +130,7 @@ func pull(t *terminal.Terminal) error {
 
 	for _, v := range remoteEndpoints {
 		t.Vprint(t.Green("\nPulling ep %s", v.Name))
+		bar1.Add(1)
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
