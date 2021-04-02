@@ -20,7 +20,8 @@ type Terminal struct {
 	Yellow func(format string, a ...interface{}) string
 	Red    func(format string, a ...interface{}) string
 
-	NewProgressBar func(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar
+	// NewProgressBar func(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar
+	NewProgressBar func(description string, steps int, onComplete func()) *progressbar.ProgressBar
 }
 
 func (t *Terminal) Init(verbose bool) {
@@ -91,13 +92,15 @@ func (w silentWriter) Write(p []byte) (n int, err error) {
 	return 0, nil
 }
 
-func NewProgressBar(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar {
-	bar := progressbar.NewOptions(100,
+func NewProgressBar(description string, steps int, onComplete func()) *progressbar.ProgressBar {
+	// func NewProgressBar(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar {
+	bar := progressbar.NewOptions(steps,
 		progressbar.OptionOnCompletion(onComplete),
 		progressbar.OptionEnableColorCodes(true),
-		progressbar.OptionShowBytes(true),
+		progressbar.OptionShowBytes(false),
 		progressbar.OptionSetWidth(15),
-		progressbar.OptionSetDescription(fmt.Sprintf("[cyan][%s/%s][reset] %s", step, stepTotal, description)),
+		progressbar.OptionSetDescription(fmt.Sprintf(description)),
+		// progressbar.OptionSetDescription(fmt.Sprintf("[cyan][%s/%s][reset] %s", step, stepTotal, description)),
 		progressbar.OptionSetTheme(progressbar.Theme{
 			Saucer:        "[green]=[reset]",
 			SaucerHead:    "[green]🥞[reset]",

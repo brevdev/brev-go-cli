@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/andreyvit/diff"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -84,22 +85,18 @@ func push(t *terminal.Terminal) error {
 
 func pull(t *terminal.Terminal) error {
 
-	bar1 := t.NewProgressBar("\nPulling changes from the console", "1", "3", func() {
-		t.Vprint(t.Green("\n\nYour project is synced 🥞"))
+	bar1 := t.NewProgressBar("\nFetching code from the console", 100, func() {
+
 	})
 
+	bar1.Add(2)
 	// TODO: module/shared code
-	t.Vprint(t.Green("\nPulling changes from the console..."))
+	// t.Vprint(t.Green("\nPulling changes from the console..."))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
-	bar1.Add(10)
-	bar1.Add(1)
-	bar1.Add(1)
-	bar1.Add(1)
-	bar1.Add(1)
 
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
@@ -128,8 +125,11 @@ func pull(t *terminal.Terminal) error {
 
 	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
 
+	bar1.ChangeMax(len(remoteEndpoints))
+
 	for _, v := range remoteEndpoints {
-		t.Vprint(t.Green("\nPulling ep %s", v.Name))
+		bar1.Describe(t.Green("Pulling ep %s\n", v.Name))
+		// t.Vprint(t.Green("\nPulling ep %s", v.Name))
 		bar1.Add(1)
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
@@ -137,6 +137,9 @@ func pull(t *terminal.Terminal) error {
 			t.Errprint(err, "Failed to write code to local file")
 			return err
 		}
+		time.Sleep(100 * time.Millisecond)
+		// t.Vprint(t.Yellow("\nPulled ep %s", v.Name))
+
 	}
 
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
