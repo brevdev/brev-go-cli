@@ -2,7 +2,6 @@ package brev_api
 
 import (
 	"github.com/brevdev/brev-go-cli/internal/requests"
-	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
 type Module struct {
@@ -11,6 +10,7 @@ type Module struct {
 	CreateDate string `json:"create_date"`
 	ProjectId  string `json:"project_id"`
 	UserId     string `json:"user_id"`
+	Source     string `json:"source"`
 }
 
 type Modules struct {
@@ -22,7 +22,7 @@ type ResponseUpdateModule struct {
 	StdOut string `json:"stdout"`
 }
 
-func (a *Agent) GetModules(t *terminal.Terminal) (*Modules, error) {
+func (a *Agent) GetModules() (*Modules, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("module"),
@@ -35,14 +35,14 @@ func (a *Agent) GetModules(t *terminal.Terminal) (*Modules, error) {
 	}
 	response, err := request.SubmitStrict()
 	if err != nil {
-		t.Errprint(err, "Failed to get modules")
+		// t.Errprint(err, "Failed to get modules")
 		return nil, err
 	}
 
 	var payload Modules
 	err = response.UnmarshalPayload(&payload)
 	if err != nil {
-		t.Errprint(err, "Failed to deserialize response payload")
+		// t.Errprint(err, "Failed to deserialize response payload")
 		return nil, err
 	}
 

@@ -45,6 +45,10 @@ type GetEndpointsOptions struct {
 	ProjectID string
 }
 
+type GetModulesOptions struct {
+	ProjectID string
+}
+
 type GetProjectsOptions struct {
 	ID   string
 	Name string
@@ -292,6 +296,28 @@ func (c *RemoteContext) GetProjects(options *GetProjectsOptions) ([]brev_api.Pro
 		}
 	}
 	return filteredProjects, nil
+}
+func (c *RemoteContext) GetModule(options *GetModulesOptions) (*brev_api.Module, error) {
+	modules, err := c.agent.GetModules()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get endpoints: %s", err)
+	}
+
+	if options == nil {
+		return nil, fmt.Errorf("Project ID is required %s", err)
+	}
+
+	var module brev_api.Module
+	for _, v := range modules.Modules {
+		if v.ProjectId == options.ProjectID {
+			module = v
+		}
+	}
+	if module == (brev_api.Module{}) {
+		return nil, fmt.Errorf("Invalid Project ID %s", err)
+	}
+
+	return &module, nil
 }
 
 // GetEndpoints retrieves remote endpoints for the context user. An optional GetEndpointsOptions
