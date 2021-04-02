@@ -88,6 +88,13 @@ func pull(t *terminal.Terminal) error {
 		return err
 	}
 
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{
+		ProjectID: project.Id,
+	})
+	t.Vprint(t.Green("\nPulling %s", module.Name))
+
+	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
+
 	for _, v := range remoteEndpoints {
 		t.Vprint(t.Green("\nPulling ep %s", v.Name))
 
