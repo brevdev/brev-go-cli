@@ -49,6 +49,12 @@ type GetModulesOptions struct {
 	ProjectID string
 }
 
+type SetModulesOptions struct {
+	ProjectID string
+	ModuleID  string
+	Source    string
+}
+
 type GetProjectsOptions struct {
 	ID   string
 	Name string
@@ -297,10 +303,11 @@ func (c *RemoteContext) GetProjects(options *GetProjectsOptions) ([]brev_api.Pro
 	}
 	return filteredProjects, nil
 }
+
 func (c *RemoteContext) GetModule(options *GetModulesOptions) (*brev_api.Module, error) {
 	modules, err := c.agent.GetModules()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get endpoints: %s", err)
+		return nil, fmt.Errorf("failed to get module: %s", err)
 	}
 
 	if options == nil {
@@ -318,6 +325,20 @@ func (c *RemoteContext) GetModule(options *GetModulesOptions) (*brev_api.Module,
 	}
 
 	return &module, nil
+}
+
+func (c *RemoteContext) SetModule(options *SetModulesOptions) (*brev_api.Module, error) {
+
+	if options == nil {
+		return nil, fmt.Errorf("Project ID is required %s")
+	}
+
+	module, err := c.agent.UpdateModule(options.ModuleID, options.Source)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update module: %s", err)
+	}
+
+	return &module.Module, nil
 }
 
 // GetEndpoints retrieves remote endpoints for the context user. An optional GetEndpointsOptions

@@ -17,12 +17,36 @@ func push(t *terminal.Terminal) error {
 	// TODO: push module/shared code
 	t.Vprint(t.Green("\nPushing your changes..."))
 
+	path, err := getRootProjectDir(t)
+	if err != nil {
+		return err
+	}
+
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
 
 	project, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+
+	// update module
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{ProjectID: project.Id})
+	if err != nil {
+		return err
+	}
+	module.Source, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, module.Name))
+	if err != nil {
+		return err
+	}
+
+	_, err = brevCtx.Remote.SetModule(&brev_ctx.SetModulesOptions{
+		ProjectID: project.Id,
+		ModuleID:  module.Id,
+		Source:    module.Source,
+	})
 	if err != nil {
 		return err
 	}
@@ -36,11 +60,6 @@ func push(t *terminal.Terminal) error {
 
 	for _, v := range endpoints {
 		t.Vprint(t.Green("\nUpdating ep %s", v.Name))
-
-		path, err := getRootProjectDir(t)
-		if err != nil {
-			return err
-		}
 
 		v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
 		if err != nil {
@@ -91,6 +110,9 @@ func pull(t *terminal.Terminal) error {
 	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{
 		ProjectID: project.Id,
 	})
+	if err != nil {
+		return err
+	}
 	t.Vprint(t.Green("\nPulling %s", module.Name))
 
 	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
