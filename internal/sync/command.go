@@ -33,6 +33,8 @@ func push(t *terminal.Terminal) error {
 	}
 
 	// update module
+	t.Vprint(t.Green("\nUpdating %s", "shared code"))
+
 	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{ProjectID: project.Id})
 	if err != nil {
 		return err
@@ -174,6 +176,33 @@ func diffCmd(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
+
+	t.Vprint(t.Yellow("Diff for Project %s :", project.Name))
+
+	// Diff Shared Code/Module
+	path, err := getRootProjectDir(t)
+	if err != nil {
+		return err
+	}
+
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{ProjectID: project.Id})
+	if err != nil {
+		return err
+	}
+
+	localModule, err := files.ReadString(fmt.Sprintf("%s/%s.py", path, module.Name))
+	if err != nil {
+		return err
+	}
+
+	moduleDiff := diffTwoFiles(module.Source, localModule)
+	diffString := printDiff("Shared", moduleDiff, t)
+	if len(diffString) > 0 {
+		t.Vprint(diffString)
+		numChanges += 1
+	}
+
+	// Diff Endpoints
 	localEps, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		ProjectID: project.Id,
 	})
@@ -196,7 +225,6 @@ func diffCmd(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	t.Vprint(t.Yellow("Diff for Project %s :", project.Name))
 
 	// per local endpoint, diff the remote contents
 	for _, v := range localEps {
