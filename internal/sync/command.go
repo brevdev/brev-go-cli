@@ -15,8 +15,11 @@ import (
 
 func push(t *terminal.Terminal) error {
 
-	// TODO: push module/shared code
-	t.Vprint(t.Green("\nPushing your changes..."))
+	bar1 := t.NewProgressBar("Pushing code to the console", 100, func() {
+
+	})
+
+	bar1.Add(2)
 
 	path, err := getRootProjectDir(t)
 	if err != nil {
@@ -34,7 +37,8 @@ func push(t *terminal.Terminal) error {
 	}
 
 	// update module
-	t.Vprint(t.Green("\nUpdating %s", "shared code"))
+	bar1.Describe(t.Green("Updating %s", "shared code"))
+	bar1.Add(1)
 
 	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{ProjectID: project.Id})
 	if err != nil {
@@ -62,7 +66,8 @@ func push(t *terminal.Terminal) error {
 	}
 
 	for _, v := range endpoints {
-		t.Vprint(t.Green("\nUpdating ep %s", v.Name))
+		bar1.Describe(t.Green("Updating ep %s\n", v.Name))
+		bar1.Add(1)
 
 		v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
 		if err != nil {
@@ -78,7 +83,8 @@ func push(t *terminal.Terminal) error {
 
 	}
 
-	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
+	bar1.Describe(t.Green("\n\nYour project is synced 🥞"))
+	bar1.Add(1)
 
 	return nil
 }
@@ -90,8 +96,6 @@ func pull(t *terminal.Terminal) error {
 	})
 
 	bar1.Add(2)
-	// TODO: module/shared code
-	// t.Vprint(t.Green("\nPulling changes from the console..."))
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -114,6 +118,7 @@ func pull(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
+	bar1.ChangeMax(len(remoteEndpoints) + 1)
 
 	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{
 		ProjectID: project.Id,
@@ -121,15 +126,13 @@ func pull(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	t.Vprint(t.Green("\nPulling %s", module.Name))
+	bar1.Describe(t.Green("Pulling %s\n", module.Name))
+	bar1.Add(1)
 
 	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
 
-	bar1.ChangeMax(len(remoteEndpoints))
-
 	for _, v := range remoteEndpoints {
 		bar1.Describe(t.Green("Pulling ep %s\n", v.Name))
-		// t.Vprint(t.Green("\nPulling ep %s", v.Name))
 		bar1.Add(1)
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
@@ -138,7 +141,6 @@ func pull(t *terminal.Terminal) error {
 			return err
 		}
 		time.Sleep(100 * time.Millisecond)
-		// t.Vprint(t.Yellow("\nPulled ep %s", v.Name))
 
 	}
 
