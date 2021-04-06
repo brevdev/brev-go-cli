@@ -14,7 +14,7 @@ import (
 )
 
 func addEndpoint(name string, t *terminal.Terminal) error {
-	t.Vprint("\nAdding endpoint " + t.Yellow(name))
+	bar1 := t.NewProgressBar("\nAdding endpoint "+t.Yellow(name), 3, func() {})
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -22,15 +22,16 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	}
 
 	// get current context project
-	t.Print("Determining local project...\n")
+	bar1.Describe("Determining local project...\n")
+
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
 	}
-	t.Print(fmt.Sprintf("Local project: %s\n", project.Name))
+	// t.Print(fmt.Sprintf("Local project: %s\n", project.Name))
 
 	// store endpoint in remote state
-	t.Print("Submitting request to save new endpoint\n")
+	bar1.Describe("Submitting request to create new endpoint\n")
 	endpoint, err := brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
 		ProjectId: project.Id,
 		Name:      name,
@@ -38,12 +39,11 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	t.Vprint(t.Green("\nEndpoint "))
-	t.Vprint(t.Yellow("%s", name))
-	t.Vprint(t.Green(" created and deployed 🚀"))
+	bar1.Add(1)
+	t.Vprint(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" created and deployed 🚀"))
 
 	// store endpoint in local state
-	t.Print("Saving endpoint locally...\n")
+	bar1.Describe("Saving endpoint locally...\n")
 	err = brevCtx.Local.SetEndpoint(*endpoint)
 	if err != nil {
 		return err
@@ -61,8 +61,9 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 		t.Errprint(err, "\nFailed to write endpoints to local file")
 		return err
 	}
-	t.Vprint(t.Yellow("\n%s.py", name))
-	t.Vprint(t.Green(" created 🥞"))
+	bar1.Add(2)
+	bar1.Describe(t.Green("\nEndpoint ") + t.Yellow("%s.py", name) + t.Green(" created 🥞"))
+	bar1.Add(1)
 
 	return nil
 }
