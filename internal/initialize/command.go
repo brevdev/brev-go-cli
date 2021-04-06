@@ -31,17 +31,19 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
+			bar0 := t.NewProgressBar("", 4, func() {})
+
 			if project == "" {
-				t.Vprint(t.Yellow("\nInitializing new project"))
+				bar0.Describe(t.Yellow("\nInitializing new project"))
 			} else {
-				t.Vprint(t.Yellow("\nInitializing project %s", project))
+				bar0.Describe(t.Yellow("\nInitializing project %s", project))
 			}
 
 			token, err := auth.GetToken()
 			if err != nil {
 				return err
 			}
-
+			bar0.Add(1)
 			brevAgent := brev_api.Agent{
 				Key: token,
 			}
@@ -49,6 +51,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to retrieve projects %v", err)
 			}
+			bar0.Add(1)
 
 			if project == "" {
 				err = initNewProject(t)
@@ -105,8 +108,8 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
 		return err
 	}
 
-	t.Vprint("\nCloning Brev project in " + t.Yellow(cwd))
-	t.Vprint(t.Green("\nCreating local files..."))
+	bar1 := t.NewProgressBar("\nCloning Brev project in "+t.Yellow(cwd), 2, func() {})
+	bar1.Describe("creating local files")
 
 	// Get endpoints for project
 	brevCtx, err := brev_ctx.New()
@@ -155,6 +158,7 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
 		}
 	}
 
+	bar1.Add(1)
 	// TODO: copy shared code
 
 	// Create endpoint files
@@ -166,10 +170,11 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
 		}
 	}
 
-	t.Vprint(t.Green("\n\nBrev project %s cloned.", project.Name))
-	t.Vprint(t.Yellow("\ncd %s", project.Name))
-	t.Vprint(t.Green(" and get started!"))
-	t.Vprint(t.Green("\n\nHappy Hacking 🥞"))
+	bar1.Describe(t.Green("\n\nBrev project %s cloned.", project.Name))
+	bar1.Add(1)
+	completionString := t.Yellow("\ncd %s", project.Name) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞")
+
+	t.Vprint(completionString)
 
 	return nil
 }
@@ -182,7 +187,7 @@ func initNewProject(t *terminal.Terminal) error {
 		return err
 	}
 
-	t.Vprint("\nCreating Brev project in " + t.Yellow(cwd))
+	bar1 := t.NewProgressBar("Creating Brev project in "+t.Yellow(cwd), 2, func() {})
 
 	dirs := strings.Split(cwd, "/")
 	projName := dirs[len(dirs)-1]
@@ -211,7 +216,8 @@ func initNewProject(t *terminal.Terminal) error {
 		return &brev_errors.InitExistingEndpointsFile{}
 	}
 
-	t.Vprint(t.Green("\nCreating local files..."))
+	bar1.Describe(t.Green("Creating local files..."))
+	bar1.Add(1)
 
 	// Make project.json
 	err = files.OverwriteJSON(projectFilePath, project)
@@ -255,10 +261,11 @@ func initNewProject(t *terminal.Terminal) error {
 			return err
 		}
 	}
-	t.Vprint(t.Green("\n\nBrev project %s created and deployed.", projName))
-	t.Vprint(t.Yellow("\ncd %s", projName))
-	t.Vprint(t.Green(" and get started!"))
-	t.Vprint(t.Green("\n\nHappy Hacking 🥞"))
+
+	bar1.Describe(t.Green("\n\nBrev project %s created and deployed.", projName))
+	bar1.Add(1)
+	completionString := t.Green(t.Yellow("\ncd %s", projName) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞"))
+	t.Vprint(completionString)
 
 	return nil
 
