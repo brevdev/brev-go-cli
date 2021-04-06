@@ -110,3 +110,8 @@ func NewProgressBar(description string, steps int, onComplete func()) *progressb
 		}))
 	return bar
 }
+
+// func (p *progressbar.ProgressBar) SmoothAdd(amnt int) {
+// 	curr := p.
+// 	max := p.GetMax()
+// }

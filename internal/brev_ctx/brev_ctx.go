@@ -409,11 +409,10 @@ func (c *RemoteContext) SetEndpoint(endpoint brev_api.Endpoint) (*brev_api.Endpo
 
 // DeleteEndpoint removes the remote endpoint with the given ID.
 func (c *RemoteContext) DeleteEndpoint(epId string) error {
-	obj, err := c.agent.RemoveEndpoint(epId)
+	_, err := c.agent.RemoveEndpoint(epId)
 	if err != nil {
 		return fmt.Errorf("failed to delete endpoint: %s", err)
 	}
-	fmt.Println(obj)
 	return nil
 }
 
