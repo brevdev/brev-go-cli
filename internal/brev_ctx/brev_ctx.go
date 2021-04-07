@@ -93,7 +93,6 @@ func (c *GlobalContext) GetProjectPaths() ([]string, error) {
 	if !globalActiveProjectsFileExists {
 		paths := []string{}
 		files.OverwriteJSON(getGlobalActiveProjectsPath(), paths)
-		// return nil
 		return nil, nil
 	}
 
