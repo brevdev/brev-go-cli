@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/schollz/progressbar/v3"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_errors"
-	"github.com/schollz/progressbar/v3"
 )
 
 type ProgressBar struct {
 	NewProgressBar func(description string, onComplete func()) *ProgressBarWrapper
+	Bar            *progressbar.ProgressBar
 	CurrPercentage int
 }
 type Terminal struct {
@@ -25,7 +26,7 @@ type Terminal struct {
 	Yellow func(format string, a ...interface{}) string
 	Red    func(format string, a ...interface{}) string
 
-	ProgressBar
+	Bar ProgressBar
 }
 
 func (t *Terminal) Init(verbose bool) {
@@ -43,8 +44,8 @@ func (t *Terminal) Init(verbose bool) {
 	t.Green = color.New(color.FgGreen).SprintfFunc()
 	t.Yellow = color.New(color.FgYellow).SprintfFunc()
 	t.Red = color.New(color.FgRed).SprintfFunc()
-	t.NewProgressBar = NewProgressBar
-	t.CurrPercentage = 0
+	// t.NewProgressBar = NewProgressBar
+	// t.CurrPercentage = 0
 }
 
 func (t *Terminal) Print(a string) {
@@ -97,7 +98,7 @@ func (w silentWriter) Write(p []byte) (n int, err error) {
 	return 0, nil
 }
 
-func NewProgressBar(description string, onComplete func()) *ProgressBarWrapper {
+func (t *Terminal) NewProgressBar(description string, onComplete func()) *ProgressBar {
 	bar := progressbar.NewOptions(100,
 		progressbar.OptionOnCompletion(onComplete),
 		progressbar.OptionEnableColorCodes(true),
@@ -111,20 +112,23 @@ func NewProgressBar(description string, onComplete func()) *ProgressBarWrapper {
 			BarStart:      "[",
 			BarEnd:        "]",
 		}))
-	return (*ProgressBarWrapper)(bar)
+
+	return &ProgressBar{
+		Bar:            bar,
+		CurrPercentage: 0,
+	}
 }
 
 type ProgressBarWrapper progressbar.ProgressBar
 
-func (bar *ProgressBarWrapper) AdvanceTo(percentage int, t *Terminal) {
-	if percentage > t.CurrPercentage {
-		for i := 0; i < percentage; i++ {
-			t.CurrPercentage += 1
-			(*progressbar.ProgressBar)(bar).Add(1)
-			time.Sleep(5 * time.Millisecond)
-		}
+func (bar *ProgressBar) AdvanceTo(percentage int, t *Terminal) {
+	for bar.CurrPercentage < percentage && bar.CurrPercentage <= 100 {
+		bar.CurrPercentage += 1
+		bar.Bar.Add(1)
+		time.Sleep(5 * time.Millisecond)
 	}
 }
-func (bar *ProgressBarWrapper) Describe(text string) {
-	(*progressbar.ProgressBar)(bar).Describe(text)
+
+func (bar *ProgressBar) Describe(text string) {
+	bar.Bar.Describe(text)
 }

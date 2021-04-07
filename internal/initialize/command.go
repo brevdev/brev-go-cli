@@ -100,7 +100,7 @@ func getProjectNames() []string {
 	return projNames
 }
 
-func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *terminal.ProgressBarWrapper) error {
+func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *terminal.ProgressBar) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -178,7 +178,7 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *termi
 	return nil
 }
 
-func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBarWrapper) error {
+func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBar) error {
 
 	// Get Project Name (parent folder-- behavior just like git init)
 	cwd, err := os.Getwd()
