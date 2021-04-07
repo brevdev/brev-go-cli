@@ -29,7 +29,6 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	// t.Print(fmt.Sprintf("Local project: %s\n", project.Name))
 
 	// store endpoint in remote state
 	bar.Describe("Submitting request to create new endpoint")
