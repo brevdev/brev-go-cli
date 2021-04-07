@@ -1,5 +1,5 @@
 BIN_NAME?=brev
-BIN_VERSION?=0.1.4
+BIN_VERSION?=0.1.5
 API_KEY_COTTER?=unknown
 
 GOCMD=GO
@@ -36,6 +36,8 @@ darwin-homebrew:
 			-o $(PATH_BIN)/homebrew/$(BIN_NAME)-big_sur -v $(PATH_MAIN)
 	env CGO_CFLAGS="-mmacosx-version-min=10.15" CGO_LDFLAGS="-mmacosx-version-min=10.15" GOOS=darwin GOARCH=amd64 $(BUILDCMD) \
 			-o $(PATH_BIN)/homebrew/$(BIN_NAME)-catalina -v $(PATH_MAIN)
+	env CGO_CFLAGS="-mmacosx-version-min=10.14" CGO_LDFLAGS="-mmacosx-version-min=10.14" GOOS=darwin GOARCH=amd64 $(BUILDCMD) \
+			-o $(PATH_BIN)/homebrew/$(BIN_NAME)-mojave -v $(PATH_MAIN)
 
 test_unit:
 	$(GOTEST) -v $(PATH_PROJECT)/cmd/...
