@@ -15,11 +15,9 @@ import (
 
 func push(t *terminal.Terminal) error {
 
-	bar1 := t.NewProgressBar("Pushing code to the console", 100, func() {
+	bar := t.NewProgressBar("Pushing code to the console", func() {})
 
-	})
-
-	bar1.Add(2)
+	bar.AdvanceTo(40, t)
 
 	path, err := getRootProjectDir(t)
 	if err != nil {
@@ -37,8 +35,7 @@ func push(t *terminal.Terminal) error {
 	}
 
 	// update module
-	bar1.Describe(t.Green("Updating %s", "shared code"))
-	bar1.Add(1)
+	bar.Describe(t.Green("Updating %s", "shared code"))
 
 	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{ProjectID: project.Id})
 	if err != nil {
@@ -65,10 +62,9 @@ func push(t *terminal.Terminal) error {
 		return err
 	}
 
+	t.Vprint("\n") // separating the below output from the loadingbar
 	for _, v := range endpoints {
-		bar1.Describe(t.Green("Updating ep %s\n", v.Name))
-		bar1.Add(1)
-
+		t.Vprint(t.Green("Updating ep %s", v.Name))
 		v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
 		if err != nil {
 			return err
@@ -83,19 +79,17 @@ func push(t *terminal.Terminal) error {
 
 	}
 
-	bar1.Describe(t.Green("\n\nYour project is synced 🥞"))
-	bar1.Add(1)
+	bar.AdvanceTo(100, t)
+	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
 
 	return nil
 }
 
 func pull(t *terminal.Terminal) error {
 
-	bar1 := t.NewProgressBar("\nFetching code from the console", 100, func() {
+	bar := t.NewProgressBar("Fetching code from the console", func() {})
 
-	})
-
-	bar1.Add(2)
+	bar.AdvanceTo(40, t)
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -118,7 +112,6 @@ func pull(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	bar1.ChangeMax(len(remoteEndpoints) + 1)
 
 	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{
 		ProjectID: project.Id,
@@ -126,14 +119,14 @@ func pull(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	bar1.Describe(t.Green("Pulling %s\n", module.Name))
-	bar1.Add(1)
+	bar.Describe(t.Green("Pulling %s", module.Name))
+	bar.AdvanceTo(40, t)
 
 	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
 
+	t.Vprint("\n") // separating the below output from the loadingbar
 	for _, v := range remoteEndpoints {
-		bar1.Describe(t.Green("Pulling ep %s\n", v.Name))
-		bar1.Add(1)
+		t.Vprint(t.Green("Pulling ep %s", v.Name))
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
@@ -143,6 +136,7 @@ func pull(t *terminal.Terminal) error {
 		time.Sleep(100 * time.Millisecond)
 
 	}
+	bar.AdvanceTo(100, t)
 
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
 
@@ -180,6 +174,9 @@ func getRootProjectDir(t *terminal.Terminal) (string, error) {
 
 func diffCmd(t *terminal.Terminal) error {
 
+	bar := t.NewProgressBar("Checking with the console", func() {})
+	bar.AdvanceTo(30, t)
+
 	numChanges := 0
 
 	brevCtx, err := brev_ctx.New()
@@ -192,8 +189,6 @@ func diffCmd(t *terminal.Terminal) error {
 		return err
 	}
 
-	t.Vprint(t.Yellow("Diff for Project %s :", project.Name))
-
 	// Diff Shared Code/Module
 	path, err := getRootProjectDir(t)
 	if err != nil {
@@ -205,10 +200,20 @@ func diffCmd(t *terminal.Terminal) error {
 		return err
 	}
 
+	bar.AdvanceTo(30, t)
+	remoteEps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
+	if err != nil {
+		return err
+	}
+	bar.AdvanceTo(100, t)
+
 	localModule, err := files.ReadString(fmt.Sprintf("%s/%s.py", path, module.Name))
 	if err != nil {
 		return err
 	}
+	t.Vprint(t.Yellow("\nDiff for Project %s :", project.Name))
 
 	moduleDiff := diffTwoFiles(module.Source, localModule)
 	diffString := printDiff("Shared", moduleDiff, t)
@@ -228,17 +233,12 @@ func diffCmd(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	remoteEps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
-		ProjectID: project.Id,
-	})
+
 	var remoteEPIds []string
 	remoteEpMap := make(map[string]brev_api.Endpoint)
 	for _, v := range remoteEps {
 		remoteEPIds = append(remoteEPIds, v.Id)
 		remoteEpMap[v.Id] = v
-	}
-	if err != nil {
-		return err
 	}
 
 	// per local endpoint, diff the remote contents

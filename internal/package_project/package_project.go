@@ -10,14 +10,14 @@ import (
 )
 
 func addPackage(name string, t *terminal.Terminal) error {
-	bar1 := t.NewProgressBar("\nAdding package "+t.Yellow(name), 2, func() {})
+	bar := t.NewProgressBar("Adding package "+t.Yellow(name), func() {})
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
 
-	bar1.Add(1)
+	bar.AdvanceTo(40, t)
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
@@ -29,9 +29,9 @@ func addPackage(name string, t *terminal.Terminal) error {
 		return err
 	}
 
-	finalStr := t.Green("\nPackage ") + t.Yellow("%s", name) + t.Green(" added successfully 🥞")
-	bar1.Describe(finalStr)
-	bar1.Add(1)
+	bar.AdvanceTo(100, t)
+	finalStr := t.Green("Package ") + t.Yellow("%s", name) + t.Green(" added successfully 🥞")
+	t.Vprint(finalStr)
 
 	t.Vprint(t.Yellow(`
 
@@ -43,7 +43,7 @@ The package might take a moment to fully install.
 }
 
 func removePackage(name string, t *terminal.Terminal) error {
-	bar1 := t.NewProgressBar("\nRemoving package "+t.Yellow(name), 2, func() {})
+	bar := t.NewProgressBar("Removing package "+t.Yellow(name), func() {})
 
 	packages, err := GetPackages(t)
 	if err != nil {
@@ -66,7 +66,7 @@ func removePackage(name string, t *terminal.Terminal) error {
 		Key: token,
 	}
 
-	bar1.Add(1)
+	bar.AdvanceTo(60, t)
 	_, err = brevAgent.RemovePackage(packageToRemove.Id)
 	if err != nil {
 		t.Errprintf(err, "Failed to remove package %s", name)
@@ -74,8 +74,10 @@ func removePackage(name string, t *terminal.Terminal) error {
 	}
 	finalStr := t.Green("\nPackage ") + t.Yellow("%s", name) + t.Green(" removed successfully 🥞")
 
-	bar1.Describe(finalStr)
-	bar1.Add(1)
+	// bar.Describe(finalStr)
+	bar.AdvanceTo(100, t)
+
+	t.Vprint(finalStr)
 
 	return nil
 }

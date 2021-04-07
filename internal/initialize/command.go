@@ -31,19 +31,19 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			bar0 := t.NewProgressBar("", 4, func() {})
+			bar := t.NewProgressBar("", func() {})
 
 			if project == "" {
-				bar0.Describe(t.Yellow("\nInitializing new project"))
+				bar.Describe(t.Yellow("Initializing new project"))
 			} else {
-				bar0.Describe(t.Yellow("\nInitializing project %s", project))
+				bar.Describe(t.Yellow("Initializing project %s", project))
 			}
 
 			token, err := auth.GetToken()
 			if err != nil {
 				return err
 			}
-			bar0.Add(1)
+			bar.AdvanceTo(20, t)
 			brevAgent := brev_api.Agent{
 				Key: token,
 			}
@@ -51,10 +51,10 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to retrieve projects %v", err)
 			}
-			bar0.Add(1)
+			bar.AdvanceTo(30, t)
 
 			if project == "" {
-				err = initNewProject(t)
+				err = initNewProject(t, bar)
 				if err != nil {
 					return err
 				}
@@ -63,7 +63,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 			for _, v := range projects {
 
 				if v.Name == project {
-					err = initExistingProj(v, t)
+					err = initExistingProj(v, t, bar)
 					if err != nil {
 						return fmt.Errorf("failed to initialize project %v", err)
 					}
@@ -100,7 +100,7 @@ func getProjectNames() []string {
 	return projNames
 }
 
-func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
+func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *terminal.ProgressBarWrapper) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -108,8 +108,8 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
 		return err
 	}
 
-	bar1 := t.NewProgressBar("\nCloning Brev project in "+t.Yellow(cwd), 2, func() {})
-	bar1.Describe("creating local files")
+	bar.Describe("\nCloning Brev project in " + t.Yellow(cwd))
+	bar.Describe("creating local files")
 
 	// Get endpoints for project
 	brevCtx, err := brev_ctx.New()
@@ -158,7 +158,6 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
 		}
 	}
 
-	bar1.Add(1)
 	// TODO: copy shared code
 
 	// Create endpoint files
@@ -170,8 +169,8 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
 		}
 	}
 
-	bar1.Describe(t.Green("\n\nBrev project %s cloned.", project.Name))
-	bar1.Add(1)
+	bar.Describe(t.Green("Brev project %s cloned.", project.Name))
+	bar.AdvanceTo(100, t)
 	completionString := t.Yellow("\ncd %s", project.Name) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞")
 
 	t.Vprint(completionString)
@@ -179,7 +178,7 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal) error {
 	return nil
 }
 
-func initNewProject(t *terminal.Terminal) error {
+func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBarWrapper) error {
 
 	// Get Project Name (parent folder-- behavior just like git init)
 	cwd, err := os.Getwd()
@@ -187,7 +186,7 @@ func initNewProject(t *terminal.Terminal) error {
 		return err
 	}
 
-	bar1 := t.NewProgressBar("Creating Brev project in "+t.Yellow(cwd), 2, func() {})
+	bar.Describe("Creating Brev project in " + t.Yellow(cwd))
 
 	dirs := strings.Split(cwd, "/")
 	projName := dirs[len(dirs)-1]
@@ -216,8 +215,8 @@ func initNewProject(t *terminal.Terminal) error {
 		return &brev_errors.InitExistingEndpointsFile{}
 	}
 
-	bar1.Describe(t.Green("Creating local files..."))
-	bar1.Add(1)
+	bar.Describe(t.Green("Creating local files..."))
+	bar.AdvanceTo(40, t)
 
 	// Make project.json
 	err = files.OverwriteJSON(projectFilePath, project)
@@ -262,8 +261,8 @@ func initNewProject(t *terminal.Terminal) error {
 		}
 	}
 
-	bar1.Describe(t.Green("\n\nBrev project %s created and deployed.", projName))
-	bar1.Add(1)
+	bar.Describe(t.Green("Brev project %s created and deployed.", projName))
+	bar.AdvanceTo(100, t)
 	completionString := t.Green(t.Yellow("\ncd %s", projName) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞"))
 	t.Vprint(completionString)
 

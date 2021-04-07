@@ -15,7 +15,7 @@ import (
 )
 
 func addEndpoint(name string, t *terminal.Terminal) error {
-	bar1 := t.NewProgressBar("\nAdding endpoint "+t.Yellow(name), 3, func() {})
+	bar := t.NewProgressBar("\nAdding endpoint "+t.Yellow(name), func() {})
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -23,7 +23,7 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	}
 
 	// get current context project
-	bar1.Describe("Determining local project...\n")
+	bar.Describe("Determining local project...")
 
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
@@ -32,7 +32,7 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	// t.Print(fmt.Sprintf("Local project: %s\n", project.Name))
 
 	// store endpoint in remote state
-	bar1.Describe("Submitting request to create new endpoint\n")
+	bar.Describe("Submitting request to create new endpoint")
 	endpoint, err := brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
 		ProjectId: project.Id,
 		Name:      name,
@@ -40,11 +40,10 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	bar1.Add(1)
-	t.Vprint(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" created and deployed 🚀"))
+	bar.AdvanceTo(30, t)
 
 	// store endpoint in local state
-	bar1.Describe("Saving endpoint locally...\n")
+	bar.Describe("Saving endpoint locally...")
 	err = brevCtx.Local.SetEndpoint(*endpoint)
 	if err != nil {
 		return err
@@ -62,16 +61,16 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 		t.Errprint(err, "\nFailed to write endpoints to local file")
 		return err
 	}
-	bar1.Add(2)
-	bar1.Describe(t.Green("\nEndpoint ") + t.Yellow("%s.py", name) + t.Green(" created 🥞"))
-	bar1.Add(1)
+	bar.AdvanceTo(100, t)
+
+	t.Vprint(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" created and deployed 🥞"))
 
 	return nil
 }
 
 func removeEndpoint(name string, t *terminal.Terminal) error {
-	bar1 := t.NewProgressBar("\nRemoving endpoint "+t.Yellow(name), 2, func() {})
-	bar1.Add(1)
+	bar := t.NewProgressBar("Removing endpoint "+t.Yellow(name), func() {})
+	bar.AdvanceTo(30, t)
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -96,8 +95,8 @@ func removeEndpoint(name string, t *terminal.Terminal) error {
 	}
 
 	brevCtx.Remote.DeleteEndpoint(eps[0].Id)
-	bar1.Describe(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" deleted."))
-	bar1.Add(1)
+	bar.Describe(t.Green("Endpoint ") + t.Yellow("%s", name) + t.Green(" deleted."))
+	bar.AdvanceTo(60, t)
 	// Remove the python file
 	files.DeleteFile(name + ".py")
 
@@ -112,16 +111,18 @@ func removeEndpoint(name string, t *terminal.Terminal) error {
 	files.OverwriteJSON(files.GetEndpointsPath(), allEndpoints)
 	brevCtx.Local.SetEndpoints(allEndpoints)
 
-	bar1.Describe(t.Green("\nFile ") + t.Yellow("%s.py", name) + t.Green(" removed."))
-	bar1.Add(1)
+	bar.Describe(t.Green("File ") + t.Yellow("%s.py", name) + t.Green(" removed."))
+	bar.AdvanceTo(100, t)
+
+	t.Vprint(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" removed from project ") + t.Yellow(project.Name) + " 🥞")
 
 	return nil
 }
 
 func runEndpoint(name string, method string, arg []string, jsonBody string, t *terminal.Terminal) error {
 	t.Vprint("\n")
-	bar1 := t.NewProgressBar("Running endpoint "+t.Yellow(name), 3, func() {})
-	bar1.Add(1)
+	bar := t.NewProgressBar("Running endpoint "+t.Yellow(name), func() {})
+	bar.AdvanceTo(40, t)
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -134,8 +135,8 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 		return err
 	}
 
-	bar1.Describe("Preparing endpoint")
-	bar1.Add(1)
+	bar.Describe("Preparing endpoint")
+	bar.AdvanceTo(80, t)
 	// get local endpoint for the given name
 	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		Name: name,
@@ -166,8 +167,8 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 		return fmt.Errorf(t.Red("failed to process JSON payload: %s", err))
 	}
 
-	bar1.Describe("Submitting the request")
-	bar1.Add(1)
+	bar.Describe("Submitting the request")
+	bar.AdvanceTo(100, t)
 
 	// submit request
 	request := &requests.RESTRequest{

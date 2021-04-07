@@ -23,14 +23,14 @@ func addVariable(name string, t *terminal.Terminal) error {
 	}
 	value := string(bytepw)
 
-	bar1 := t.NewProgressBar("\nAdding Variable "+t.Yellow(name), 2, func() {})
+	bar := t.NewProgressBar("Adding Variable "+t.Yellow(name), func() {})
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
 
-	bar1.Add(1)
+	bar.AdvanceTo(40, t)
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
@@ -39,22 +39,22 @@ func addVariable(name string, t *terminal.Terminal) error {
 	brevCtx.Remote.SetVariable(*project, name, value)
 
 	finalStr := t.Green("\nVariable ") + t.Yellow("%s", name) + t.Green(" added to your project 🥞")
-	bar1.Describe(finalStr)
-	bar1.Add(1)
+	bar.AdvanceTo(100, t)
+	t.Vprint(finalStr)
 
 	return nil
 }
 
 func removeVariable(name string, t *terminal.Terminal) error {
 
-	bar1 := t.NewProgressBar("\nRemoving Variable "+t.Yellow(name), 2, func() {})
+	bar1 := t.NewProgressBar("Removing Variable "+t.Yellow(name), func() {})
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
 
-	bar1.Add(1)
+	bar1.AdvanceTo(40, t)
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
@@ -84,8 +84,8 @@ func removeVariable(name string, t *terminal.Terminal) error {
 	}
 
 	finalStr := t.Green("\nVariable ") + t.Yellow("%s", name) + t.Green(" removed from your project 🥞")
-	bar1.Describe(finalStr)
-	bar1.Add(1)
+	bar1.AdvanceTo(100, t)
+	t.Vprint(finalStr)
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/fatih/color"
 
@@ -11,6 +12,10 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
+type ProgressBar struct {
+	NewProgressBar func(description string, onComplete func()) *ProgressBarWrapper
+	CurrPercentage int
+}
 type Terminal struct {
 	out     io.Writer
 	verbose io.Writer
@@ -20,8 +25,9 @@ type Terminal struct {
 	Yellow func(format string, a ...interface{}) string
 	Red    func(format string, a ...interface{}) string
 
-	// NewProgressBar func(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar
-	NewProgressBar func(description string, steps int, onComplete func()) *progressbar.ProgressBar
+	// NewProgressBar func(description string, onComplete func()) *progressbar.ProgressBar
+	// currPercentage int
+	ProgressBar
 }
 
 func (t *Terminal) Init(verbose bool) {
@@ -40,6 +46,7 @@ func (t *Terminal) Init(verbose bool) {
 	t.Yellow = color.New(color.FgYellow).SprintfFunc()
 	t.Red = color.New(color.FgRed).SprintfFunc()
 	t.NewProgressBar = NewProgressBar
+	t.CurrPercentage = 0
 }
 
 func (t *Terminal) Print(a string) {
@@ -92,15 +99,14 @@ func (w silentWriter) Write(p []byte) (n int, err error) {
 	return 0, nil
 }
 
-func NewProgressBar(description string, steps int, onComplete func()) *progressbar.ProgressBar {
-	// func NewProgressBar(description string, step string, stepTotal string, onComplete func()) *progressbar.ProgressBar {
-	bar := progressbar.NewOptions(steps,
+func NewProgressBar(description string, onComplete func()) *ProgressBarWrapper {
+	// func NewProgressBar(description string, onComplete func()) *progressbar.ProgressBar {
+	bar := progressbar.NewOptions(100,
 		progressbar.OptionOnCompletion(onComplete),
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionShowBytes(false),
 		progressbar.OptionSetWidth(15),
-		progressbar.OptionSetDescription(fmt.Sprintf(description)),
-		// progressbar.OptionSetDescription(fmt.Sprintf("[cyan][%s/%s][reset] %s", step, stepTotal, description)),
+		progressbar.OptionSetDescription(description),
 		progressbar.OptionSetTheme(progressbar.Theme{
 			Saucer:        "[green]=[reset]",
 			SaucerHead:    "[green]🥞[reset]",
@@ -108,10 +114,24 @@ func NewProgressBar(description string, steps int, onComplete func()) *progressb
 			BarStart:      "[",
 			BarEnd:        "]",
 		}))
-	return bar
+	return (*ProgressBarWrapper)(bar)
 }
 
-// func (p *progressbar.ProgressBar) SmoothAdd(amnt int) {
-// 	curr := p.
-// 	max := p.GetMax()
+type ProgressBarWrapper progressbar.ProgressBar
+
+func (bar *ProgressBarWrapper) AdvanceTo(percentage int, t *Terminal) {
+	if percentage > t.CurrPercentage {
+		for i := 0; i < percentage; i++ {
+			t.CurrPercentage += 1
+			(*progressbar.ProgressBar)(bar).Add(1)
+			time.Sleep(5 * time.Millisecond)
+		}
+	}
+}
+func (bar *ProgressBarWrapper) Describe(text string) {
+	(*progressbar.ProgressBar)(bar).Describe(text)
+}
+
+// func (bar *ProgressBarWrapper) Add(val int) {
+// 	bar.Add(1)
 // }

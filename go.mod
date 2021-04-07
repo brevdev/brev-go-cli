@@ -7,6 +7,7 @@ require (
 	github.com/enescakir/emoji v1.0.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
+	github.com/schollz/progressbar v1.0.0 // indirect
 	github.com/schollz/progressbar/v3 v3.7.6 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/spf13/cobra v1.1.3 // indirect
