@@ -91,6 +91,8 @@ func (c *GlobalContext) GetProjectPaths() ([]string, error) {
 		return nil, fmt.Errorf("failed to read from %s: %s", getGlobalActiveProjectsPath(), err)
 	}
 	if !globalActiveProjectsFileExists {
+		paths := []string{}
+		files.OverwriteJSON(getGlobalActiveProjectsPath(), paths)
 		return nil, nil
 	}
 

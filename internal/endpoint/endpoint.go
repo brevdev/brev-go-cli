@@ -224,10 +224,10 @@ func listEndpoints(t *terminal.Terminal) error {
 	}
 
 	// print
-	t.Vprintf("Endpoints in project %s:\n", project.Name)
+	t.Vprint(fmt.Sprintf("\nEndpoints in project %s:\n", project.Name))
 	for _, endpoint := range endpoints {
-		t.Vprintf("\t%s:\n", t.Green(endpoint.Name))
-		t.Vprintf("\t%s%s\n\n", project.Domain, endpoint.Uri)
+		t.Vprint(fmt.Sprintf("\t%s:", t.Green(endpoint.Name)))
+		t.Vprint(fmt.Sprintf("\t%s%s\n", project.Domain, endpoint.Uri))
 	}
 
 	return nil
