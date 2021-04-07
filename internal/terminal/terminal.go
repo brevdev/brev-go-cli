@@ -25,8 +25,6 @@ type Terminal struct {
 	Yellow func(format string, a ...interface{}) string
 	Red    func(format string, a ...interface{}) string
 
-	// NewProgressBar func(description string, onComplete func()) *progressbar.ProgressBar
-	// currPercentage int
 	ProgressBar
 }
 
@@ -100,7 +98,6 @@ func (w silentWriter) Write(p []byte) (n int, err error) {
 }
 
 func NewProgressBar(description string, onComplete func()) *ProgressBarWrapper {
-	// func NewProgressBar(description string, onComplete func()) *progressbar.ProgressBar {
 	bar := progressbar.NewOptions(100,
 		progressbar.OptionOnCompletion(onComplete),
 		progressbar.OptionEnableColorCodes(true),
@@ -131,7 +128,3 @@ func (bar *ProgressBarWrapper) AdvanceTo(percentage int, t *Terminal) {
 func (bar *ProgressBarWrapper) Describe(text string) {
 	(*progressbar.ProgressBar)(bar).Describe(text)
 }
-
-// func (bar *ProgressBarWrapper) Add(val int) {
-// 	bar.Add(1)
-// }

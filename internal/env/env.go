@@ -47,14 +47,14 @@ func addVariable(name string, t *terminal.Terminal) error {
 
 func removeVariable(name string, t *terminal.Terminal) error {
 
-	bar1 := t.NewProgressBar("Removing Variable "+t.Yellow(name), func() {})
+	bar := t.NewProgressBar("Removing Variable "+t.Yellow(name), func() {})
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
 
-	bar1.AdvanceTo(40, t)
+	bar.AdvanceTo(40, t)
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func removeVariable(name string, t *terminal.Terminal) error {
 	}
 
 	finalStr := t.Green("\nVariable ") + t.Yellow("%s", name) + t.Green(" removed from your project 🥞")
-	bar1.AdvanceTo(100, t)
+	bar.AdvanceTo(100, t)
 	t.Vprint(finalStr)
 
 	return nil

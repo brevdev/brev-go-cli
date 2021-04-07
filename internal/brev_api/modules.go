@@ -35,14 +35,12 @@ func (a *Agent) GetModules() (*Modules, error) {
 	}
 	response, err := request.SubmitStrict()
 	if err != nil {
-		// t.Errprint(err, "Failed to get modules")
 		return nil, err
 	}
 
 	var payload Modules
 	err = response.UnmarshalPayload(&payload)
 	if err != nil {
-		// t.Errprint(err, "Failed to deserialize response payload")
 		return nil, err
 	}
 
