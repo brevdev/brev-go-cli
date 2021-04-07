@@ -55,7 +55,7 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 		return err
 	}
 
-	err = files.OverwriteString(fmt.Sprintf("\n%s/%s.py", cwd, endpoint.Name), endpoint.Code)
+	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", cwd, endpoint.Name), endpoint.Code)
 	if err != nil {
 		t.Errprint(err, "\nFailed to write endpoints to local file")
 		return err
