@@ -158,8 +158,6 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *termi
 		}
 	}
 
-	// TODO: copy shared code
-
 	// Create endpoint files
 	for _, v := range endpoints {
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
@@ -169,6 +167,18 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *termi
 		}
 	}
 
+	// Create shared code/module
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{
+		ProjectID: project.Id,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
+	if err != nil {
+		return err
+	}
 	bar.Describe(t.Green("Brev project %s cloned.", project.Name))
 	bar.AdvanceTo(100)
 	completionString := t.Yellow("\ncd %s", project.Name) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞")
@@ -242,8 +252,6 @@ func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBar) error {
 		}
 	}
 
-	// TODO: create shared code module
-
 	// Add to path
 	var currBrevDirectories []string
 	err = files.ReadJSON(files.GetActiveProjectsPath(), &currBrevDirectories)
@@ -259,6 +267,26 @@ func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBar) error {
 			t.Errprint(err, "Failed to write projects to project file")
 			return err
 		}
+	}
+
+	// Create shared code/module
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return err
+	}
+	proj, err := brevCtx.Local.GetProject()
+	if err != nil {
+		return err
+	}
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{
+		ProjectID: proj.Id,
+	})
+	if err != nil {
+		return err
+	}
+	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", cwd, module.Name), module.Source)
+	if err != nil {
+		return err
 	}
 
 	bar.Describe(t.Green("Brev project %s created and deployed.", projName))
