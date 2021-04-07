@@ -1,6 +1,8 @@
 package package_project
 
 import (
+	"fmt"
+
 	"github.com/brevdev/brev-go-cli/internal/auth"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
 	"github.com/brevdev/brev-go-cli/internal/brev_ctx"
@@ -8,13 +10,14 @@ import (
 )
 
 func addPackage(name string, t *terminal.Terminal) error {
-	t.Vprint("\nAdding package " + t.Yellow(name))
+	bar := t.NewProgressBar("Adding package "+t.Yellow(name), func() {})
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
 		return err
 	}
 
+	bar.AdvanceTo(40)
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
@@ -26,15 +29,21 @@ func addPackage(name string, t *terminal.Terminal) error {
 		return err
 	}
 
-	t.Vprint(t.Green("\nPackage "))
-	t.Vprint(t.Yellow("%s", name))
-	t.Vprint(t.Green(" installed successfully 🥞"))
+	bar.AdvanceTo(100)
+	finalStr := t.Green("Package ") + t.Yellow("%s", name) + t.Green(" added successfully 🥞")
+	t.Vprint(finalStr)
+
+	t.Vprint(t.Yellow(`
+
+The package might take a moment to fully install.
+'brev package list' to see the status of all packages.
+	`))
 
 	return nil
 }
 
 func removePackage(name string, t *terminal.Terminal) error {
-	t.Vprint("\nRemoving package " + t.Yellow(name))
+	bar := t.NewProgressBar("Removing package "+t.Yellow(name), func() {})
 
 	packages, err := GetPackages(t)
 	if err != nil {
@@ -57,15 +66,18 @@ func removePackage(name string, t *terminal.Terminal) error {
 		Key: token,
 	}
 
+	bar.AdvanceTo(60)
 	_, err = brevAgent.RemovePackage(packageToRemove.Id)
 	if err != nil {
 		t.Errprintf(err, "Failed to remove package %s", name)
 		return err
 	}
+	finalStr := t.Green("\nPackage ") + t.Yellow("%s", name) + t.Green(" removed successfully 🥞")
 
-	t.Vprint(t.Green("\nPackage "))
-	t.Vprint(t.Yellow("%s", name))
-	t.Vprint(t.Green(" removed successfully 🥞"))
+	// bar.Describe(finalStr)
+	bar.AdvanceTo(100)
+
+	t.Vprint(finalStr)
 
 	return nil
 }
@@ -89,12 +101,13 @@ func listPackages(t *terminal.Terminal) error {
 	t.Vprintf("Packages installed on project %s:\n", project.Name)
 
 	for _, v := range packages {
+		installStr := fmt.Sprintf("\t%s==%s ", v.Name, v.Version)
 		if v.Status == "pending" {
-			t.Vprintf("\t%s==%s %s\n", v.Name, v.Version, t.Yellow(v.Status))
+			t.Vprint(installStr + t.Yellow("%s", v.Status))
 		} else if v.Status == "installed" {
-			t.Vprintf("\t%s==%s %s\n", v.Name, v.Version, t.Green(v.Status))
+			t.Vprint(installStr + t.Green("%s", v.Status))
 		} else {
-			t.Vprintf("\t%s==%s %s\n", v.Name, v.Version, t.Red(v.Status))
+			t.Vprint(installStr + t.Red("%s", v.Status))
 		}
 	}
 

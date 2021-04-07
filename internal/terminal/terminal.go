@@ -4,12 +4,18 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/fatih/color"
+	"github.com/schollz/progressbar/v3"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_errors"
 )
 
+type ProgressBar struct {
+	Bar            *progressbar.ProgressBar
+	CurrPercentage int
+}
 type Terminal struct {
 	out     io.Writer
 	verbose io.Writer
@@ -18,6 +24,8 @@ type Terminal struct {
 	Green  func(format string, a ...interface{}) string
 	Yellow func(format string, a ...interface{}) string
 	Red    func(format string, a ...interface{}) string
+
+	Bar ProgressBar
 }
 
 func (t *Terminal) Init(verbose bool) {
@@ -85,4 +93,37 @@ type silentWriter struct{}
 
 func (w silentWriter) Write(p []byte) (n int, err error) {
 	return 0, nil
+}
+
+func (t *Terminal) NewProgressBar(description string, onComplete func()) *ProgressBar {
+	bar := progressbar.NewOptions(100,
+		progressbar.OptionOnCompletion(onComplete),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowBytes(false),
+		progressbar.OptionSetWidth(15),
+		progressbar.OptionSetDescription(description),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]🥞[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
+
+	return &ProgressBar{
+		Bar:            bar,
+		CurrPercentage: 0,
+	}
+}
+
+func (bar *ProgressBar) AdvanceTo(percentage int) {
+	for bar.CurrPercentage < percentage && bar.CurrPercentage <= 100 {
+		bar.CurrPercentage += 1
+		bar.Bar.Add(1)
+		time.Sleep(5 * time.Millisecond)
+	}
+}
+
+func (bar *ProgressBar) Describe(text string) {
+	bar.Bar.Describe(text)
 }

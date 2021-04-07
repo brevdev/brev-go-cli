@@ -45,6 +45,16 @@ type GetEndpointsOptions struct {
 	ProjectID string
 }
 
+type GetModulesOptions struct {
+	ProjectID string
+}
+
+type SetModulesOptions struct {
+	ProjectID string
+	ModuleID  string
+	Source    string
+}
+
 type GetProjectsOptions struct {
 	ID   string
 	Name string
@@ -296,6 +306,43 @@ func (c *RemoteContext) GetProjects(options *GetProjectsOptions) ([]brev_api.Pro
 	return filteredProjects, nil
 }
 
+func (c *RemoteContext) GetModule(options *GetModulesOptions) (*brev_api.Module, error) {
+	modules, err := c.agent.GetModules()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get module: %s", err)
+	}
+
+	if options == nil {
+		return nil, fmt.Errorf("Project ID is required %s", err)
+	}
+
+	var module brev_api.Module
+	for _, v := range modules.Modules {
+		if v.ProjectId == options.ProjectID {
+			module = v
+		}
+	}
+	if module == (brev_api.Module{}) {
+		return nil, fmt.Errorf("Invalid Project ID %s", err)
+	}
+
+	return &module, nil
+}
+
+func (c *RemoteContext) SetModule(options *SetModulesOptions) (*brev_api.Module, error) {
+
+	if options == nil {
+		return nil, fmt.Errorf("Project ID is required %s")
+	}
+
+	module, err := c.agent.UpdateModule(options.ModuleID, options.Source)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update module: %s", err)
+	}
+
+	return &module.Module, nil
+}
+
 // GetEndpoints retrieves remote endpoints for the context user. An optional GetEndpointsOptions
 // struct may be provided to filter the results.
 //
@@ -364,11 +411,10 @@ func (c *RemoteContext) SetEndpoint(endpoint brev_api.Endpoint) (*brev_api.Endpo
 
 // DeleteEndpoint removes the remote endpoint with the given ID.
 func (c *RemoteContext) DeleteEndpoint(epId string) error {
-	obj, err := c.agent.RemoveEndpoint(epId)
+	_, err := c.agent.RemoveEndpoint(epId)
 	if err != nil {
 		return fmt.Errorf("failed to delete endpoint: %s", err)
 	}
-	fmt.Println(obj)
 	return nil
 }
 

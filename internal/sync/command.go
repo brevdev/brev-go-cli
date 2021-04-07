@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/andreyvit/diff"
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -14,8 +15,14 @@ import (
 
 func push(t *terminal.Terminal) error {
 
-	// TODO: push module/shared code
-	t.Vprint(t.Green("\nPushing your changes..."))
+	bar := t.NewProgressBar("Pushing code to the console", func() {})
+
+	bar.AdvanceTo(40)
+
+	path, err := getRootProjectDir(t)
+	if err != nil {
+		return err
+	}
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -27,6 +34,27 @@ func push(t *terminal.Terminal) error {
 		return err
 	}
 
+	// update module
+	bar.Describe(t.Green("Updating %s", "shared code"))
+
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{ProjectID: project.Id})
+	if err != nil {
+		return err
+	}
+	module.Source, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, module.Name))
+	if err != nil {
+		return err
+	}
+
+	_, err = brevCtx.Remote.SetModule(&brev_ctx.SetModulesOptions{
+		ProjectID: project.Id,
+		ModuleID:  module.Id,
+		Source:    module.Source,
+	})
+	if err != nil {
+		return err
+	}
+
 	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		ProjectID: project.Id,
 	})
@@ -34,14 +62,9 @@ func push(t *terminal.Terminal) error {
 		return err
 	}
 
+	t.Vprint("\n") // separating the below output from the loadingbar
 	for _, v := range endpoints {
-		t.Vprint(t.Green("\nUpdating ep %s", v.Name))
-
-		path, err := getRootProjectDir(t)
-		if err != nil {
-			return err
-		}
-
+		t.Vprint(t.Green("Updating ep %s", v.Name))
 		v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
 		if err != nil {
 			return err
@@ -56,6 +79,7 @@ func push(t *terminal.Terminal) error {
 
 	}
 
+	bar.AdvanceTo(100)
 	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
 
 	return nil
@@ -63,8 +87,9 @@ func push(t *terminal.Terminal) error {
 
 func pull(t *terminal.Terminal) error {
 
-	// TODO: module/shared code
-	t.Vprint(t.Green("\nPulling changes from the console..."))
+	bar := t.NewProgressBar("Fetching code from the console", func() {})
+
+	bar.AdvanceTo(40)
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -88,15 +113,30 @@ func pull(t *terminal.Terminal) error {
 		return err
 	}
 
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{
+		ProjectID: project.Id,
+	})
+	if err != nil {
+		return err
+	}
+	bar.Describe(t.Green("Pulling %s", module.Name))
+	bar.AdvanceTo(40)
+
+	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
+
+	t.Vprint("\n") // separating the below output from the loadingbar
 	for _, v := range remoteEndpoints {
-		t.Vprint(t.Green("\nPulling ep %s", v.Name))
+		t.Vprint(t.Green("Pulling ep %s", v.Name))
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
 			t.Errprint(err, "Failed to write code to local file")
 			return err
 		}
+		time.Sleep(100 * time.Millisecond)
+
 	}
+	bar.AdvanceTo(100)
 
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
 
@@ -134,6 +174,9 @@ func getRootProjectDir(t *terminal.Terminal) (string, error) {
 
 func diffCmd(t *terminal.Terminal) error {
 
+	bar := t.NewProgressBar("Checking with the console", func() {})
+	bar.AdvanceTo(30)
+
 	numChanges := 0
 
 	brevCtx, err := brev_ctx.New()
@@ -145,6 +188,41 @@ func diffCmd(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
+
+	// Diff Shared Code/Module
+	path, err := getRootProjectDir(t)
+	if err != nil {
+		return err
+	}
+
+	module, err := brevCtx.Remote.GetModule(&brev_ctx.GetModulesOptions{ProjectID: project.Id})
+	if err != nil {
+		return err
+	}
+
+	bar.AdvanceTo(30)
+	remoteEps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
+		ProjectID: project.Id,
+	})
+	if err != nil {
+		return err
+	}
+	bar.AdvanceTo(100)
+
+	localModule, err := files.ReadString(fmt.Sprintf("%s/%s.py", path, module.Name))
+	if err != nil {
+		return err
+	}
+	t.Vprint(t.Yellow("\nDiff for Project %s :", project.Name))
+
+	moduleDiff := diffTwoFiles(module.Source, localModule)
+	diffString := printDiff("Shared", moduleDiff, t)
+	if len(diffString) > 0 {
+		t.Vprint(diffString)
+		numChanges += 1
+	}
+
+	// Diff Endpoints
 	localEps, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		ProjectID: project.Id,
 	})
@@ -155,19 +233,13 @@ func diffCmd(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	remoteEps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
-		ProjectID: project.Id,
-	})
+
 	var remoteEPIds []string
 	remoteEpMap := make(map[string]brev_api.Endpoint)
 	for _, v := range remoteEps {
 		remoteEPIds = append(remoteEPIds, v.Id)
 		remoteEpMap[v.Id] = v
 	}
-	if err != nil {
-		return err
-	}
-	t.Vprint(t.Yellow("Diff for Project %s :", project.Name))
 
 	// per local endpoint, diff the remote contents
 	for _, v := range localEps {

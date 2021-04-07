@@ -1,6 +1,8 @@
 package status
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/brevdev/brev-go-cli/internal/brev_api"
@@ -70,12 +72,13 @@ func status(t *terminal.Terminal) error {
 	}
 
 	for _, v := range packages {
+		installStr := fmt.Sprintf("\t\t%s==%s ", v.Name, v.Version)
 		if v.Status == "pending" {
-			t.Vprintf("\t\t%s==%s %s\n", v.Name, v.Version, t.Yellow(v.Status))
+			t.Vprint(installStr + t.Yellow("%s", v.Status))
 		} else if v.Status == "installed" {
-			t.Vprintf("\t\t%s==%s %s\n", v.Name, v.Version, t.Green(v.Status))
+			t.Vprint(installStr + t.Green("%s", v.Status))
 		} else {
-			t.Vprintf("\t\t%s==%s %s\n", v.Name, v.Version, t.Red(v.Status))
+			t.Vprint(installStr + t.Red("%s", v.Status))
 		}
 	}
 
@@ -86,10 +89,8 @@ func status(t *terminal.Terminal) error {
 		t.Vprint(t.Yellow("\n\tEndpoints:"))
 
 		for _, v := range endpoints {
-			t.Vprint("\n\t\t")
-			t.Vprint(t.Yellow("%s", v.Name))
-			t.Vprint("\n\t\t\t")
-			t.Vprintf("%s", project.Domain+v.Uri)
+			str := "\n\t\t" + t.Yellow("%s", v.Name) + "\n\t\t\t" + project.Domain + v.Uri
+			t.Vprint(str)
 		}
 	}
 
