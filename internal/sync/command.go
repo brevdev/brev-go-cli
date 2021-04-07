@@ -17,7 +17,7 @@ func push(t *terminal.Terminal) error {
 
 	bar := t.NewProgressBar("Pushing code to the console", func() {})
 
-	bar.AdvanceTo(40, t)
+	bar.AdvanceTo(40)
 
 	path, err := getRootProjectDir(t)
 	if err != nil {
@@ -79,7 +79,7 @@ func push(t *terminal.Terminal) error {
 
 	}
 
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
 
 	return nil
@@ -89,7 +89,7 @@ func pull(t *terminal.Terminal) error {
 
 	bar := t.NewProgressBar("Fetching code from the console", func() {})
 
-	bar.AdvanceTo(40, t)
+	bar.AdvanceTo(40)
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -120,7 +120,7 @@ func pull(t *terminal.Terminal) error {
 		return err
 	}
 	bar.Describe(t.Green("Pulling %s", module.Name))
-	bar.AdvanceTo(40, t)
+	bar.AdvanceTo(40)
 
 	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
 
@@ -136,7 +136,7 @@ func pull(t *terminal.Terminal) error {
 		time.Sleep(100 * time.Millisecond)
 
 	}
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
 
@@ -175,7 +175,7 @@ func getRootProjectDir(t *terminal.Terminal) (string, error) {
 func diffCmd(t *terminal.Terminal) error {
 
 	bar := t.NewProgressBar("Checking with the console", func() {})
-	bar.AdvanceTo(30, t)
+	bar.AdvanceTo(30)
 
 	numChanges := 0
 
@@ -200,14 +200,14 @@ func diffCmd(t *terminal.Terminal) error {
 		return err
 	}
 
-	bar.AdvanceTo(30, t)
+	bar.AdvanceTo(30)
 	remoteEps, err := brevCtx.Remote.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		ProjectID: project.Id,
 	})
 	if err != nil {
 		return err
 	}
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 
 	localModule, err := files.ReadString(fmt.Sprintf("%s/%s.py", path, module.Name))
 	if err != nil {

@@ -17,7 +17,7 @@ func addPackage(name string, t *terminal.Terminal) error {
 		return err
 	}
 
-	bar.AdvanceTo(40, t)
+	bar.AdvanceTo(40)
 	project, err := brevCtx.Local.GetProject()
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func addPackage(name string, t *terminal.Terminal) error {
 		return err
 	}
 
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 	finalStr := t.Green("Package ") + t.Yellow("%s", name) + t.Green(" added successfully 🥞")
 	t.Vprint(finalStr)
 
@@ -66,7 +66,7 @@ func removePackage(name string, t *terminal.Terminal) error {
 		Key: token,
 	}
 
-	bar.AdvanceTo(60, t)
+	bar.AdvanceTo(60)
 	_, err = brevAgent.RemovePackage(packageToRemove.Id)
 	if err != nil {
 		t.Errprintf(err, "Failed to remove package %s", name)
@@ -75,7 +75,7 @@ func removePackage(name string, t *terminal.Terminal) error {
 	finalStr := t.Green("\nPackage ") + t.Yellow("%s", name) + t.Green(" removed successfully 🥞")
 
 	// bar.Describe(finalStr)
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 
 	t.Vprint(finalStr)
 

@@ -43,7 +43,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			bar.AdvanceTo(20, t)
+			bar.AdvanceTo(20)
 			brevAgent := brev_api.Agent{
 				Key: token,
 			}
@@ -51,7 +51,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to retrieve projects %v", err)
 			}
-			bar.AdvanceTo(30, t)
+			bar.AdvanceTo(30)
 
 			if project == "" {
 				err = initNewProject(t, bar)
@@ -170,7 +170,7 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *termi
 	}
 
 	bar.Describe(t.Green("Brev project %s cloned.", project.Name))
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 	completionString := t.Yellow("\ncd %s", project.Name) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞")
 
 	t.Vprint(completionString)
@@ -216,7 +216,7 @@ func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBar) error {
 	}
 
 	bar.Describe(t.Green("Creating local files..."))
-	bar.AdvanceTo(40, t)
+	bar.AdvanceTo(40)
 
 	// Make project.json
 	err = files.OverwriteJSON(projectFilePath, project)
@@ -262,7 +262,7 @@ func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBar) error {
 	}
 
 	bar.Describe(t.Green("Brev project %s created and deployed.", projName))
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 	completionString := t.Green(t.Yellow("\ncd %s", projName) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞"))
 	t.Vprint(completionString)
 

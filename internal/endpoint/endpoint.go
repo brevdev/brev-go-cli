@@ -39,7 +39,7 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	bar.AdvanceTo(30, t)
+	bar.AdvanceTo(30)
 
 	// store endpoint in local state
 	bar.Describe("Saving endpoint locally...")
@@ -60,7 +60,7 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 		t.Errprint(err, "\nFailed to write endpoints to local file")
 		return err
 	}
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 
 	t.Vprint(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" created and deployed 🥞"))
 
@@ -69,7 +69,7 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 
 func removeEndpoint(name string, t *terminal.Terminal) error {
 	bar := t.NewProgressBar("Removing endpoint "+t.Yellow(name), func() {})
-	bar.AdvanceTo(30, t)
+	bar.AdvanceTo(30)
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -95,7 +95,7 @@ func removeEndpoint(name string, t *terminal.Terminal) error {
 
 	brevCtx.Remote.DeleteEndpoint(eps[0].Id)
 	bar.Describe(t.Green("Endpoint ") + t.Yellow("%s", name) + t.Green(" deleted."))
-	bar.AdvanceTo(60, t)
+	bar.AdvanceTo(60)
 	// Remove the python file
 	files.DeleteFile(name + ".py")
 
@@ -111,7 +111,7 @@ func removeEndpoint(name string, t *terminal.Terminal) error {
 	brevCtx.Local.SetEndpoints(allEndpoints)
 
 	bar.Describe(t.Green("File ") + t.Yellow("%s.py", name) + t.Green(" removed."))
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 
 	t.Vprint(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" removed from project ") + t.Yellow(project.Name) + " 🥞")
 
@@ -121,7 +121,7 @@ func removeEndpoint(name string, t *terminal.Terminal) error {
 func runEndpoint(name string, method string, arg []string, jsonBody string, t *terminal.Terminal) error {
 	t.Vprint("\n")
 	bar := t.NewProgressBar("Running endpoint "+t.Yellow(name), func() {})
-	bar.AdvanceTo(40, t)
+	bar.AdvanceTo(40)
 
 	brevCtx, err := brev_ctx.New()
 	if err != nil {
@@ -135,7 +135,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 	}
 
 	bar.Describe("Preparing endpoint")
-	bar.AdvanceTo(80, t)
+	bar.AdvanceTo(80)
 	// get local endpoint for the given name
 	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		Name: name,
@@ -167,7 +167,7 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 	}
 
 	bar.Describe("Submitting the request")
-	bar.AdvanceTo(100, t)
+	bar.AdvanceTo(100)
 
 	// submit request
 	request := &requests.RESTRequest{

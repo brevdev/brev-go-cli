@@ -13,7 +13,6 @@ import (
 )
 
 type ProgressBar struct {
-	NewProgressBar func(description string, onComplete func()) *ProgressBarWrapper
 	Bar            *progressbar.ProgressBar
 	CurrPercentage int
 }
@@ -44,8 +43,6 @@ func (t *Terminal) Init(verbose bool) {
 	t.Green = color.New(color.FgGreen).SprintfFunc()
 	t.Yellow = color.New(color.FgYellow).SprintfFunc()
 	t.Red = color.New(color.FgRed).SprintfFunc()
-	// t.NewProgressBar = NewProgressBar
-	// t.CurrPercentage = 0
 }
 
 func (t *Terminal) Print(a string) {
@@ -119,9 +116,7 @@ func (t *Terminal) NewProgressBar(description string, onComplete func()) *Progre
 	}
 }
 
-type ProgressBarWrapper progressbar.ProgressBar
-
-func (bar *ProgressBar) AdvanceTo(percentage int, t *Terminal) {
+func (bar *ProgressBar) AdvanceTo(percentage int) {
 	for bar.CurrPercentage < percentage && bar.CurrPercentage <= 100 {
 		bar.CurrPercentage += 1
 		bar.Bar.Add(1)
