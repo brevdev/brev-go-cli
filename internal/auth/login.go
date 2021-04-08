@@ -33,7 +33,8 @@ const (
 	localPort             = "8395"
 	localEndpoint         = "http://localhost:" + localPort
 
-	brevCredentialsFile = "credentials.json"
+	brevCredentialsFile      = "credentials.json"
+	globalActiveProjectsFile = "active_projects.json"
 )
 
 type cotterTokenRequestPayload struct {
@@ -91,6 +92,28 @@ func login(t *terminal.Terminal) error {
 	err = writeTokenToBrevConfigFile(token)
 	if err != nil {
 		t.Errprint(err, "Failed to write auth token to file")
+		return err
+	}
+
+	err = initializeActiveProjectsFile()
+	if err != nil {
+		t.Errprint(err, "Failed to write auth token to file")
+		return err
+	}
+
+	return nil
+}
+
+func initializeActiveProjectsFile() error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	brevActiveProjectsFile := home + "/" + files.GetBrevDirectory() + "/" + globalActiveProjectsFile
+
+	err = files.OverwriteJSON(brevActiveProjectsFile, []string{})
+	if err != nil {
 		return err
 	}
 
