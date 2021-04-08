@@ -15,28 +15,21 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/terminal"
 )
 
-func NewCmdInit(t *terminal.Terminal) *cobra.Command {
-	var project string
+func NewCmdClone(t *terminal.Terminal) *cobra.Command {
+	var name string
 
 	cmd := &cobra.Command{
-		Use:         "init",
+		Use:         "clone",
+		Short:       "Clone a Brev Project",
 		Annotations: map[string]string{"project": ""},
-		Short:       "Initialize a Brev Project",
-		Long:        "Use this to initialize a Brev project.",
-		Example: `  // To init new project in current directory
-  brev init
-
-  // To init existing project
-  brev init <project_name>`,
+		Long:        "Clone an existing Brev project",
+		Example: ` // To clone your existing Brev project
+		brev clone --name your_project_name`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			bar := t.NewProgressBar("", func() {})
 
-			if project == "" {
-				bar.Describe(t.Yellow("Initializing new project"))
-			} else {
-				bar.Describe(t.Yellow("Initializing project %s", project))
-			}
+			bar.Describe(t.Yellow("Cloning project %s", name))
 
 			token, err := auth.GetToken()
 			if err != nil {
@@ -52,7 +45,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 			}
 			bar.AdvanceTo(30)
 
-			if project == "" {
+			if name == "" {
 				err = initNewProject(t, bar)
 				if err != nil {
 					return err
@@ -61,7 +54,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 
 			for _, v := range projects {
 
-				if v.Name == project {
+				if v.Name == name {
 					err = initExistingProj(v, t, bar)
 					if err != nil {
 						return fmt.Errorf("failed to initialize project %v", err)
@@ -72,10 +65,38 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVarP(&project, "project", "p", "", "Project Name")
-	cmd.RegisterFlagCompletionFunc("project", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	cmd.Flags().StringVarP(&name, "name", "p", "", "Project Name")
+	cmd.MarkFlagRequired("name")
+	cmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return getProjectNames(), cobra.ShellCompDirectiveNoSpace
 	})
+
+	return cmd
+}
+
+func NewCmdInit(t *terminal.Terminal) *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use:         "init",
+		Annotations: map[string]string{"project": ""},
+		Short:       "Initialize a Brev Project",
+		Long:        "Initialize a Brev project.",
+		Example: `  // To init new project in current directory
+  			brev init`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			bar := t.NewProgressBar("", func() {})
+
+			bar.Describe(t.Yellow("Initializing new project"))
+
+			err := initNewProject(t, bar)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
 
 	return cmd
 }
@@ -290,7 +311,7 @@ func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBar) error {
 
 	bar.Describe(t.Green("Brev project %s created and deployed.", projName))
 	bar.AdvanceTo(100)
-	completionString := t.Green(t.Yellow("\ncd %s", projName) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞"))
+	completionString := t.Green("\n\nHappy Hacking 🥞")
 	t.Vprint(completionString)
 
 	return nil

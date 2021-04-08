@@ -88,7 +88,7 @@ func createCmdTree(brevCommand *cobra.Command, t *terminal.Terminal) {
 	brevCommand.AddCommand(endpoint.NewCmdEndpoint(t))
 	brevCommand.AddCommand(auth.NewCmdLogin(t))
 	brevCommand.AddCommand(package_project.NewCmdPackage(t))
-	// brevCommand.AddCommand(project.NewCmdProject(context))
+	brevCommand.AddCommand(initialize.NewCmdClone(t))
 	brevCommand.AddCommand(initialize.NewCmdInit(t))
 	brevCommand.AddCommand(env.NewCmdEnv(t))
 	brevCommand.AddCommand(status.NewCmdStatus(t))
