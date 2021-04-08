@@ -96,55 +96,61 @@ func newCmdBrev(t *terminal.Terminal) *cobra.Command {
 	//   Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 	//   `
 
-	HouseKeeping := "\nHousekeeping Commands"
-	Project := "\nProject Commands"
-	Environment := "\nEnvironment Commands"
-	Code := "\nCode Commands"
+	// HouseKeeping := "\nHousekeeping Commands"
+	// Project := "\nProject Commands"
+	// Environment := "\nEnvironment Commands"
+	// Code := "\nCode Commands"
+
+	// for _, v := range brevCommand.Commands() {
+	// 	if v.Name() == "login" || v.Name() == "completion" {
+	// 		HouseKeeping += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+	// 	} else if v.Name() == "init" || v.Name() == "clone" || v.Name() == "status" {
+	// 		Project += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+	// 	} else if v.Name() == "env" || v.Name() == "packages" {
+	// 		Environment += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+	// 	} else if v.Name() == "diff" || v.Name() == "endpoint" || v.Name() == "push" || v.Name() == "pull" {
+	// 		Code += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+	// 	}
+	// }
+
+	// brevCommand.SetUsageTemplate(HouseKeeping + Project + Environment + Code)
+
+	HouseKeeping := ""
+	Project := ""
+	Environment := ""
+	Code := ""
 
 	for _, v := range brevCommand.Commands() {
 		if v.Name() == "login" || v.Name() == "completion" {
-			HouseKeeping += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+			HouseKeeping += "\n\t  " + v.Name() + "\t" + " " + v.Short
 		} else if v.Name() == "init" || v.Name() == "clone" || v.Name() == "status" {
-			Project += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+			Project += "\n\t  " + v.Name() + "\t\t" + " " + v.Short
 		} else if v.Name() == "env" || v.Name() == "packages" {
-			Environment += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+			Environment += "\n\t  " + v.Name() + "\t\t" + " " + v.Short
 		} else if v.Name() == "diff" || v.Name() == "endpoint" || v.Name() == "push" || v.Name() == "pull" {
-			Code += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+			Code += "\n\t  " + v.Name() + "\t\t" + " " + v.Short
 		}
 	}
 
-	brevCommand.SetUsageTemplate(HouseKeeping + Project + Environment + Code)
-
-	// 	brevCommand.SetUsageTemplate(`
-	// {{t.Green('Usage:')}}
-	// 	brev [flags]
-	// 	brev [command]
-
-	// Flags:
-	// -h, --help      help for brev
-	// -v, --verbose   Verbose output
-	// --version   Print version output
-
-	// HouseKeeping Commands:
-	// 	login
-	// 	completion
-
-	// Project Commands:
-	// 	init
-	// 	clone
-	// 	status
-
-	// Environment Commands:
-	// 	env
-	// 	packages
-
-	// Code Commands:
-	// 	diff
-	// 	endpoint
-	// 	push
-	// 	pull
-
-	// `)
+	brevCommand.SetUsageTemplate(fmt.Sprintf(`
+	Usage:
+		brev [flags]
+		brev [command]
+	
+	Flags:
+	-h, --help      help for brev
+	-v, --verbose   Verbose output
+	--version   Print version output
+	
+	HouseKeeping Commands:%s
+	
+	Project Commands:%s
+	
+	Environment Commands:%s
+	
+	Code Commands:%s
+	
+`, HouseKeeping, Project, Environment, Code))
 
 	// 	brevCommand.SetUsageTemplate(`Usage:{{if .Runnable}}
 	// 	{{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
