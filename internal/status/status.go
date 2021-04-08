@@ -14,13 +14,12 @@ import (
 func NewCmdStatus(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "status",
-		Short: "Get the latest project metadata",
-		Long: `See high level on your project. Ex:
-
-			brev status
-
-		`, PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		Use:         "status",
+		Annotations: map[string]string{"project": ""},
+		Short:       "Get the latest project metadata",
+		Long:        "See high level on your project.",
+		Example:     `  brev status`,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
 			if err != nil {
 				return err

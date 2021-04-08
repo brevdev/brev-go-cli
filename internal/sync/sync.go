@@ -10,12 +10,11 @@ import (
 
 func NewCmdPush(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "push",
-		Short: "Push your local changes to remote",
-		Long: `To push your local changes:
-
-			brev push
-		`, PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		Use:         "push",
+		Annotations: map[string]string{"code": ""},
+		Short:       "Push your local changes to remote",
+		Example:     `  brev push`,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
 			if err != nil {
 				return err
@@ -35,12 +34,11 @@ func NewCmdPush(t *terminal.Terminal) *cobra.Command {
 func NewCmdPull(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "pull",
-		Short: "Pull latest changes from your server",
-		Long: `To pull latest changes:
-
-			brev pull
-		`, PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		Use:         "pull",
+		Annotations: map[string]string{"code": ""},
+		Short:       "Pull latest changes from your server",
+		Example:     `  brev pull`,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
 			if err != nil {
 				return err
@@ -60,8 +58,9 @@ func NewCmdPull(t *terminal.Terminal) *cobra.Command {
 func NewCmdDiff(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "diff",
-		Short: "See a diff of your local changes compared to what's deployed in the console",
+		Use:         "diff",
+		Annotations: map[string]string{"code": ""},
+		Short:       "See a diff of your local changes compared to what's deployed in the console",
 		Long: `To see a diff of your local changes compared to what's deployed in the console,
 			from an active brev project directory, run:
 

@@ -28,21 +28,23 @@ type Terminal struct {
 	Bar ProgressBar
 }
 
-func (t *Terminal) Init(verbose bool) {
-	var out io.Writer
-	if verbose {
-		out = os.Stdout
-	} else {
-		out = silentWriter{}
+func New() (t *Terminal) {
+	return &Terminal{
+		out:     os.Stdout,
+		verbose: os.Stdout,
+		err:     os.Stderr,
+		Green:   color.New(color.FgGreen).SprintfFunc(),
+		Yellow:  color.New(color.FgYellow).SprintfFunc(),
+		Red:     color.New(color.FgRed).SprintfFunc(),
 	}
+}
 
-	t.out = out
-	t.verbose = os.Stdout
-	t.err = os.Stderr
-
-	t.Green = color.New(color.FgGreen).SprintfFunc()
-	t.Yellow = color.New(color.FgYellow).SprintfFunc()
-	t.Red = color.New(color.FgRed).SprintfFunc()
+func (t *Terminal) SetVerbose(verbose bool) {
+	if verbose {
+		t.out = os.Stdout
+	} else {
+		t.out = silentWriter{}
+	}
 }
 
 func (t *Terminal) Print(a string) {

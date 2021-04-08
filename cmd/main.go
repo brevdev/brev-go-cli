@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	t := &terminal.Terminal{}
+	t := terminal.New()
 
 	cmd := newCmdBrev(t)
 	if err := cmd.Execute(); err != nil {
@@ -38,7 +38,7 @@ func newCmdBrev(t *terminal.Terminal) *cobra.Command {
 	brevCommand := &cobra.Command{
 		Use: "brev",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			t.Init(verbose)
+			t.SetVerbose(verbose)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if printVersion {
@@ -56,6 +56,20 @@ func newCmdBrev(t *terminal.Terminal) *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
+
+	cobra.AddTemplateFunc("hasHousekeepingCommands", hasHousekeepingCommands)
+	cobra.AddTemplateFunc("isHousekeepingCommand", isHousekeepingCommand)
+	cobra.AddTemplateFunc("housekeepingCommands", housekeepingCommands)
+	cobra.AddTemplateFunc("hasProjectCommands", hasProjectCommands)
+	cobra.AddTemplateFunc("isProjectCommand", isProjectCommand)
+	cobra.AddTemplateFunc("projectCommands", projectCommands)
+	cobra.AddTemplateFunc("hasEnvironmentCommands", hasEnvironmentCommands)
+	cobra.AddTemplateFunc("isEnvironmentCommand", isEnvironmentCommand)
+	cobra.AddTemplateFunc("environmentCommands", environmentCommands)
+	cobra.AddTemplateFunc("hasCodeCommands", hasCodeCommands)
+	cobra.AddTemplateFunc("isCodeCommand", isCodeCommand)
+	cobra.AddTemplateFunc("codeCommands", codeCommands)
+	brevCommand.SetUsageTemplate(usageTemplate)
 
 	brevCommand.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	brevCommand.PersistentFlags().BoolVar(&printVersion, "version", false, "Print version output")
@@ -83,3 +97,135 @@ func createCmdTree(brevCommand *cobra.Command, t *terminal.Terminal) {
 	brevCommand.AddCommand(sync.NewCmdDiff(t))
 	brevCommand.AddCommand(&completionCmd)
 }
+
+func hasHousekeepingCommands(cmd *cobra.Command) bool {
+	return len(housekeepingCommands(cmd)) > 0
+}
+
+func housekeepingCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if isHousekeepingCommand(sub) {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func isHousekeepingCommand(cmd *cobra.Command) bool {
+	if _, ok := cmd.Annotations["housekeeping"]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
+func hasProjectCommands(cmd *cobra.Command) bool {
+	return len(projectCommands(cmd)) > 0
+}
+
+func projectCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if isProjectCommand(sub) {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func isProjectCommand(cmd *cobra.Command) bool {
+	if _, ok := cmd.Annotations["project"]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
+func hasEnvironmentCommands(cmd *cobra.Command) bool {
+	return len(environmentCommands(cmd)) > 0
+}
+
+func environmentCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if isEnvironmentCommand(sub) {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func isEnvironmentCommand(cmd *cobra.Command) bool {
+	if _, ok := cmd.Annotations["environment"]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
+func hasCodeCommands(cmd *cobra.Command) bool {
+	return len(codeCommands(cmd)) > 0
+}
+
+func codeCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if isCodeCommand(sub) {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func isCodeCommand(cmd *cobra.Command) bool {
+	if _, ok := cmd.Annotations["code"]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
+var usageTemplate = `Usage:{{if .Runnable}}
+  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+
+Aliases:
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+Examples:
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+
+{{- if hasHousekeepingCommands . }}
+
+Housekeeping Commands:
+{{- range housekeepingCommands . }}
+  {{rpad .Name .NamePadding }} {{.Short}}
+{{- end}}{{- end}}{{- if hasProjectCommands . }}
+
+Project Commands:
+{{- range projectCommands . }}
+  {{rpad .Name .NamePadding }} {{.Short}}
+{{- end}}{{- end}}{{- if hasEnvironmentCommands . }}
+
+Environment Commands:
+{{- range environmentCommands . }}
+  {{rpad .Name .NamePadding }} {{.Short}}
+{{- end}}{{- end}}{{- if hasCodeCommands . }}
+
+Code Commands:
+{{- range codeCommands . }}
+  {{rpad .Name .NamePadding }} {{.Short}}
+{{- end}}{{- end}}{{- end}}{{if .HasAvailableLocalFlags}}
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+
+Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+`
