@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -29,6 +30,11 @@ func main() {
 		}
 		os.Exit(1)
 	}
+}
+
+func Test(c *cobra.Command) error {
+	fmt.Println("heeyy")
+	return nil
 }
 
 func newCmdBrev(t *terminal.Terminal) *cobra.Command {
@@ -67,6 +73,104 @@ func newCmdBrev(t *terminal.Terminal) *cobra.Command {
 	})
 
 	createCmdTree(brevCommand, t)
+
+	// 	help1 := `Usage:{{if .Runnable}}
+	// 	{{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+	// 	{{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+
+	//   Aliases:
+	// 	{{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+	//   Examples:
+	//   {{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+
+	//   Flags:
+	//   {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+	//   Global Flags:
+	//   {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+	//   Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+	//   `
+	// 	helpFinal := `
+	//   Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+	//   `
+
+	HouseKeeping := "\nHousekeeping Commands"
+	Project := "\nProject Commands"
+	Environment := "\nEnvironment Commands"
+	Code := "\nCode Commands"
+
+	for _, v := range brevCommand.Commands() {
+		if v.Name() == "login" || v.Name() == "completion" {
+			HouseKeeping += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+		} else if v.Name() == "init" || v.Name() == "clone" || v.Name() == "status" {
+			Project += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+		} else if v.Name() == "env" || v.Name() == "packages" {
+			Environment += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+		} else if v.Name() == "diff" || v.Name() == "endpoint" || v.Name() == "push" || v.Name() == "pull" {
+			Code += "\n\t" + v.Name() + "\t\t" + " " + v.Short
+		}
+	}
+
+	brevCommand.SetUsageTemplate(HouseKeeping + Project + Environment + Code)
+
+	// 	brevCommand.SetUsageTemplate(`
+	// {{t.Green('Usage:')}}
+	// 	brev [flags]
+	// 	brev [command]
+
+	// Flags:
+	// -h, --help      help for brev
+	// -v, --verbose   Verbose output
+	// --version   Print version output
+
+	// HouseKeeping Commands:
+	// 	login
+	// 	completion
+
+	// Project Commands:
+	// 	init
+	// 	clone
+	// 	status
+
+	// Environment Commands:
+	// 	env
+	// 	packages
+
+	// Code Commands:
+	// 	diff
+	// 	endpoint
+	// 	push
+	// 	pull
+
+	// `)
+
+	// 	brevCommand.SetUsageTemplate(`Usage:{{if .Runnable}}
+	// 	{{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+	// 	{{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+
+	//   Aliases:
+	// 	{{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+	//   Examples:
+	//   {{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+
+	//   Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+	// 	{{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+
+	//   Flags:
+	//   {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+	//   Global Flags:
+	//   {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+	//   Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+	// 	{{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+
+	//   Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+	//   `)
+
 	return brevCommand
 }
 

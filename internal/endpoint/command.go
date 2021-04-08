@@ -53,6 +53,7 @@ func NewCmdEndpoint(t *terminal.Terminal) *cobra.Command {
 	cmd.AddCommand(newCmdRun(t))
 	// cmd.AddCommand(newCmdLog(context))
 	cmd.AddCommand(newCmdList(t))
+	cmd.SetUsageTemplate("\nendpoint help\n")
 
 	return cmd
 }
