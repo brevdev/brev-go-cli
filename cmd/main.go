@@ -102,10 +102,52 @@ func hasHousekeepingCommands(cmd *cobra.Command) bool {
 	return len(housekeepingCommands(cmd)) > 0
 }
 
+func hasProjectCommands(cmd *cobra.Command) bool {
+	return len(projectCommands(cmd)) > 0
+}
+
+func hasEnvironmentCommands(cmd *cobra.Command) bool {
+	return len(environmentCommands(cmd)) > 0
+}
+
+func hasCodeCommands(cmd *cobra.Command) bool {
+	return len(codeCommands(cmd)) > 0
+}
+
 func housekeepingCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
 		if isHousekeepingCommand(sub) {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func projectCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if isProjectCommand(sub) {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func environmentCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if isEnvironmentCommand(sub) {
+			cmds = append(cmds, sub)
+		}
+	}
+	return cmds
+}
+
+func codeCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, sub := range cmd.Commands() {
+		if isCodeCommand(sub) {
 			cmds = append(cmds, sub)
 		}
 	}
@@ -120,20 +162,6 @@ func isHousekeepingCommand(cmd *cobra.Command) bool {
 	}
 }
 
-func hasProjectCommands(cmd *cobra.Command) bool {
-	return len(projectCommands(cmd)) > 0
-}
-
-func projectCommands(cmd *cobra.Command) []*cobra.Command {
-	cmds := []*cobra.Command{}
-	for _, sub := range cmd.Commands() {
-		if isProjectCommand(sub) {
-			cmds = append(cmds, sub)
-		}
-	}
-	return cmds
-}
-
 func isProjectCommand(cmd *cobra.Command) bool {
 	if _, ok := cmd.Annotations["project"]; ok {
 		return true
@@ -142,40 +170,12 @@ func isProjectCommand(cmd *cobra.Command) bool {
 	}
 }
 
-func hasEnvironmentCommands(cmd *cobra.Command) bool {
-	return len(environmentCommands(cmd)) > 0
-}
-
-func environmentCommands(cmd *cobra.Command) []*cobra.Command {
-	cmds := []*cobra.Command{}
-	for _, sub := range cmd.Commands() {
-		if isEnvironmentCommand(sub) {
-			cmds = append(cmds, sub)
-		}
-	}
-	return cmds
-}
-
 func isEnvironmentCommand(cmd *cobra.Command) bool {
 	if _, ok := cmd.Annotations["environment"]; ok {
 		return true
 	} else {
 		return false
 	}
-}
-
-func hasCodeCommands(cmd *cobra.Command) bool {
-	return len(codeCommands(cmd)) > 0
-}
-
-func codeCommands(cmd *cobra.Command) []*cobra.Command {
-	cmds := []*cobra.Command{}
-	for _, sub := range cmd.Commands() {
-		if isCodeCommand(sub) {
-			cmds = append(cmds, sub)
-		}
-	}
-	return cmds
 }
 
 func isCodeCommand(cmd *cobra.Command) bool {
