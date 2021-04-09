@@ -95,26 +95,41 @@ func login(t *terminal.Terminal) error {
 		return err
 	}
 
-	err = initializeActiveProjectsFile()
+	return nil
+}
+
+func loginAndInitialize(t *terminal.Terminal) error {
+
+	err := login(t)
 	if err != nil {
-		t.Errprint(err, "Failed to write auth token to file")
+		return err
+	}
+
+	err = initializeActiveProjectsFile(t)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func initializeActiveProjectsFile() error {
+func initializeActiveProjectsFile(t *terminal.Terminal) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
 
 	brevActiveProjectsFile := home + "/" + files.GetBrevDirectory() + "/" + globalActiveProjectsFile
-
-	err = files.OverwriteJSON(brevActiveProjectsFile, []string{})
+	exists, err := files.Exists(brevActiveProjectsFile)
 	if err != nil {
 		return err
+	}
+	if !exists {
+		err = files.OverwriteJSON(brevActiveProjectsFile, []string{})
+		if err != nil {
+			t.Errprint(err, "Failed to initialize active projects file. Just run this and try again: echo '[]' > ~/.brev/active_projects.json ")
+			return err
+		}
 	}
 
 	return nil
