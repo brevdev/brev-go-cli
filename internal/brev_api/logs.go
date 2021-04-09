@@ -1,7 +1,12 @@
 package brev_api
 
 import (
+	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/brevdev/brev-go-cli/internal/requests"
+	"github.com/gorilla/websocket"
 )
 
 type ProjectLog struct {
@@ -24,7 +29,7 @@ type ProjectLogs struct {
 	Logs []ProjectLog `json:"logs"`
 }
 
-func (a *Agent) GetLogs(projectID string, logType string) ([]ProjectLog, error) {
+func (a *Agent) GetHistoricalLogs(projectID string, logType string) ([]ProjectLog, error) {
 	request := requests.RESTRequest{
 		Method:   "GET",
 		Endpoint: brevEndpoint("logs"),
@@ -49,4 +54,34 @@ func (a *Agent) GetLogs(projectID string, logType string) ([]ProjectLog, error) 
 	}
 
 	return payload.Logs, nil
+}
+
+func (a *Agent) TailLiveLogs(instanceId string, task string) <-chan string {
+
+	url := brevLogEndpoint(fmt.Sprintf("?client_type=%s&instance_id=%s&task=%s", "USER", instanceId, task))
+
+	log.Printf("connecting to %s", url)
+
+	c, resp, err := websocket.DefaultDialer.Dial(url, http.Header{"token": []string{a.Key.AccessToken}})
+	if err != nil {
+		log.Printf("handshake failed with status %d", resp.StatusCode)
+		log.Fatal("dial: ", err)
+	}
+
+	logs := make(chan string)
+
+	go func() {
+		defer close(logs)
+		defer c.Close()
+		for {
+			_, message, err := c.ReadMessage()
+			if err != nil {
+				log.Println("read:", err)
+				return
+			}
+			logs <- string(message)
+		}
+	}()
+	return logs
+
 }

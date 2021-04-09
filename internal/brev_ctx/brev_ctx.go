@@ -387,6 +387,10 @@ func (c *RemoteContext) GetEndpoints(options *GetEndpointsOptions) ([]brev_api.E
 	return filteredEndpoints, nil
 }
 
+func (c *RemoteContext) GetAccessToken() string {
+	return c.agent.Key.AccessToken
+}
+
 // SetEndpoint updates the remote endpoint with the given ID with the state of the provided
 // endpoint struct.
 func (c *RemoteContext) SetEndpoint(endpoint brev_api.Endpoint) (*brev_api.Endpoint, error) {
@@ -500,4 +504,8 @@ func getLocalProjectPath() string {
 func getLocalEndpointsPath() string {
 	cwd, _ := os.Getwd()
 	return fmt.Sprintf("%s/%s/%s", cwd, localBrevDirectory, localEndpointsFile)
+}
+
+func (c *RemoteContext) TailLogs(instanceId string, task string) <-chan string {
+	return c.agent.TailLiveLogs(instanceId, task)
 }

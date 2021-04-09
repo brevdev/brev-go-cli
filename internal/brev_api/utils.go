@@ -19,6 +19,12 @@ func brevEndpoint(resource string) string {
 	return baseEndpoint + "/_api/" + resource
 }
 
+func brevLogEndpoint(suffix string) string {
+	baseEndpoint := config.GetBrevLogEndpoint()
+
+	return baseEndpoint + suffix
+}
+
 // Example usage
 /*
 	token, _ := auth.GetToken()

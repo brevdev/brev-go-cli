@@ -75,7 +75,7 @@ func login(t *terminal.Terminal) error {
 	}
 
 	// TODO: pretty print URL?
-	t.Print(cotterURL)
+	t.Println(cotterURL)
 
 	err = openInDefaultBrowser(cotterURL)
 	if err != nil {
@@ -270,7 +270,6 @@ func captureCotterToken(codeVerifier string) (*CotterOauthToken, error) {
 			fmt.Println(errorParm)
 			// panic!
 		}
-
 		code := q.Get("code")
 		challengeID := q.Get("challenge_id")
 

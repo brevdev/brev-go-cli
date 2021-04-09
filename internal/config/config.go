@@ -9,6 +9,7 @@ var (
 	Version         = "unknown"
 	CotterAPIKey    = "unknown"
 	BrevAPIEndpoint = "https://app.brev.dev"
+	BrevLogEndpoint = "unknown"
 )
 
 func Init() {
@@ -25,4 +26,8 @@ func GetCotterAPIKey() string {
 
 func GetBrevAPIEndpoint() string {
 	return BrevAPIEndpoint
+}
+
+func GetBrevLogEndpoint() string {
+	return BrevLogEndpoint
 }
