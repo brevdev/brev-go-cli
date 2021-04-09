@@ -203,15 +203,15 @@ Housekeeping Commands:
   {{rpad .Name .NamePadding }} {{.Short}}
 {{- end}}{{- end}}{{- if hasProjectCommands . }}
 
-Project Commands:
-{{- range projectCommands . }}
-  {{rpad .Name .NamePadding }} {{.Short}}
-{{- end}}{{- end}}{{- if hasEnvironmentCommands . }}
-
 Environment Commands:
 {{- range environmentCommands . }}
   {{rpad .Name .NamePadding }} {{.Short}}
 {{- end}}{{- end}}{{- if hasCodeCommands . }}
+
+Project Commands:
+{{- range projectCommands . }}
+  {{rpad .Name .NamePadding }} {{.Short}}
+{{- end}}{{- end}}{{- if hasEnvironmentCommands . }}
 
 Code Commands:
 {{- range codeCommands . }}
