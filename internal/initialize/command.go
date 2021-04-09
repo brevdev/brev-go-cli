@@ -23,8 +23,8 @@ func NewCmdClone(t *terminal.Terminal) *cobra.Command {
 		Short:       "Clone a Brev Project",
 		Annotations: map[string]string{"project": ""},
 		Long:        "Clone an existing Brev project",
-		Example: ` // To clone your existing Brev project
-		brev clone --name your_project_name`,
+		Example: `  // To clone your existing Brev project
+  brev clone --name your_project_name`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			bar := t.NewProgressBar("", func() {})
@@ -82,7 +82,7 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 		Short:       "Initialize a Brev Project",
 		Long:        "Initialize a Brev project.",
 		Example: `  // To init new project in current directory
-  			brev init`,
+  brev init`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			bar := t.NewProgressBar("", func() {})
