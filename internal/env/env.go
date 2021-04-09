@@ -15,7 +15,7 @@ import (
 
 func addVariable(name string, t *terminal.Terminal) error {
 
-	t.Vprintf("Enter value for %s: ", name)
+	t.Printf("Enter value for %s: ", name)
 
 	bytepw, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {

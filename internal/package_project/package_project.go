@@ -98,7 +98,7 @@ func listPackages(t *terminal.Terminal) error {
 		return err
 	}
 
-	t.Vprintf("Packages installed on project %s:\n", project.Name)
+	t.Printf("Packages installed on project %s:\n", project.Name)
 
 	for _, v := range packages {
 		installStr := fmt.Sprintf("\t%s==%s ", v.Name, v.Version)
