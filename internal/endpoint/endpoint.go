@@ -134,8 +134,6 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 		return err
 	}
 
-	bar.Describe("Preparing endpoint")
-	bar.AdvanceTo(80)
 	// get local endpoint for the given name
 	endpoints, err := brevCtx.Local.GetEndpoints(&brev_ctx.GetEndpointsOptions{
 		Name: name,
@@ -148,6 +146,26 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 	}
 	endpoint := endpoints[0]
 
+	bar.Describe("Pushing endpoint")
+	bar.AdvanceTo(50)
+
+	path, err := getRootProjectDir(t)
+	if err != nil {
+		return err
+	}
+	endpoint.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, endpoint.Name))
+	if err != nil {
+		return err
+	}
+	brevCtx.Remote.SetEndpoint(brev_api.Endpoint{
+		Id:      endpoint.Id,
+		Name:    endpoint.Name,
+		Methods: endpoint.Methods,
+		Code:    endpoint.Code,
+	})
+
+	bar.Describe("Pushed endpoint")
+	bar.AdvanceTo(80)
 	// prepare query params
 	var params []requests.QueryParam
 	for _, v := range arg {
@@ -245,4 +263,31 @@ func listEndpoints(t *terminal.Terminal) error {
 func logEndpoint(name string, t *terminal.Terminal) error {
 	t.Printf("Log ep file %s", name)
 	return nil
+}
+
+func getRootProjectDir(t *terminal.Terminal) (string, error) {
+
+	brevCtx, err := brev_ctx.New()
+	if err != nil {
+		return "", err
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Errprint(err, "Failed to determine working directory")
+		return "", err
+	}
+
+	paths, err := brevCtx.Global.GetProjectPaths()
+	if err != nil {
+		return "", err
+	}
+
+	var path string
+	for _, v := range paths {
+		if strings.Contains(cwd, v) {
+			path = v
+		}
+	}
+	return path, nil
 }
