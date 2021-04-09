@@ -43,13 +43,12 @@ func getCurrentPackages(t *terminal.Terminal) []string {
 
 func NewCmdPackage(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "package",
-		Short: "Add or remove packages from your Brev project",
-		Long: `Add or remove python packages from your project (like pip):
-		ex:
-			brev package add --name numpy
-			brev package remove --name numpy
-	`,
+		Use:         "package",
+		Annotations: map[string]string{"environment": ""},
+		Short:       "Add or remove packages from your Brev project",
+		Long:        "Add or remove python packages from your project (like pip)",
+		Example: `  brev package add --name numpy
+  brev package remove --name numpy`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
 			if err != nil {
@@ -72,12 +71,10 @@ func newCmdAdd(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
-		Use:   "add",
-		Short: "Add a python package to your project",
-		Long: `Installs a python package to your project (like pip)
-			ex: 
-				brev package add --name numpy
-		`,
+		Use:     "add",
+		Short:   "Add a python package to your project",
+		Long:    "Installs a python package to your project (like pip).",
+		Example: `  brev package add --name numpy`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return addPackage(name, t)
 		},
@@ -96,12 +93,10 @@ func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
-		Use:   "remove",
-		Short: "Remove a python package from your project",
-		Long: `Uninstalls a python package to your project (like pip)
-			ex: 
-				brev package remove --name numpy
-		`,
+		Use:     "remove",
+		Short:   "Remove a python package from your project",
+		Long:    "Uninstalls a python package to your project (like pip).",
+		Example: `  brev package remove --name numpy`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removePackage(name, t)
 		},
@@ -118,12 +113,10 @@ func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 
 func newCmdList(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List installed packages",
-		Long: `List installed packages
-			ex: 
-				brev package list
-		`,
+		Use:     "list",
+		Short:   "List installed packages",
+		Long:    "List installed packages.",
+		Example: `  brev package list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listPackages(t)
 		},

@@ -27,14 +27,13 @@ func getEpNames() []string {
 
 func NewCmdEndpoint(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "endpoint",
-		Short: "Create, Run, or Remove Endpoints",
-		Long: `Do any operation to your Brev endpoints. Ex:
-
-		brev endpoint add NewEp
-		brev endpoint run NewEp
-		brev endpoint remove NewEp
-	`,
+		Use:         "endpoint",
+		Annotations: map[string]string{"code": ""},
+		Short:       "Create, Run, or Remove Endpoints",
+		Long:        "Do any operation to your Brev endpoints.",
+		Example: `  brev endpoint add NewEp
+  brev endpoint run NewEp
+  brev endpoint remove NewEp`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
 			if err != nil {
@@ -61,12 +60,10 @@ func newCmdAdd(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
-		Use:   "add",
-		Short: "Add an endpoint to your project.",
-		Long: `Add an endpoint to your project. This will also create the file in your directory.
-		ex:
-			brev endpoint add NewEp
-		`,
+		Use:     "add",
+		Short:   "Add an endpoint to your project.",
+		Long:    "Add an endpoint to your project. This will also create the file in your directory.",
+		Example: `  brev endpoint add NewEp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return addEndpoint(name, t)
 		},
@@ -81,12 +78,10 @@ func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
-		Use:   "remove",
-		Short: "Remove an endpoint from your project.",
-		Long: `Remove an endpoint from your project. This will also remove the file from your directory.
-		ex:
-			brev endpoint remove NewEp
-		`,
+		Use:     "remove",
+		Short:   "Remove an endpoint from your project.",
+		Long:    "Remove an endpoint from your project. This will also remove the file from your directory.",
+		Example: `  brev endpoint remove NewEp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removeEndpoint(name, t)
 		},
@@ -116,12 +111,10 @@ func newCmdRun(t *terminal.Terminal) *cobra.Command {
 	var body string
 
 	cmd := &cobra.Command{
-		Use:   "run",
-		Short: "Run your endpoint",
-		Long: `Run your endpoint  on the remote server. Similar to cURL and Postman, etc
-		ex:
-			brev endpoint run MyEp
-		`,
+		Use:     "run",
+		Short:   "Run your endpoint",
+		Long:    "Run your endpoint  on the remote server. Similar to cURL and Postman, etc.",
+		Example: `  brev endpoint run MyEp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runEndpoint(name, method, arg, body, t)
 		},
@@ -153,12 +146,10 @@ func newCmdLog(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
-		Use:   "log",
-		Short: "Log an endpoint.",
-		Long: `Get logs for any endpoint.
-		ex:
-			brev endpoint log NewEp
-		`,
+		Use:     "log",
+		Short:   "Log an endpoint.",
+		Long:    "Get logs for any endpoint.",
+		Example: `  brev endpoint log NewEp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return logEndpoint(name, t)
 		},
@@ -172,12 +163,10 @@ func newCmdLog(t *terminal.Terminal) *cobra.Command {
 func newCmdList(t *terminal.Terminal) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List endpoints in your project.",
-		Long: `List endpoints in your project. This will print your URLs.
-		ex:
-			brev endpoint list
-		`,
+		Use:     "list",
+		Short:   "List endpoints in your project.",
+		Long:    "List endpoints in your project. This will print your URLs.",
+		Example: `  brev endpoint list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listEndpoints(t)
 		},

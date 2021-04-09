@@ -8,7 +8,8 @@ import (
 
 func NewCmdLogin(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "login",
+		Use:         "login",
+		Annotations: map[string]string{"housekeeping": ""},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return login(t)
 		},

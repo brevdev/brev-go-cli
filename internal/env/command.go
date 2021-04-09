@@ -11,8 +11,9 @@ import (
 
 func NewCmdEnv(t *terminal.Terminal) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "env",
-		Short: "Add or remove environment variables",
+		Use:         "env",
+		Annotations: map[string]string{"environment": ""},
+		Short:       "Add or remove environment variables",
 		Long: `Use the Brev secrets manager for encrypted variables that get used at runtime.
 		
 		ex: 
@@ -65,12 +66,9 @@ func newCmdRemove(t *terminal.Terminal) *cobra.Command {
 	var name string
 
 	cmd := &cobra.Command{
-		Use:   "remove",
-		Short: "Remove an environment variable",
-		Long: `To remove an environment variable:
-
-			brev env remove --name XYZ
-		`,
+		Use:     "remove",
+		Short:   "Remove an environment variable",
+		Example: `  brev env remove --name XYZ`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removeVariable(name, t)
 		},

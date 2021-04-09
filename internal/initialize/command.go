@@ -19,16 +19,15 @@ func NewCmdInit(t *terminal.Terminal) *cobra.Command {
 	var project string
 
 	cmd := &cobra.Command{
-		Use:   "init",
-		Short: "Initialize a Brev Project",
-		Long: `Use this to initialize a Brev project. Ex:
-		
-		// To init new project in current directory
-		brev init
-	
-		// To init existing project
-		brev init <project_name>
-		`,
+		Use:         "init",
+		Annotations: map[string]string{"project": ""},
+		Short:       "Initialize a Brev Project",
+		Long:        "Use this to initialize a Brev project.",
+		Example: `  // To init new project in current directory
+  brev init
+
+  // To init existing project
+  brev init <project_name>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			bar := t.NewProgressBar("", func() {})
