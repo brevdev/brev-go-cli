@@ -62,35 +62,35 @@ func status(t *terminal.Terminal) error {
 		return err
 	}
 
-	t.Vprint(t.Yellow("\nProject %s", project.Name))
+	t.Vprintln(t.Yellow("\nProject %s", project.Name))
 
 	// Print package info
 	if len(packages) == 0 {
-		t.Vprint("\n\tNo packages installed.")
+		t.Vprintln("\n\tNo packages installed.")
 	} else {
-		t.Vprint(t.Yellow("\n\tPackages:"))
+		t.Vprintln(t.Yellow("\n\tPackages:"))
 	}
 
 	for _, v := range packages {
 		installStr := fmt.Sprintf("\t\t%s==%s ", v.Name, v.Version)
 		if v.Status == "pending" {
-			t.Vprint(installStr + t.Yellow("%s", v.Status))
+			t.Vprintln(installStr + t.Yellow("%s", v.Status))
 		} else if v.Status == "installed" {
-			t.Vprint(installStr + t.Green("%s", v.Status))
+			t.Vprintln(installStr + t.Green("%s", v.Status))
 		} else {
-			t.Vprint(installStr + t.Red("%s", v.Status))
+			t.Vprintln(installStr + t.Red("%s", v.Status))
 		}
 	}
 
 	// Print Endpoint info
 	if len(endpoints) == 0 {
-		t.Vprint("\nYour project doesn't have any endpoints. Try running \n \t\t brev endpoint add --name newEP")
+		t.Vprintln("\nYour project doesn't have any endpoints. Try running \n \t\t brev endpoint add --name newEP")
 	} else {
-		t.Vprint(t.Yellow("\n\tEndpoints:"))
+		t.Vprintln(t.Yellow("\n\tEndpoints:"))
 
 		for _, v := range endpoints {
 			str := "\n\t\t" + t.Yellow("%s", v.Name) + "\n\t\t\t" + project.Domain + v.Uri
-			t.Vprint(str)
+			t.Vprintln(str)
 		}
 	}
 

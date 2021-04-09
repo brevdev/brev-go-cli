@@ -1,7 +1,6 @@
 package logs
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 
@@ -28,8 +27,7 @@ func LogTask(task string, t *terminal.Terminal) error {
 	for {
 		select {
 		case log := <-logChan:
-			fmt.Print(log)
-			// t.Print(log) // for some reason this is not writing to stdout
+			t.Vprint(log)
 		case <-interrupt:
 			// TODO: cleanly close ws client
 			return nil

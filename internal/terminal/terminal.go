@@ -57,8 +57,12 @@ func (t *Terminal) Printf(format string, a ...interface{}) {
 	fmt.Fprintf(t.out, format, a)
 }
 
-func (t *Terminal) Vprint(a string) {
+func (t *Terminal) Vprintln(a string) {
 	fmt.Fprintln(t.verbose, a)
+}
+
+func (t *Terminal) Vprint(a string) {
+	fmt.Fprint(t.verbose, a)
 }
 
 func (t *Terminal) Vprintf(format string, a ...interface{}) {

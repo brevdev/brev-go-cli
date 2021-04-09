@@ -92,7 +92,7 @@ func CheckOutsideBrevErrorMessage(t *terminal.Terminal) (bool, error) {
 	}
 
 	// Exit with error message
-	t.Vprint("Endpoint commands only work in a Brev project.")
+	t.Vprintln("Endpoint commands only work in a Brev project.")
 	if len(currBrevDirectories) == 0 {
 		// If no directories, check if they have some remote.
 
@@ -113,19 +113,19 @@ func CheckOutsideBrevErrorMessage(t *terminal.Terminal) (bool, error) {
 
 		if len(rawProjects) == 0 {
 			// Encourage them to create their first project
-			t.Vprint("You haven't made a brev project yet! Try running 'brev init'")
+			t.Vprintln("You haven't made a brev project yet! Try running 'brev init'")
 
 		} else {
 			// Encourage them to pull one of their existing projects
-			t.Vprint("Set up one of your existing projects.")
-			t.Vprint("For example, run 'brev init " + rawProjects[0].Name + "'")
+			t.Vprintln("Set up one of your existing projects.")
+			t.Vprintln("For example, run 'brev init " + rawProjects[0].Name + "'")
 		}
 
 	} else {
 		// Print active brev projects
-		t.Vprint("Active Brev projects on your computer: ")
+		t.Vprintln("Active Brev projects on your computer: ")
 		for _, v := range currBrevDirectories {
-			t.Vprint("\t" + v)
+			t.Vprintln("\t" + v)
 		}
 	}
 	return false, nil

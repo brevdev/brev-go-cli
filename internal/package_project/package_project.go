@@ -31,9 +31,9 @@ func addPackage(name string, t *terminal.Terminal) error {
 
 	bar.AdvanceTo(100)
 	finalStr := t.Green("Package ") + t.Yellow("%s", name) + t.Green(" added successfully 🥞")
-	t.Vprint(finalStr)
+	t.Vprintln(finalStr)
 
-	t.Vprint(t.Yellow(`
+	t.Vprintln(t.Yellow(`
 
 The package might take a moment to fully install.
 'brev package list' to see the status of all packages.
@@ -77,7 +77,7 @@ func removePackage(name string, t *terminal.Terminal) error {
 	// bar.Describe(finalStr)
 	bar.AdvanceTo(100)
 
-	t.Vprint(finalStr)
+	t.Vprintln(finalStr)
 
 	return nil
 }
@@ -103,11 +103,11 @@ func listPackages(t *terminal.Terminal) error {
 	for _, v := range packages {
 		installStr := fmt.Sprintf("\t%s==%s ", v.Name, v.Version)
 		if v.Status == "pending" {
-			t.Vprint(installStr + t.Yellow("%s", v.Status))
+			t.Vprintln(installStr + t.Yellow("%s", v.Status))
 		} else if v.Status == "installed" {
-			t.Vprint(installStr + t.Green("%s", v.Status))
+			t.Vprintln(installStr + t.Green("%s", v.Status))
 		} else {
-			t.Vprint(installStr + t.Red("%s", v.Status))
+			t.Vprintln(installStr + t.Red("%s", v.Status))
 		}
 	}
 

@@ -62,9 +62,9 @@ func push(t *terminal.Terminal) error {
 		return err
 	}
 
-	t.Vprint("\n") // separating the below output from the loadingbar
+	t.Vprintln("\n") // separating the below output from the loadingbar
 	for _, v := range endpoints {
-		t.Vprint(t.Green("Updating ep %s", v.Name))
+		t.Vprintln(t.Green("Updating ep %s", v.Name))
 		v.Code, err = files.ReadString(fmt.Sprintf("%s/%s.py", path, v.Name))
 		if err != nil {
 			return err
@@ -80,7 +80,7 @@ func push(t *terminal.Terminal) error {
 	}
 
 	bar.AdvanceTo(100)
-	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
+	t.Vprintln(t.Green("\n\nYour project is synced 🥞"))
 
 	return nil
 }
@@ -124,9 +124,9 @@ func pull(t *terminal.Terminal) error {
 
 	err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, module.Name), module.Source)
 
-	t.Vprint("\n") // separating the below output from the loadingbar
+	t.Vprintln("\n") // separating the below output from the loadingbar
 	for _, v := range remoteEndpoints {
-		t.Vprint(t.Green("Pulling ep %s", v.Name))
+		t.Vprintln(t.Green("Pulling ep %s", v.Name))
 
 		err = files.OverwriteString(fmt.Sprintf("%s/%s.py", path, v.Name), v.Code)
 		if err != nil {
@@ -140,7 +140,7 @@ func pull(t *terminal.Terminal) error {
 
 	brevCtx.Local.SetEndpoints(remoteEndpoints)
 
-	t.Vprint(t.Green("\n\nYour project is synced 🥞"))
+	t.Vprintln(t.Green("\n\nYour project is synced 🥞"))
 
 	return nil
 }
@@ -213,12 +213,12 @@ func diffCmd(t *terminal.Terminal) error {
 	if err != nil {
 		return err
 	}
-	t.Vprint(t.Yellow("\nDiff for Project %s :", project.Name))
+	t.Vprintln(t.Yellow("\nDiff for Project %s :", project.Name))
 
 	moduleDiff := diffTwoFiles(module.Source, localModule)
 	diffString := printDiff("Shared", moduleDiff, t)
 	if len(diffString) > 0 {
-		t.Vprint(diffString)
+		t.Vprintln(diffString)
 		numChanges += 1
 	}
 
@@ -257,7 +257,7 @@ func diffCmd(t *terminal.Terminal) error {
 			diff := diffTwoFiles(remoteEpMap[v.Id].Code, v.Code)
 			diffString := printDiff(v.Name, diff, t)
 			if len(diffString) > 0 {
-				t.Vprint(diffString)
+				t.Vprintln(diffString)
 				numChanges += 1
 			}
 		} else {
@@ -265,7 +265,7 @@ func diffCmd(t *terminal.Terminal) error {
 			diff := diffTwoFiles("", v.Code)
 			diffString := printDiff(v.Name, diff, t)
 			if len(diffString) > 0 {
-				t.Vprint(diffString)
+				t.Vprintln(diffString)
 				numChanges += 1
 			}
 		}
@@ -276,14 +276,14 @@ func diffCmd(t *terminal.Terminal) error {
 			diff := diffTwoFiles(remoteEpMap[v.Id].Code, "")
 			diffString := printDiff(v.Name, diff, t)
 			if len(diffString) > 0 {
-				t.Vprint(diffString)
+				t.Vprintln(diffString)
 				numChanges += 1
 			}
 		}
 	}
 
 	if numChanges == 0 {
-		t.Vprint(t.Green("All Synced 🥞"))
+		t.Vprintln(t.Green("All Synced 🥞"))
 	}
 
 	return nil
