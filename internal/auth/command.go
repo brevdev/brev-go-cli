@@ -11,7 +11,7 @@ func NewCmdLogin(t *terminal.Terminal) *cobra.Command {
 		Use:         "login",
 		Annotations: map[string]string{"housekeeping": ""},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return login(t)
+			return loginAndInitialize(t)
 		},
 	}
 	return cmd

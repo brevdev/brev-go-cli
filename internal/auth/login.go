@@ -33,7 +33,8 @@ const (
 	localPort             = "8395"
 	localEndpoint         = "http://localhost:" + localPort
 
-	brevCredentialsFile = "credentials.json"
+	brevCredentialsFile      = "credentials.json"
+	globalActiveProjectsFile = "active_projects.json"
 )
 
 type cotterTokenRequestPayload struct {
@@ -98,6 +99,43 @@ func login(t *terminal.Terminal) error {
 		t.Green("\nYou're authenticated!\n") +
 			t.Yellow("\tbrev init") + t.Green(" to make a new project or\n") +
 			t.Yellow("\tbrev clone") + t.Green(" to clone your existing project"))
+
+	return nil
+}
+
+func loginAndInitialize(t *terminal.Terminal) error {
+
+	err := login(t)
+	if err != nil {
+		return err
+	}
+
+	err = initializeActiveProjectsFile(t)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initializeActiveProjectsFile(t *terminal.Terminal) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	brevActiveProjectsFile := home + "/" + files.GetBrevDirectory() + "/" + globalActiveProjectsFile
+	exists, err := files.Exists(brevActiveProjectsFile)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		err = files.OverwriteJSON(brevActiveProjectsFile, []string{})
+		if err != nil {
+			t.Errprint(err, "Failed to initialize active projects file. Just run this and try again: echo '[]' > ~/.brev/active_projects.json ")
+			return err
+		}
+	}
 
 	return nil
 }
