@@ -27,7 +27,7 @@ func LogTask(task string, t *terminal.Terminal) error {
 	for {
 		select {
 		case log := <-logChan:
-			t.Vprint(log)
+			t.Print(log)
 		case <-interrupt:
 			// TODO: cleanly close ws client
 			return nil

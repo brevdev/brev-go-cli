@@ -17,8 +17,8 @@ type ProgressBar struct {
 	CurrPercentage int
 }
 type Terminal struct {
-	out     io.Writer
 	verbose io.Writer
+	out     io.Writer
 	err     io.Writer
 
 	Green  func(format string, a ...interface{}) string
@@ -36,8 +36,8 @@ func (t *Terminal) Init(verbose bool) {
 		out = silentWriter{}
 	}
 
-	t.out = out
-	t.verbose = os.Stdout
+	t.verbose = out
+	t.out = os.Stdout
 	t.err = os.Stderr
 
 	t.Green = color.New(color.FgGreen).SprintfFunc()
@@ -45,28 +45,28 @@ func (t *Terminal) Init(verbose bool) {
 	t.Red = color.New(color.FgRed).SprintfFunc()
 }
 
-func (t *Terminal) Print(a string) {
-	fmt.Fprint(t.out, a)
-}
-
-func (t *Terminal) Println(a string) {
-	fmt.Fprintln(t.out, a)
-}
-
-func (t *Terminal) Printf(format string, a ...interface{}) {
-	fmt.Fprintf(t.out, format, a)
+func (t *Terminal) Vprint(a string) {
+	fmt.Fprint(t.verbose, a)
 }
 
 func (t *Terminal) Vprintln(a string) {
 	fmt.Fprintln(t.verbose, a)
 }
 
-func (t *Terminal) Vprint(a string) {
-	fmt.Fprint(t.verbose, a)
-}
-
 func (t *Terminal) Vprintf(format string, a ...interface{}) {
 	fmt.Fprintf(t.verbose, format, a)
+}
+
+func (t *Terminal) Println(a string) {
+	fmt.Fprintln(t.out, a)
+}
+
+func (t *Terminal) Print(a string) {
+	fmt.Fprint(t.out, a)
+}
+
+func (t *Terminal) Printf(format string, a ...interface{}) {
+	fmt.Fprintf(t.out, format, a)
 }
 
 func (t *Terminal) Eprint(a string) {

@@ -74,7 +74,7 @@ func login(t *terminal.Terminal) error {
 	}
 
 	// TODO: pretty print URL?
-	t.Println(cotterURL)
+	t.Vprintln(cotterURL)
 
 	err = openInDefaultBrowser(cotterURL)
 	if err != nil {

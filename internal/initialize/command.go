@@ -173,7 +173,7 @@ func initExistingProj(project brev_api.Project, t *terminal.Terminal, bar *termi
 	bar.AdvanceTo(100)
 	completionString := t.Yellow("\ncd %s", project.Name) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞")
 
-	t.Vprint(completionString)
+	t.Println(completionString)
 
 	return nil
 }
@@ -264,7 +264,7 @@ func initNewProject(t *terminal.Terminal, bar *terminal.ProgressBar) error {
 	bar.Describe(t.Green("Brev project %s created and deployed.", projName))
 	bar.AdvanceTo(100)
 	completionString := t.Green(t.Yellow("\ncd %s", projName) + t.Green(" and get started!") + t.Green("\n\nHappy Hacking 🥞"))
-	t.Vprint(completionString)
+	t.Println(completionString)
 
 	return nil
 

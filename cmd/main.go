@@ -48,7 +48,7 @@ func newCmdBrev(t *terminal.Terminal) *cobra.Command {
 					t.Errprint(err, "Failed to determine version")
 					return err
 				}
-				t.Vprint(v)
+				t.Println(v)
 				return nil
 			} else {
 				return cmd.Usage()

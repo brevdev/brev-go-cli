@@ -13,6 +13,6 @@ type Project struct {
 }
 
 func logic(t *terminal.Terminal) error {
-	t.Print("project called")
+	t.Vprint("project called")
 	return nil
 }

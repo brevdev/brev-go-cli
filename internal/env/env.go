@@ -40,7 +40,7 @@ func addVariable(name string, t *terminal.Terminal) error {
 
 	finalStr := t.Green("\nVariable ") + t.Yellow("%s", name) + t.Green(" added to your project 🥞")
 	bar.AdvanceTo(100)
-	t.Vprintln(finalStr)
+	t.Println(finalStr)
 
 	return nil
 }
@@ -85,7 +85,7 @@ func removeVariable(name string, t *terminal.Terminal) error {
 
 	finalStr := t.Green("\nVariable ") + t.Yellow("%s", name) + t.Green(" removed from your project 🥞")
 	bar.AdvanceTo(100)
-	t.Vprintln(finalStr)
+	t.Println(finalStr)
 
 	return nil
 }

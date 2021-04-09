@@ -62,7 +62,7 @@ func addEndpoint(name string, t *terminal.Terminal) error {
 	}
 	bar.AdvanceTo(100)
 
-	t.Vprintln(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" created and deployed 🥞"))
+	t.Println(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" created and deployed 🥞"))
 
 	return nil
 }
@@ -113,13 +113,13 @@ func removeEndpoint(name string, t *terminal.Terminal) error {
 	bar.Describe(t.Green("File ") + t.Yellow("%s.py", name) + t.Green(" removed."))
 	bar.AdvanceTo(100)
 
-	t.Vprintln(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" removed from project ") + t.Yellow(project.Name) + " 🥞")
+	t.Println(t.Green("\nEndpoint ") + t.Yellow("%s", name) + t.Green(" removed from project ") + t.Yellow(project.Name) + " 🥞")
 
 	return nil
 }
 
 func runEndpoint(name string, method string, arg []string, jsonBody string, t *terminal.Terminal) error {
-	t.Vprintln("\n")
+	t.Println("\n")
 	bar := t.NewProgressBar("Running endpoint "+t.Yellow(name), func() {})
 	bar.AdvanceTo(40)
 
@@ -186,13 +186,13 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 	}
 
 	// print output
-	t.Vprintln(t.Yellow("\n%s %s", request.Method, request.URI))
+	t.Println(t.Yellow("\n%s %s", request.Method, request.URI))
 	if 200 <= response.StatusCode && response.StatusCode < 300 {
-		t.Vprintln(t.Green(" [%d]", response.StatusCode))
+		t.Println(t.Green(" [%d]", response.StatusCode))
 	} else if response.StatusCode >= 400 {
-		t.Vprintln(t.Red(" [%d]", response.StatusCode))
+		t.Println(t.Red(" [%d]", response.StatusCode))
 	} else {
-		t.Vprintln(t.Yellow(" [%d]", response.StatusCode))
+		t.Println(t.Yellow(" [%d]", response.StatusCode))
 	}
 
 	jsonStr, err := response.PayloadAsPrettyJSONString()
@@ -200,12 +200,12 @@ func runEndpoint(name string, method string, arg []string, jsonBody string, t *t
 		return err
 	}
 
-	t.Vprintln("\n\nOutput:\n")
-	t.Vprintln(jsonStr)
-	t.Vprintln("\n\nLogs:\n")
+	t.Println("\n\nOutput:\n")
+	t.Println(jsonStr)
+	t.Println("\n\nLogs:\n")
 	for _, header := range response.Headers {
 		if header.Key == "x-stdout" {
-			t.Vprintln(header.Value)
+			t.Println(header.Value)
 		}
 	}
 
@@ -233,16 +233,16 @@ func listEndpoints(t *terminal.Terminal) error {
 	}
 
 	// print
-	t.Vprintln(fmt.Sprintf("\nEndpoints in project %s:\n", project.Name))
+	t.Println(fmt.Sprintf("\nEndpoints in project %s:\n", project.Name))
 	for _, endpoint := range endpoints {
-		t.Vprintln(fmt.Sprintf("\t%s:", t.Green(endpoint.Name)))
-		t.Vprintln(fmt.Sprintf("\t%s%s\n", project.Domain, endpoint.Uri))
+		t.Println(fmt.Sprintf("\t%s:", t.Green(endpoint.Name)))
+		t.Println(fmt.Sprintf("\t%s%s\n", project.Domain, endpoint.Uri))
 	}
 
 	return nil
 }
 
 func logEndpoint(name string, t *terminal.Terminal) error {
-	t.Printf("Log ep file %s", name)
+	t.Vprintf("Log ep file %s", name)
 	return nil
 }
