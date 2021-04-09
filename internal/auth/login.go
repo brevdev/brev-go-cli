@@ -94,6 +94,11 @@ func login(t *terminal.Terminal) error {
 		return err
 	}
 
+	t.Vprint(
+		t.Green("\nYou're authenticated!\n") +
+			t.Yellow("\tbrev init") + t.Green(" to make a new project or\n") +
+			t.Yellow("\tbrev clone") + t.Green(" to clone your existing project"))
+
 	return nil
 }
 
