@@ -10,6 +10,7 @@ import (
 	"github.com/brevdev/brev-go-cli/internal/endpoint"
 	"github.com/brevdev/brev-go-cli/internal/env"
 	"github.com/brevdev/brev-go-cli/internal/initialize"
+	"github.com/brevdev/brev-go-cli/internal/logs"
 	"github.com/brevdev/brev-go-cli/internal/package_project"
 	"github.com/brevdev/brev-go-cli/internal/status"
 	"github.com/brevdev/brev-go-cli/internal/sync"
@@ -81,5 +82,6 @@ func createCmdTree(brevCommand *cobra.Command, t *terminal.Terminal) {
 	brevCommand.AddCommand(sync.NewCmdPull(t))
 	brevCommand.AddCommand(sync.NewCmdPush(t))
 	brevCommand.AddCommand(sync.NewCmdDiff(t))
+	brevCommand.AddCommand((logs.NewCmdLogs(t)))
 	brevCommand.AddCommand(&completionCmd)
 }

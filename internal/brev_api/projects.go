@@ -6,6 +6,7 @@ import (
 
 type Project struct {
 	Id         string `json:"id"`
+	InstanceId string `json:"instance_id"`
 	Name       string `json:"name"`
 	UserId     string `json:"user_id"`
 	Domain     string `json:"domain"`

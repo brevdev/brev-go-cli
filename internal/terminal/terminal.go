@@ -46,6 +46,10 @@ func (t *Terminal) Init(verbose bool) {
 }
 
 func (t *Terminal) Print(a string) {
+	fmt.Fprint(t.out, a)
+}
+
+func (t *Terminal) Println(a string) {
 	fmt.Fprintln(t.out, a)
 }
 

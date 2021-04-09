@@ -1,10 +1,13 @@
 # Brev CLI
 
+go version >= 1.16
+
 ## Distribute to Homebrew
 
 Step 1: bump version (see top of Makefile)
 
 Step 2: create homebrew distribution
+
 ```
 > API_COTTER_KEY=... make dist-homebrew
 ```
