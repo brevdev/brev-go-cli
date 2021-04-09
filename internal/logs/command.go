@@ -14,7 +14,7 @@ func NewCmdLogs(t *terminal.Terminal) *cobra.Command {
 		Use:     "logs",
 		Short:   "Tail logs",
 		Long:    `Tail logs of current project`,
-		Example: ` brev logs --task server`,
+		Example: `brev logs --task server`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			err := cmdcontext.InvokeParentPersistentPreRun(cmd, args)
 			if err != nil {
